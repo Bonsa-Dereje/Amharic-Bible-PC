@@ -10,6 +10,8 @@ import com.formdev.flatlaf.FlatLightLaf;
 
 
 
+
+
 public class mainWindow extends javax.swing.JFrame {
 
     /**
@@ -25,6 +27,8 @@ public class mainWindow extends javax.swing.JFrame {
         
     }
 
+    
+     
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -38,11 +42,29 @@ public class mainWindow extends javax.swing.JFrame {
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
+        homeBtn = new javax.swing.JLabel();
+        bookBtn = new javax.swing.JLabel();
+        searchBtn = new javax.swing.JLabel();
+        homeBtnLabel = new javax.swing.JLabel();
+        bibleBtnLabel = new javax.swing.JLabel();
+        searchBtnLabel = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
+        notesBtn = new javax.swing.JLabel();
+        notesBtnLabel = new javax.swing.JLabel();
+        audiobookBtn = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        cmntrsBtn = new javax.swing.JLabel();
+        cmntrsBtnLabel = new javax.swing.JLabel();
+        hostJoinBtn = new javax.swing.JLabel();
+        hostJoinBtnLabel = new javax.swing.JLabel();
+        settingsBrn = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
         bookChooser = new javax.swing.JComboBox<>();
         jComboBox1 = new javax.swing.JComboBox<>();
         jComboBox2 = new javax.swing.JComboBox<>();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -109,11 +131,11 @@ public class mainWindow extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 23, Short.MAX_VALUE)
-                        .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(bookChooserDropDown, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(bookChooserDropDown, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                        .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                     .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -122,32 +144,148 @@ public class mainWindow extends javax.swing.JFrame {
 
         jPanel2.setBackground(new java.awt.Color(40, 43, 45));
 
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/ebma/assets/icons8-book-40.png"))); // NOI18N
+        homeBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/home.png"))); // NOI18N
 
-        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/ebma/assets/icons8-home-40.png"))); // NOI18N
+        bookBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/book.png"))); // NOI18N
+
+        searchBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/search.png"))); // NOI18N
+
+        homeBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
+        homeBtnLabel.setText("Home");
+
+        bibleBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
+        bibleBtnLabel.setText(" Bible");
+
+        searchBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
+        searchBtnLabel.setText("Search");
+
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/bookmark.png"))); // NOI18N
+
+        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel2.setText("Bookmarks");
+
+        notesBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/notes.png"))); // NOI18N
+
+        notesBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
+        notesBtnLabel.setText("Notes");
+
+        audiobookBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/audiobook.png"))); // NOI18N
+
+        jLabel3.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel3.setText("Audiobook");
+
+        cmntrsBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/commentaries.png"))); // NOI18N
+
+        cmntrsBtnLabel.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
+        cmntrsBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
+        cmntrsBtnLabel.setText("Commentaries");
+
+        hostJoinBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/hostJoin.png"))); // NOI18N
+
+        hostJoinBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
+        hostJoinBtnLabel.setText(" Host/Join");
+        hostJoinBtnLabel.setAlignmentX(0.5F);
+
+        settingsBrn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/settings.png"))); // NOI18N
+
+        jLabel4.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel4.setText("  Settings");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                .addContainerGap(22, Short.MAX_VALUE)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jLabel2)
-                    .addComponent(jLabel1))
-                .addGap(18, 18, 18))
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(cmntrsBtnLabel))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addGap(21, 21, 21)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(homeBtn)
+                                    .addComponent(homeBtnLabel)
+                                    .addComponent(bookBtn)
+                                    .addComponent(bibleBtnLabel)
+                                    .addComponent(searchBtn)
+                                    .addComponent(searchBtnLabel)
+                                    .addComponent(jLabel1)))
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jLabel2))
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addGap(18, 18, 18)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(notesBtnLabel)
+                                    .addComponent(notesBtn)
+                                    .addComponent(audiobookBtn, javax.swing.GroupLayout.Alignment.TRAILING)))
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jLabel3))
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addGap(19, 19, 19)
+                                .addComponent(cmntrsBtn))
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(hostJoinBtnLabel))
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addGap(19, 19, 19)
+                                .addComponent(settingsBrn))
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jLabel4)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(18, 18, 18)
+                .addComponent(hostJoinBtn)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(25, 25, 25)
-                .addComponent(jLabel2)
-                .addGap(26, 26, 26)
+                .addGap(20, 20, 20)
+                .addComponent(homeBtn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(homeBtnLabel)
+                .addGap(18, 18, 18)
+                .addComponent(bookBtn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(bibleBtnLabel)
+                .addGap(18, 18, 18)
+                .addComponent(searchBtn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(searchBtnLabel)
+                .addGap(18, 18, 18)
                 .addComponent(jLabel1)
-                .addContainerGap(639, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel2)
+                .addGap(18, 18, 18)
+                .addComponent(notesBtn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(notesBtnLabel)
+                .addGap(18, 18, 18)
+                .addComponent(audiobookBtn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel3)
+                .addGap(18, 18, 18)
+                .addComponent(cmntrsBtn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cmntrsBtnLabel)
+                .addGap(18, 18, 18)
+                .addComponent(hostJoinBtn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(hostJoinBtnLabel)
+                .addGap(18, 18, 18)
+                .addComponent(settingsBrn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel4)
+                .addContainerGap(134, Short.MAX_VALUE))
         );
 
-        mainPanel_layered.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 30, 80, 770));
+        mainPanel_layered.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 30, 70, 770));
 
         bookChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
         bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ኦሪት ዘፍጥረት", "Item 3", "Item 4" }));
@@ -160,6 +298,14 @@ public class mainWindow extends javax.swing.JFrame {
         jComboBox2.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "1", "2", "3", "4" }));
         mainPanel_layered.add(jComboBox2, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 50, 50, -1));
+
+        jTextArea1.setColumns(20);
+        jTextArea1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        jTextArea1.setRows(5);
+        jTextArea1.setText("ምዕራፍ 1\nበመጀመሪያ እግዚአብሔር ሰማይንና ምድርን ፈጠረ።\n2 ፤ ምድርም ባዶ ነበረች፥ አንዳችም አልነበረባትም፤ ጨለማም በጥልቁ ላይ ነበረ፤ የእግዚአብሔርም መንፈስ\nበውኃ ላይ ሰፍፎ ነበር።\n3 ፤ እግዚአብሔርም። ብርሃን ይሁን ኣለ፤ ብርሃንም ሆነ።\n4 ፤ እግዚአብሔርም ብርሃኑ መልካም እንደ ሆነ አየ፤ እግዚብሔርም ብርሃንንና ጨለማን ለየ።\n5 ፤ እግዚአብሔርም ብርሃኑን ቀን ብሎ ጠራው፥ ጨለማውንም ሌሊት አለው። ማታም ሆነ ጥዋትም ሆነ፥\nአንድ ቀን።\n6 ፤ እግዚአብሔርም። በውኆች መካከል ጠፈር ይሁን፥ በውኃና በውኃ መካከልም ይክፈል አለ።\n7 ፤ እግዚአብሔርም ጠፈርን አደረገ፥ ከጠፈር በታችና ከጠፈር በላይ ያሉትንም ውኆች ለየ፤ እንዲሁም ሆነ።\n8 ፤ እግዚአብሔር ጠፈርን ሰማይ ብሎ ጠራው። ማታም ሆነ ጥዋትም ሆነ፥ ሁለተኛ ቀን።\n9 ፤ እግዚአብሔርም። ከሰማይ በታች ያለው ውኃ በአንድ ስፍራ ይሰብሰብ፥ የብሱም ይገለጥ አለ እንዲሁም ሆነ።\n10 ፤ እግዚአብሔርም የብሱን ምድር ብሎ ጠራው፤ የውኃ መከማቻውንም ባሕር አለው፤ እግዚእብሔርም ያ\nመልካም እንደ ሆነ አየ።\n11 ፤ እግዚአብሔርም። ምድር ዘርን የሚሰጥ ሣርንና ቡቃያን በምድርም ላይ እንደ ወገኑ ዘሩ ያለበትን ፍሬን\nየሚያፈራ ዛፍን ታብቅል አለ፤ እንዲሁም ሆነ።\n12 ፤ ምድርም ዘርን የሚሰጥ ሣርንና ቡቃያን እንደ ወገኑ ዘሩም ያለበትን ፍሬን የሚያፈራ ዛፍን እንደ ወገኑ\nአበቀለች። እግዚአብሔርም ያ መልካም እንደ ሆነ አየ።\n13 ፤ ማታም ሆነ ጥዋትም ሆነ፥ ሦስተኛ ቀን።\n14 ፤ እግዚአብሔርም አለ። ቀንና ሌሊትን ይለዩ ዘንድ ብርሃናት በሰማይ ጠፈር ይሁኑ፤ ለምልክቶች ለዘመኖች\nለዕለታት ለዓመታትም ይሁኑ፤\n15 ፤ በምድር ላይ ያበሩ ዘንድ በሰማይ ጠፈር ብርሃናት ይሁኑ፤ እንዲሁም ሆነ።\n16 ፤ እግዚአብሔርም ሁለት ታላላቆች ብርሃናትን አደረገ፤ ትልቁ ብርሃን በቀን እንዲሠለጥን፥ ትንሹም ብርሃን\nበሌሊት እንዲሰለጥን፤ ከዋክብትንም ደግሞ አደረገ።\n17 ፤ እግዚአብሔርም በምድር ላይ ያበሩ ዘንድ በሰማይ ጠፈር አኖራቸው፤\n18 ፤ በቀንም በሌሊትም እንዲሠለጥኑ፥ ብርሃንንና ጨለማንም እንዲለዩ፤ እግዚአብሔርም ያ መልካም እንደ ሆነ\nአየ።\n19 ፤ ማታም ሆነ ጥዋትም ሆነ፥ አራተኛ ቀን።\n20 ፤ እግዚአብሔርም አለ። ውኃ ሕያው ነፍስ ያላቸውን ተንቀሳቃሾች ታስገኝ፥ ወፎችም ከምድር በላይ ከሰማይ\nጠፈር በታች ይብረሩ።\n21 ፤ እግዚአብሔርም ታላላቆች አንበሪዎችን፥ ውኃይቱ እንደ ወገኑ ያስገኘቻቸውንም ተንቀሳቃሾቹን ሕያዋን\nፍጥረታት ሁሉ፥ እንደ ወገኑ የሚበሩትንም ወፎች ሁሉ ፈጠረ፤ እግዚአብሔርም ያ መልካም እንደ ሆነ አየ።\n22 ፤ እግዚአብሔርም እንዲህ ብሎ ባረካቸው። ብዙ ተባዙም የባሕርንም ውኃ ሙሉአት፤ ወፎችም በምድር ላይ\nይብዙ።\n23 ፤ ማታም ሆነ ጥዋትም ሆነ፥ አምስተኛ ቀን።\n24 ፤ እግዚአብሔርም አለ። ምድር ሕያዋን ፍጥረታትን እንደ ወገኑ፥ እንስሳትንና ተንቀሳቃሾችን የምድር\nአራዊትንም እንደ ወገኑ፥ ታውጣ፤ እንዲሁም ሆነ።\n25 ፤ እግዚአብሔር የምድር አራዊትን እንደ ወገኑ አደረገ፥ እንስሳውንም እንደ ወገኑ፥ የመሬት ተንቀሳቃሾችንም\nእንደ ወገኑ አደረገ፤ እግዚአብሔርም ያ መልካም እንደ ሆነ አየ።\n26 ፤ እግዚአብሔርም አለ። ሰውን በመልካችን እንደ ምሳሌአችን እንፍጠር፤ የባሕር ዓሦችንና የሰማይ ወፎችን፥\nእንስሳትንና ምድርን ሁሉ፥ በምድር ላይ የሚንቀሳቀሱትንም ሁሉ ይግዙ።\n27 ፤ እግዚአብሔርም ሰውን በመልኩ ፈጠረ፤ በእግዚአብሔር መልክ ፈጠረው፤ ወንድና ሴት አድርጎ ፈጠራቸው።\n28 ፤ እግዚአብሔርም ባረካቸው፥ እንዲህም አላቸው። ብዙ፥ ተባዙ፥ ምድርንም ሙሉአት፥ ግዙአትም፤ የባሕርን\nዓሦችና የሰማይን ወፎች በምድር ላይ የሚንቀሳቀሱትንም ሁሉ ግዙአቸው።\n29 ፤ እግዚአብሔርም አለ። እነሆ መብል ይሆናችሁ ዘንድ በምድር ፊት ሁሉ ላይ ዘሩ በእርሱ ያለውን ሐመልማል\nሁሉ፥ የዛፍን ፍሬ የሚያፈራውንና ዘር ያለውንም ዛፍ ሁሉ ሰጠኋችሁ፤\n30 ፤ ለምድርም አራዊት ሁሉ፥ ለሰማይም ወፎች ሁሉ፥ ሕያው ነፍስ ላላቸው ለምድር ተንቀሳቃሾችም ሁሉ\nየሚበቅለው ሐመልማል ሁሉ መብል ይሁንላቸው፤ እንዲሁም ሆነ።\n31 ፤ እግዚአብሔርም ያደረገውን ሁሉ አየ፥ እነሆም እጅግ መልካም ነበረ። ማታም ሆነ ጥዋትም ሆነ፥ ስድስተኛ\nቀን። ");
+        jScrollPane1.setViewportView(jTextArea1);
+
+        mainPanel_layered.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 90, 1330, 700));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -236,8 +382,17 @@ public class mainWindow extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel appTitle;
+    private javax.swing.JLabel audiobookBtn;
+    private javax.swing.JLabel bibleBtnLabel;
+    private javax.swing.JLabel bookBtn;
     private javax.swing.JComboBox<String> bookChooser;
     private javax.swing.JComboBox<String> bookChooserDropDown;
+    private javax.swing.JLabel cmntrsBtn;
+    private javax.swing.JLabel cmntrsBtnLabel;
+    private javax.swing.JLabel homeBtn;
+    private javax.swing.JLabel homeBtnLabel;
+    private javax.swing.JLabel hostJoinBtn;
+    private javax.swing.JLabel hostJoinBtnLabel;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
@@ -245,9 +400,18 @@ public class mainWindow extends javax.swing.JFrame {
     private javax.swing.JComboBox<String> jComboBox2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JLayeredPane mainPanel_layered;
+    private javax.swing.JLabel notesBtn;
+    private javax.swing.JLabel notesBtnLabel;
+    private javax.swing.JLabel searchBtn;
+    private javax.swing.JLabel searchBtnLabel;
+    private javax.swing.JLabel settingsBrn;
     // End of variables declaration//GEN-END:variables
 }
