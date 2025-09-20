@@ -14,6 +14,11 @@ import javax.swing.JMenuItem;
 import javax.swing.*;
 import java.awt.*;
 
+import javax.swing.text.Highlighter;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.BadLocationException;
+
+
 
 
 
@@ -21,6 +26,10 @@ import java.awt.*;
 public class mainWindow extends javax.swing.JFrame {
 
     private boolean isBoldActive = true;
+    
+    private boolean highlighterActive = false;  
+    private Color currentHighlightColor = null;  
+    
 
     public mainWindow() {
         
@@ -357,6 +366,31 @@ public class mainWindow extends javax.swing.JFrame {
         mainTextArea.setRows(5);
         mainTextArea.setText("ምዕራፍ 1\nበመጀመሪያ እግዚአብሔር ሰማይንና ምድርን ፈጠረ።\n2 ፤ ምድርም ባዶ ነበረች፥ አንዳችም አልነበረባትም፤ ጨለማም በጥልቁ ላይ ነበረ፤ የእግዚአብሔርም መንፈስ\nበውኃ ላይ ሰፍፎ ነበር።\n3 ፤ እግዚአብሔርም። ብርሃን ይሁን ኣለ፤ ብርሃንም ሆነ።\n4 ፤ እግዚአብሔርም ብርሃኑ መልካም እንደ ሆነ አየ፤ እግዚብሔርም ብርሃንንና ጨለማን ለየ።\n5 ፤ እግዚአብሔርም ብርሃኑን ቀን ብሎ ጠራው፥ ጨለማውንም ሌሊት አለው። ማታም ሆነ ጥዋትም ሆነ፥\nአንድ ቀን።\n6 ፤ እግዚአብሔርም። በውኆች መካከል ጠፈር ይሁን፥ በውኃና በውኃ መካከልም ይክፈል አለ።\n7 ፤ እግዚአብሔርም ጠፈርን አደረገ፥ ከጠፈር በታችና ከጠፈር በላይ ያሉትንም ውኆች ለየ፤ እንዲሁም ሆነ።\n8 ፤ እግዚአብሔር ጠፈርን ሰማይ ብሎ ጠራው። ማታም ሆነ ጥዋትም ሆነ፥ ሁለተኛ ቀን።\n9 ፤ እግዚአብሔርም። ከሰማይ በታች ያለው ውኃ በአንድ ስፍራ ይሰብሰብ፥ የብሱም ይገለጥ አለ እንዲሁም ሆነ።\n10 ፤ እግዚአብሔርም የብሱን ምድር ብሎ ጠራው፤ የውኃ መከማቻውንም ባሕር አለው፤ እግዚእብሔርም ያ\nመልካም እንደ ሆነ አየ።\n11 ፤ እግዚአብሔርም። ምድር ዘርን የሚሰጥ ሣርንና ቡቃያን በምድርም ላይ እንደ ወገኑ ዘሩ ያለበትን ፍሬን\nየሚያፈራ ዛፍን ታብቅል አለ፤ እንዲሁም ሆነ።\n12 ፤ ምድርም ዘርን የሚሰጥ ሣርንና ቡቃያን እንደ ወገኑ ዘሩም ያለበትን ፍሬን የሚያፈራ ዛፍን እንደ ወገኑ\nአበቀለች። እግዚአብሔርም ያ መልካም እንደ ሆነ አየ።\n13 ፤ ማታም ሆነ ጥዋትም ሆነ፥ ሦስተኛ ቀን።\n14 ፤ እግዚአብሔርም አለ። ቀንና ሌሊትን ይለዩ ዘንድ ብርሃናት በሰማይ ጠፈር ይሁኑ፤ ለምልክቶች ለዘመኖች\nለዕለታት ለዓመታትም ይሁኑ፤\n15 ፤ በምድር ላይ ያበሩ ዘንድ በሰማይ ጠፈር ብርሃናት ይሁኑ፤ እንዲሁም ሆነ።\n16 ፤ እግዚአብሔርም ሁለት ታላላቆች ብርሃናትን አደረገ፤ ትልቁ ብርሃን በቀን እንዲሠለጥን፥ ትንሹም ብርሃን\nበሌሊት እንዲሰለጥን፤ ከዋክብትንም ደግሞ አደረገ።\n17 ፤ እግዚአብሔርም በምድር ላይ ያበሩ ዘንድ በሰማይ ጠፈር አኖራቸው፤\n18 ፤ በቀንም በሌሊትም እንዲሠለጥኑ፥ ብርሃንንና ጨለማንም እንዲለዩ፤ እግዚአብሔርም ያ መልካም እንደ ሆነ\nአየ።\n19 ፤ ማታም ሆነ ጥዋትም ሆነ፥ አራተኛ ቀን።\n20 ፤ እግዚአብሔርም አለ። ውኃ ሕያው ነፍስ ያላቸውን ተንቀሳቃሾች ታስገኝ፥ ወፎችም ከምድር በላይ ከሰማይ\nጠፈር በታች ይብረሩ።\n21 ፤ እግዚአብሔርም ታላላቆች አንበሪዎችን፥ ውኃይቱ እንደ ወገኑ ያስገኘቻቸውንም ተንቀሳቃሾቹን ሕያዋን\nፍጥረታት ሁሉ፥ እንደ ወገኑ የሚበሩትንም ወፎች ሁሉ ፈጠረ፤ እግዚአብሔርም ያ መልካም እንደ ሆነ አየ።\n22 ፤ እግዚአብሔርም እንዲህ ብሎ ባረካቸው። ብዙ ተባዙም የባሕርንም ውኃ ሙሉአት፤ ወፎችም በምድር ላይ\nይብዙ።\n23 ፤ ማታም ሆነ ጥዋትም ሆነ፥ አምስተኛ ቀን።\n24 ፤ እግዚአብሔርም አለ። ምድር ሕያዋን ፍጥረታትን እንደ ወገኑ፥ እንስሳትንና ተንቀሳቃሾችን የምድር\nአራዊትንም እንደ ወገኑ፥ ታውጣ፤ እንዲሁም ሆነ።\n25 ፤ እግዚአብሔር የምድር አራዊትን እንደ ወገኑ አደረገ፥ እንስሳውንም እንደ ወገኑ፥ የመሬት ተንቀሳቃሾችንም\nእንደ ወገኑ አደረገ፤ እግዚአብሔርም ያ መልካም እንደ ሆነ አየ።\n26 ፤ እግዚአብሔርም አለ። ሰውን በመልካችን እንደ ምሳሌአችን እንፍጠር፤ የባሕር ዓሦችንና የሰማይ ወፎችን፥\nእንስሳትንና ምድርን ሁሉ፥ በምድር ላይ የሚንቀሳቀሱትንም ሁሉ ይግዙ።\n27 ፤ እግዚአብሔርም ሰውን በመልኩ ፈጠረ፤ በእግዚአብሔር መልክ ፈጠረው፤ ወንድና ሴት አድርጎ ፈጠራቸው።\n28 ፤ እግዚአብሔርም ባረካቸው፥ እንዲህም አላቸው። ብዙ፥ ተባዙ፥ ምድርንም ሙሉአት፥ ግዙአትም፤ የባሕርን\nዓሦችና የሰማይን ወፎች በምድር ላይ የሚንቀሳቀሱትንም ሁሉ ግዙአቸው።\n29 ፤ እግዚአብሔርም አለ። እነሆ መብል ይሆናችሁ ዘንድ በምድር ፊት ሁሉ ላይ ዘሩ በእርሱ ያለውን ሐመልማል\nሁሉ፥ የዛፍን ፍሬ የሚያፈራውንና ዘር ያለውንም ዛፍ ሁሉ ሰጠኋችሁ፤\n30 ፤ ለምድርም አራዊት ሁሉ፥ ለሰማይም ወፎች ሁሉ፥ ሕያው ነፍስ ላላቸው ለምድር ተንቀሳቃሾችም ሁሉ\nየሚበቅለው ሐመልማል ሁሉ መብል ይሁንላቸው፤ እንዲሁም ሆነ።\n31 ፤ እግዚአብሔርም ያደረገውን ሁሉ አየ፥ እነሆም እጅግ መልካም ነበረ። ማታም ሆነ ጥዋትም ሆነ፥ ስድስተኛ\nቀን። ");
         jScrollPane1.setViewportView(mainTextArea);
+        mainTextArea.addCaretListener(e -> {
+            String selectedText = mainTextArea.getSelectedText();
+            if (selectedText != null && !selectedText.isEmpty() && currentHighlightColor != null) {
+                try {
+                    // Remove old highlights (optional)
+                    mainTextArea.getHighlighter().removeAllHighlights();
+
+                    // Set selection colors so text stays black when selected
+                    mainTextArea.setSelectionColor(currentHighlightColor);
+                    mainTextArea.setSelectedTextColor(Color.BLACK);
+
+                    // Apply the highlight
+                    Highlighter.HighlightPainter painter =
+                    new DefaultHighlighter.DefaultHighlightPainter(currentHighlightColor);
+
+                    int start = mainTextArea.getSelectionStart();
+                    int end = mainTextArea.getSelectionEnd();
+
+                    mainTextArea.getHighlighter().addHighlight(start, end, painter);
+
+                } catch (BadLocationException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
 
         mainPanel_layered.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 90, 870, 860));
 
@@ -611,53 +645,78 @@ public class mainWindow extends javax.swing.JFrame {
 
     private void highlightBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_highlightBtnActionPerformed
       
-    JPopupMenu popup = new JPopupMenu();
+        JPopupMenu popup = new JPopupMenu();
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(1, 4, 5, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+        panel.setBackground(Color.WHITE);
 
-    // Create a panel to hold buttons
-    JPanel panel = new JPanel();
-    panel.setLayout(new GridLayout(1, 4, 5, 5)); // 1 row, 4 columns, spacing
-    panel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
-    panel.setBackground(Color.WHITE);
+        // Create color buttons
+        JButton yellowBtn = new JButton();
+        yellowBtn.setBackground(Color.YELLOW);
+        yellowBtn.setPreferredSize(new Dimension(18, 18));
+        yellowBtn.addActionListener(e -> {
+            currentHighlightColor = Color.YELLOW;
+            highlightBtn.setBackground(Color.YELLOW);
+            highlighterActive = true;   // activate highlighter
+            popup.setVisible(false);
+            mainTextArea.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+        });
 
+        JButton greenBtn = new JButton();
+        greenBtn.setBackground(Color.GREEN);
+        greenBtn.setPreferredSize(new Dimension(18, 18));
+        greenBtn.addActionListener(e -> {
+            currentHighlightColor = Color.GREEN;
+            highlightBtn.setBackground(Color.GREEN);
+            highlighterActive = true;
+            popup.setVisible(false);
+            mainTextArea.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+        });
 
+        JButton blueBtn = new JButton();
+        blueBtn.setBackground(Color.CYAN);
+        blueBtn.setPreferredSize(new Dimension(18, 18));
+        blueBtn.addActionListener(e -> {
+            currentHighlightColor = Color.CYAN;
+            highlightBtn.setBackground(Color.CYAN);
+            highlighterActive = true;
+            popup.setVisible(false);
+            mainTextArea.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+        });
 
-    // Create buttons with colors
-    JButton yellowBtn = new JButton();
-    yellowBtn.setBackground(Color.YELLOW);
-    yellowBtn.setPreferredSize(new Dimension(18, 18));
+        JButton pinkBtn = new JButton();
+        pinkBtn.setBackground(Color.PINK);
+        pinkBtn.setPreferredSize(new Dimension(18, 18));
+        pinkBtn.addActionListener(e -> {
+            currentHighlightColor = Color.PINK;
+            highlightBtn.setBackground(Color.PINK);
+            highlighterActive = true;
+            popup.setVisible(false);
+            mainTextArea.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+        });
 
-    JButton greenBtn = new JButton();
-    greenBtn.setBackground(Color.GREEN);
-    greenBtn.setPreferredSize(new Dimension(18, 18));
+        panel.add(yellowBtn);
+        panel.add(greenBtn);
+        panel.add(blueBtn);
+        panel.add(pinkBtn);
 
-    JButton blueBtn = new JButton();
-    blueBtn.setBackground(Color.CYAN);
-    blueBtn.setPreferredSize(new Dimension(18, 18));
+        popup.add(panel);
 
-    JButton pinkBtn = new JButton();
-    pinkBtn.setBackground(Color.PINK);
-    pinkBtn.setPreferredSize(new Dimension(18, 18));
-
-    // Add actions (example: change the button's background when picked)
-    yellowBtn.addActionListener(e -> highlightBtn.setBackground(Color.YELLOW));
-    greenBtn.addActionListener(e -> highlightBtn.setBackground(Color.GREEN));
-    blueBtn.addActionListener(e -> highlightBtn.setBackground(Color.CYAN));
-    pinkBtn.addActionListener(e -> highlightBtn.setBackground(Color.PINK));
-
-    // Add buttons to panel
-    panel.add(yellowBtn);
-    panel.add(greenBtn);
-    panel.add(blueBtn);
-    panel.add(pinkBtn);
-
-    // Add panel to popup
-    popup.add(panel);
-
-    // Show popup under the button
-    popup.show(highlightBtn, -panel.getPreferredSize().width, 0);
+        // Toggle behavior: if already active, clicking the button deactivates
+        if (highlighterActive) {
+            highlighterActive = false;
+            currentHighlightColor = null;
+            highlightBtn.setBackground(null); // reset button color
+            mainTextArea.setCursor(Cursor.getDefaultCursor());
+        } else {
+            popup.show(highlightBtn, -panel.getPreferredSize().width, 0); // show color selection
+        }
 
     }//GEN-LAST:event_highlightBtnActionPerformed
 
+    
+    
     private void closeBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeBtnActionPerformed
            int result = JOptionPane.showConfirmDialog(
             this, 
