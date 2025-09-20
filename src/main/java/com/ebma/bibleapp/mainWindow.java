@@ -18,6 +18,10 @@ import javax.swing.text.Highlighter;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.BadLocationException;
 
+import java.io.*;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+
 
 
 
@@ -30,6 +34,9 @@ public class mainWindow extends javax.swing.JFrame {
     private boolean highlighterActive = false;  
     private Color currentHighlightColor = null;  
     
+    
+    
+
 
     public mainWindow() {
         
@@ -40,8 +47,38 @@ public class mainWindow extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         
         boldBtn.setBackground(Color.LIGHT_GRAY);
-        
+
+    for (int i = 1; i <= 66; i++) {
+        bookChooser.addItem("Book " + i);
+              }
+    bookChooser.addActionListener(e -> {
+        int selectedIndex = bookChooser.getSelectedIndex();
+        int bookNumber = selectedIndex + 1;
+        loadPdfToTextArea("files/books/" + bookNumber + ".pdf");
+    });
+
+    // load first book by default
+    bookChooser.setSelectedIndex(0);    
     }
+    
+    private void loadPdfToTextArea(String resourcePath) {
+    try (InputStream is = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
+        if (is == null) {
+            mainTextArea.setText("File not found: " + resourcePath);
+            return;
+        }
+
+        PDDocument document = PDDocument.load(is);
+        PDFTextStripper stripper = new PDFTextStripper();
+        String text = stripper.getText(document);
+        document.close();
+
+        mainTextArea.setText(text);
+    } catch (Exception e) {
+        e.printStackTrace();
+        mainTextArea.setText("Error loading PDF: " + e.getMessage());
+    }
+}
 
     
      
@@ -364,7 +401,6 @@ public class mainWindow extends javax.swing.JFrame {
         mainTextArea.setColumns(20);
         mainTextArea.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 18)); // NOI18N
         mainTextArea.setRows(5);
-        mainTextArea.setText("ምዕራፍ 1\nበመጀመሪያ እግዚአብሔር ሰማይንና ምድርን ፈጠረ።\n2 ፤ ምድርም ባዶ ነበረች፥ አንዳችም አልነበረባትም፤ ጨለማም በጥልቁ ላይ ነበረ፤ የእግዚአብሔርም መንፈስ\nበውኃ ላይ ሰፍፎ ነበር።\n3 ፤ እግዚአብሔርም። ብርሃን ይሁን ኣለ፤ ብርሃንም ሆነ።\n4 ፤ እግዚአብሔርም ብርሃኑ መልካም እንደ ሆነ አየ፤ እግዚብሔርም ብርሃንንና ጨለማን ለየ።\n5 ፤ እግዚአብሔርም ብርሃኑን ቀን ብሎ ጠራው፥ ጨለማውንም ሌሊት አለው። ማታም ሆነ ጥዋትም ሆነ፥\nአንድ ቀን።\n6 ፤ እግዚአብሔርም። በውኆች መካከል ጠፈር ይሁን፥ በውኃና በውኃ መካከልም ይክፈል አለ።\n7 ፤ እግዚአብሔርም ጠፈርን አደረገ፥ ከጠፈር በታችና ከጠፈር በላይ ያሉትንም ውኆች ለየ፤ እንዲሁም ሆነ።\n8 ፤ እግዚአብሔር ጠፈርን ሰማይ ብሎ ጠራው። ማታም ሆነ ጥዋትም ሆነ፥ ሁለተኛ ቀን።\n9 ፤ እግዚአብሔርም። ከሰማይ በታች ያለው ውኃ በአንድ ስፍራ ይሰብሰብ፥ የብሱም ይገለጥ አለ እንዲሁም ሆነ።\n10 ፤ እግዚአብሔርም የብሱን ምድር ብሎ ጠራው፤ የውኃ መከማቻውንም ባሕር አለው፤ እግዚእብሔርም ያ\nመልካም እንደ ሆነ አየ።\n11 ፤ እግዚአብሔርም። ምድር ዘርን የሚሰጥ ሣርንና ቡቃያን በምድርም ላይ እንደ ወገኑ ዘሩ ያለበትን ፍሬን\nየሚያፈራ ዛፍን ታብቅል አለ፤ እንዲሁም ሆነ።\n12 ፤ ምድርም ዘርን የሚሰጥ ሣርንና ቡቃያን እንደ ወገኑ ዘሩም ያለበትን ፍሬን የሚያፈራ ዛፍን እንደ ወገኑ\nአበቀለች። እግዚአብሔርም ያ መልካም እንደ ሆነ አየ።\n13 ፤ ማታም ሆነ ጥዋትም ሆነ፥ ሦስተኛ ቀን።\n14 ፤ እግዚአብሔርም አለ። ቀንና ሌሊትን ይለዩ ዘንድ ብርሃናት በሰማይ ጠፈር ይሁኑ፤ ለምልክቶች ለዘመኖች\nለዕለታት ለዓመታትም ይሁኑ፤\n15 ፤ በምድር ላይ ያበሩ ዘንድ በሰማይ ጠፈር ብርሃናት ይሁኑ፤ እንዲሁም ሆነ።\n16 ፤ እግዚአብሔርም ሁለት ታላላቆች ብርሃናትን አደረገ፤ ትልቁ ብርሃን በቀን እንዲሠለጥን፥ ትንሹም ብርሃን\nበሌሊት እንዲሰለጥን፤ ከዋክብትንም ደግሞ አደረገ።\n17 ፤ እግዚአብሔርም በምድር ላይ ያበሩ ዘንድ በሰማይ ጠፈር አኖራቸው፤\n18 ፤ በቀንም በሌሊትም እንዲሠለጥኑ፥ ብርሃንንና ጨለማንም እንዲለዩ፤ እግዚአብሔርም ያ መልካም እንደ ሆነ\nአየ።\n19 ፤ ማታም ሆነ ጥዋትም ሆነ፥ አራተኛ ቀን።\n20 ፤ እግዚአብሔርም አለ። ውኃ ሕያው ነፍስ ያላቸውን ተንቀሳቃሾች ታስገኝ፥ ወፎችም ከምድር በላይ ከሰማይ\nጠፈር በታች ይብረሩ።\n21 ፤ እግዚአብሔርም ታላላቆች አንበሪዎችን፥ ውኃይቱ እንደ ወገኑ ያስገኘቻቸውንም ተንቀሳቃሾቹን ሕያዋን\nፍጥረታት ሁሉ፥ እንደ ወገኑ የሚበሩትንም ወፎች ሁሉ ፈጠረ፤ እግዚአብሔርም ያ መልካም እንደ ሆነ አየ።\n22 ፤ እግዚአብሔርም እንዲህ ብሎ ባረካቸው። ብዙ ተባዙም የባሕርንም ውኃ ሙሉአት፤ ወፎችም በምድር ላይ\nይብዙ።\n23 ፤ ማታም ሆነ ጥዋትም ሆነ፥ አምስተኛ ቀን።\n24 ፤ እግዚአብሔርም አለ። ምድር ሕያዋን ፍጥረታትን እንደ ወገኑ፥ እንስሳትንና ተንቀሳቃሾችን የምድር\nአራዊትንም እንደ ወገኑ፥ ታውጣ፤ እንዲሁም ሆነ።\n25 ፤ እግዚአብሔር የምድር አራዊትን እንደ ወገኑ አደረገ፥ እንስሳውንም እንደ ወገኑ፥ የመሬት ተንቀሳቃሾችንም\nእንደ ወገኑ አደረገ፤ እግዚአብሔርም ያ መልካም እንደ ሆነ አየ።\n26 ፤ እግዚአብሔርም አለ። ሰውን በመልካችን እንደ ምሳሌአችን እንፍጠር፤ የባሕር ዓሦችንና የሰማይ ወፎችን፥\nእንስሳትንና ምድርን ሁሉ፥ በምድር ላይ የሚንቀሳቀሱትንም ሁሉ ይግዙ።\n27 ፤ እግዚአብሔርም ሰውን በመልኩ ፈጠረ፤ በእግዚአብሔር መልክ ፈጠረው፤ ወንድና ሴት አድርጎ ፈጠራቸው።\n28 ፤ እግዚአብሔርም ባረካቸው፥ እንዲህም አላቸው። ብዙ፥ ተባዙ፥ ምድርንም ሙሉአት፥ ግዙአትም፤ የባሕርን\nዓሦችና የሰማይን ወፎች በምድር ላይ የሚንቀሳቀሱትንም ሁሉ ግዙአቸው።\n29 ፤ እግዚአብሔርም አለ። እነሆ መብል ይሆናችሁ ዘንድ በምድር ፊት ሁሉ ላይ ዘሩ በእርሱ ያለውን ሐመልማል\nሁሉ፥ የዛፍን ፍሬ የሚያፈራውንና ዘር ያለውንም ዛፍ ሁሉ ሰጠኋችሁ፤\n30 ፤ ለምድርም አራዊት ሁሉ፥ ለሰማይም ወፎች ሁሉ፥ ሕያው ነፍስ ላላቸው ለምድር ተንቀሳቃሾችም ሁሉ\nየሚበቅለው ሐመልማል ሁሉ መብል ይሁንላቸው፤ እንዲሁም ሆነ።\n31 ፤ እግዚአብሔርም ያደረገውን ሁሉ አየ፥ እነሆም እጅግ መልካም ነበረ። ማታም ሆነ ጥዋትም ሆነ፥ ስድስተኛ\nቀን። ");
         jScrollPane1.setViewportView(mainTextArea);
         mainTextArea.addCaretListener(e -> {
             String selectedText = mainTextArea.getSelectedText();
@@ -373,11 +409,10 @@ public class mainWindow extends javax.swing.JFrame {
                     // Remove old highlights (optional)
                     mainTextArea.getHighlighter().removeAllHighlights();
 
-                    // Set selection colors so text stays black when selected
-                    mainTextArea.setSelectionColor(currentHighlightColor);
+                    // Force selected text to render in black immediately
                     mainTextArea.setSelectedTextColor(Color.BLACK);
 
-                    // Apply the highlight
+                    // Apply highlight with chosen color
                     Highlighter.HighlightPainter painter =
                     new DefaultHighlighter.DefaultHighlightPainter(currentHighlightColor);
 
