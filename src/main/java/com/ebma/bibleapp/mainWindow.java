@@ -35,7 +35,24 @@ public class mainWindow extends javax.swing.JFrame {
     private Color currentHighlightColor = null;  
     
     
-    
+    private String[] allBooks = {
+        "ኦሪት ዘፍጥረት", "ኦሪት ዘጸአት", "ኦሪት ዘሌዋውያን", "ኦሪት ዘኍልቍ", "ኦሪት ዘዳግም", 
+        "መጽሐፈ ኢያሱ ወልደ ነዌ", "መጽሐፈ መሣፍንት", "መጽሐፈ ሩት", "መጽሐፈ ሳሙኤል ቀዳማዊ", 
+        "መጽሐፈ ሳሙኤል ካልዕ", "መጽሐፈ ነገሥት ቀዳማዊ", "መጽሐፈ ነገሥት ካልዕ", 
+        "መጽሐፈ ዜና መዋዕል ቀዳማዊ", "መጽሐፈ ዜና መዋዕል ካልዕ", "መጽሐፈ ዕዝራ", 
+        "መጽሐፈ ነህምያ", "መጽሐፈ አስቴር", "መጽሐፈ ኢዮብ", "መዝሙረ ዳዊት", "መጽሐፈ ምሳሌ", 
+        "መጽሐፈ መክብብ", "መኃልየ መኃልይ ዘሰሎሞን", "ትንቢተ ኢሳይያስ", "ትንቢተ ኤርምያስ", 
+        "ሰቆቃው ኤርምያስ", "ትንቢተ ሕዝቅኤል", "ትንቢተ ዳንኤል", "ትንቢተ ሆሴዕ", "ትንቢተ አሞጽ", 
+        "ትንቢተ ሚክያስ", "ትንቢተ ኢዮኤል", "ትንቢተ አብድዩ", "ትንቢተ ዮናስ", "ትንቢተ ናሆም", 
+        "ትንቢተ ዕንባቆም", "ትንቢተ ሶፎንያስ", "ትንቢተ ሐጌ", "ትንቢተ ዘካርያስ", "ትንቢተ ሚልክያስ", 
+        "የማቴዎስ ወንጌል", "የማርቆስ ወንጌል", "የሉቃስ ወንጌል", "የዮሐንስ ወንጌል", "የሐዋርያት ሥራ", 
+        "ወደ ሮሜ ሰዎች", "1ኛ ወደ ቆሮንቶስ ሰዎች", "2ኛ ወደ ቆሮንቶስ ሰዎች", "ወደ ገላትያ ሰዎች", 
+        "ወደ ኤፌሶን ሰዎች", "ወደ ፊልጵስዩስ ሰዎች", "ወደ ቆላስይስ ሰዎች", "1ኛ ወደ ተሰሎንቄ ሰዎች", 
+        "2ኛ ወደ ተሰሎንቄ ሰዎች", "1ኛ ወደ ጢሞቴዎስ", "2ኛ ወደ ጢሞቴዎስ", "ወደ ቲቶ", "ወደ ፊልሞና", 
+        "ወደ ዕብራውያን", "1ኛ የጴጥሮስ መልእክት", "2ኛ የጴጥሮስ መልእክት", "1ኛ የዮሐንስ መልእክት", 
+        "2ኛ የዮሐንስ መልእክት", "3ኛ የዮሐንስ መልእክት", "የያዕቆብ መልእክት", "የይሁዳ መልእክት", "የዮሐንስ ራእይ"
+
+    };
 
 
     public mainWindow() {
@@ -47,45 +64,34 @@ public class mainWindow extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         
         boldBtn.setBackground(Color.LIGHT_GRAY);
+        
+        testamentChooser.addActionListener(e -> updateBookChooser());
 
-    for (int i = 1; i <= 66; i++) {
-        bookChooser.addItem("Book " + i);
-              }
-    bookChooser.addActionListener(e -> {
-        int selectedIndex = bookChooser.getSelectedIndex();
-        int bookNumber = selectedIndex + 1;
-        loadPdfToTextArea("files/books/" + bookNumber + ".pdf");
-    });
-
-    // load first book by default
-    bookChooser.setSelectedIndex(0);    
+        testamentChooser.setSelectedIndex(0);
+        updateBookChooser();
+      
     }
     
-    private void loadPdfToTextArea(String resourcePath) {
-    try (InputStream is = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
-        if (is == null) {
-            mainTextArea.setText("File not found: " + resourcePath);
-            return;
-        }
+    private void updateBookChooser() {
+    int selectedTestament = testamentChooser.getSelectedIndex();
+    int start, end;
 
-        PDDocument document = PDDocument.load(is);
-        PDFTextStripper stripper = new PDFTextStripper();
-        String text = stripper.getText(document);
-        document.close();
-
-        mainTextArea.setText(text);
-    } catch (Exception e) {
-        e.printStackTrace();
-        mainTextArea.setText("Error loading PDF: " + e.getMessage());
+    if (selectedTestament == 0) { 
+        start = 0;
+        end = 39;
+    } else { 
+        start = 39;
+        end = allBooks.length;
     }
-}
 
+    String[] subset = java.util.Arrays.copyOfRange(allBooks, start, end);
+    bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(subset));
+}
     
      
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-        java.awt.GridBagConstraints gridBagConstraints;
 
         mainPanel_layered = new javax.swing.JLayeredPane();
         jPanel1 = new javax.swing.JPanel();
@@ -114,9 +120,6 @@ public class mainWindow extends javax.swing.JFrame {
         cmntrsBtn = new javax.swing.JButton();
         hostJoinBtn = new javax.swing.JButton();
         homeBtn4 = new javax.swing.JButton();
-        bookChooser = new javax.swing.JComboBox<>();
-        jComboBox1 = new javax.swing.JComboBox<>();
-        jComboBox2 = new javax.swing.JComboBox<>();
         jScrollPane1 = new javax.swing.JScrollPane();
         mainTextArea = new javax.swing.JTextArea();
         cmtryTabbedPanel = new javax.swing.JTabbedPane();
@@ -130,6 +133,10 @@ public class mainWindow extends javax.swing.JFrame {
         highlightBtn = new javax.swing.JButton();
         boldBtn = new javax.swing.JButton();
         fontSizeSlider = new javax.swing.JSlider();
+        bookChooser = new javax.swing.JComboBox<>();
+        jComboBox2 = new javax.swing.JComboBox<>();
+        jComboBox1 = new javax.swing.JComboBox<>();
+        testamentChooser = new javax.swing.JComboBox<>();
         jPanel7 = new javax.swing.JPanel();
         jPanel8 = new javax.swing.JPanel();
         jPanel9 = new javax.swing.JPanel();
@@ -385,18 +392,6 @@ public class mainWindow extends javax.swing.JFrame {
 
         mainPanel_layered.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 30, 70, 930));
 
-        bookChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
-        bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ኦሪት ዘፍጥረት", "Item 3", "Item 4" }));
-        mainPanel_layered.add(bookChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 50, 120, -1));
-
-        jComboBox1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "1", "2", "3", "4" }));
-        mainPanel_layered.add(jComboBox1, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 50, 50, -1));
-
-        jComboBox2.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "1", "2", "3", "4" }));
-        mainPanel_layered.add(jComboBox2, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 50, 50, -1));
-
         mainTextArea.setEditable(false);
         mainTextArea.setColumns(20);
         mainTextArea.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 18)); // NOI18N
@@ -497,12 +492,31 @@ public class mainWindow extends javax.swing.JFrame {
         fontSizeSlider.setFocusable(false);
         fontSizeSlider.setOpaque(true);
 
+        bookChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
+
+        jComboBox2.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "1", "2", "3", "4" }));
+
+        jComboBox1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "1", "2", "3", "4" }));
+
+        testamentChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
+        testamentChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ብሉይ ኪዳን", "አዲስ ኪዳን" }));
+
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
         jPanel6Layout.setHorizontalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
-                .addContainerGap(722, Short.MAX_VALUE)
+                .addGap(17, 17, 17)
+                .addComponent(testamentChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(bookChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(10, 10, 10)
+                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 330, Short.MAX_VALUE)
                 .addComponent(fontSizeSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 104, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(boldBtn)
@@ -516,11 +530,17 @@ public class mainWindow extends javax.swing.JFrame {
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel6Layout.createSequentialGroup()
                 .addGap(67, 67, 67)
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(highlightBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(boldBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(fontSizeSlider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jComboBox2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(highlightBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(boldBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(fontSizeSlider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(testamentChooser, javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(bookChooser)))
                 .addContainerGap(721, Short.MAX_VALUE))
         );
 
@@ -879,5 +899,6 @@ public class mainWindow extends javax.swing.JFrame {
     private javax.swing.JLabel notesBtnLabel;
     private javax.swing.JButton searchBtn;
     private javax.swing.JLabel searchBtnLabel;
+    private javax.swing.JComboBox<String> testamentChooser;
     // End of variables declaration//GEN-END:variables
 }
