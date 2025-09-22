@@ -66,6 +66,9 @@ public class mainWindow extends javax.swing.JFrame {
         boldBtn.setBackground(Color.LIGHT_GRAY);
         
         testamentChooser.addActionListener(e -> updateBookChooser());
+        bookChooser.addActionListener(e -> updateChapterChooser());
+
+        
 
         testamentChooser.setSelectedIndex(0);
         updateBookChooser();
@@ -88,7 +91,43 @@ public class mainWindow extends javax.swing.JFrame {
     bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(subset));
 }
     
+
      
+private void updateChapterChooser() {
+    int selectedBookIndex = bookChooser.getSelectedIndex(); // the index selected in bookChooser
+    if (selectedBookIndex < 0) return;
+
+    // Folders are named starting from 1, so compensate by adding 1
+    int folderNumber = selectedBookIndex + 1;
+
+    File bookFolder = new File(
+            "C:\\Users\\boni\\Desktop\\Files\\The Bible Project\\BibleApp\\src\\main\\resources\\files\\books",
+            String.valueOf(folderNumber)
+    );
+
+    if (!bookFolder.exists() || !bookFolder.isDirectory()) {
+        chapterChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"0"}));
+        return;
+    }
+
+    // Count all PDF files in the folder
+    File[] chapterFiles = bookFolder.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
+    int chapterCount = (chapterFiles != null) ? chapterFiles.length : 0;
+
+    // Populate chapterChooser with numbers 1 .. chapterCount
+    String[] chapters = new String[chapterCount];
+    for (int i = 0; i < chapterCount; i++) {
+        chapters[i] = String.valueOf(i + 1); // add 1 here
+    }
+
+    chapterChooser.setModel(new javax.swing.DefaultComboBoxModel<>(chapters));
+    chapterChooser.setSelectedIndex(0); // default to first chapter
+}
+
+
+
+     
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -134,8 +173,8 @@ public class mainWindow extends javax.swing.JFrame {
         boldBtn = new javax.swing.JButton();
         fontSizeSlider = new javax.swing.JSlider();
         bookChooser = new javax.swing.JComboBox<>();
-        jComboBox2 = new javax.swing.JComboBox<>();
-        jComboBox1 = new javax.swing.JComboBox<>();
+        chapterChooser = new javax.swing.JComboBox<>();
+        verseChooser = new javax.swing.JComboBox<>();
         testamentChooser = new javax.swing.JComboBox<>();
         jPanel7 = new javax.swing.JPanel();
         jPanel8 = new javax.swing.JPanel();
@@ -493,12 +532,17 @@ public class mainWindow extends javax.swing.JFrame {
         fontSizeSlider.setOpaque(true);
 
         bookChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
+        bookChooser.addActionListener(e -> updateChapterChooser());
+        bookChooser.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookChooserActionPerformed(evt);
+            }
+        });
 
-        jComboBox2.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "1", "2", "3", "4" }));
+        chapterChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
 
-        jComboBox1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "1", "2", "3", "4" }));
+        verseChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        verseChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "1", "2", "3", "4" }));
 
         testamentChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
         testamentChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ብሉይ ኪዳን", "አዲስ ኪዳን" }));
@@ -513,9 +557,9 @@ public class mainWindow extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(bookChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(chapterChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(10, 10, 10)
-                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(verseChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 330, Short.MAX_VALUE)
                 .addComponent(fontSizeSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 104, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -531,8 +575,8 @@ public class mainWindow extends javax.swing.JFrame {
             .addGroup(jPanel6Layout.createSequentialGroup()
                 .addGap(67, 67, 67)
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jComboBox2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(chapterChooser, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(verseChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                         .addComponent(highlightBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -799,6 +843,10 @@ public class mainWindow extends javax.swing.JFrame {
 
     }//GEN-LAST:event_boldBtnActionPerformed
 
+    private void bookChooserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookChooserActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_bookChooserActionPerformed
+
     
     /**
      * @param args the command line arguments
@@ -858,6 +906,7 @@ public class mainWindow extends javax.swing.JFrame {
     private javax.swing.JComboBox<String> bookChooser;
     private javax.swing.JComboBox<String> bookChooserDropDown;
     private javax.swing.JButton bookmarkBtn;
+    private javax.swing.JComboBox<String> chapterChooser;
     private javax.swing.JButton closeBtn;
     private javax.swing.JButton cmntrsBtn;
     private javax.swing.JLabel cmntrsBtnLabel;
@@ -872,8 +921,6 @@ public class mainWindow extends javax.swing.JFrame {
     private javax.swing.JLabel hostJoinBtnLabel;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
-    private javax.swing.JComboBox<String> jComboBox1;
-    private javax.swing.JComboBox<String> jComboBox2;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -900,5 +947,6 @@ public class mainWindow extends javax.swing.JFrame {
     private javax.swing.JButton searchBtn;
     private javax.swing.JLabel searchBtnLabel;
     private javax.swing.JComboBox<String> testamentChooser;
+    private javax.swing.JComboBox<String> verseChooser;
     // End of variables declaration//GEN-END:variables
 }
