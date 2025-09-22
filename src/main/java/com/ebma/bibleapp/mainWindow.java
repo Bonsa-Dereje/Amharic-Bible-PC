@@ -71,6 +71,8 @@ public class mainWindow extends javax.swing.JFrame {
         
 
         testamentChooser.setSelectedIndex(0);
+        bookChooser.setSelectedIndex(0);
+        chapterChooser.setSelectedIndex(0);
         updateBookChooser();
       
     }
@@ -94,11 +96,18 @@ public class mainWindow extends javax.swing.JFrame {
 
      
 private void updateChapterChooser() {
-    int selectedBookIndex = bookChooser.getSelectedIndex(); // the index selected in bookChooser
+    int selectedBookIndex = bookChooser.getSelectedIndex(); 
     if (selectedBookIndex < 0) return;
 
-    // Folders are named starting from 1, so compensate by adding 1
-    int folderNumber = selectedBookIndex + 1;
+    int selectedTestamentIndex = testamentChooser.getSelectedIndex();
+
+    // Adjust for New Testament starting after 39 books
+    int folderNumber;
+    if (selectedTestamentIndex == 1) {
+        folderNumber = selectedBookIndex + 40; // since NT starts at book #40 (index 39)
+    } else {
+        folderNumber = selectedBookIndex + 1;  // OT starts at book #1
+    }
 
     File bookFolder = new File(
             "C:\\Users\\boni\\Desktop\\Files\\The Bible Project\\BibleApp\\src\\main\\resources\\files\\books",
@@ -106,7 +115,7 @@ private void updateChapterChooser() {
     );
 
     if (!bookFolder.exists() || !bookFolder.isDirectory()) {
-        chapterChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"0"}));
+        chapterChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"1"}));
         return;
     }
 
@@ -117,12 +126,14 @@ private void updateChapterChooser() {
     // Populate chapterChooser with numbers 1 .. chapterCount
     String[] chapters = new String[chapterCount];
     for (int i = 0; i < chapterCount; i++) {
-        chapters[i] = String.valueOf(i + 1); // add 1 here
+        chapters[i] = String.valueOf(i + 1); // start from 1
     }
 
     chapterChooser.setModel(new javax.swing.DefaultComboBoxModel<>(chapters));
     chapterChooser.setSelectedIndex(0); // default to first chapter
 }
+
+
 
 
 
@@ -555,12 +566,12 @@ private void updateChapterChooser() {
                 .addGap(17, 17, 17)
                 .addComponent(testamentChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(bookChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(chapterChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(10, 10, 10)
-                .addComponent(verseChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 330, Short.MAX_VALUE)
+                .addComponent(bookChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(chapterChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(verseChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 269, Short.MAX_VALUE)
                 .addComponent(fontSizeSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 104, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(boldBtn)
@@ -575,8 +586,9 @@ private void updateChapterChooser() {
             .addGroup(jPanel6Layout.createSequentialGroup()
                 .addGap(67, 67, 67)
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(chapterChooser, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(verseChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(chapterChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(verseChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                         .addComponent(highlightBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -601,6 +613,47 @@ private void updateChapterChooser() {
                     currentFont.getStyle(),
                     size
                 ));
+            }
+        });
+        chapterChooser.addActionListener(e -> {
+            int selectedChapterIndex = chapterChooser.getSelectedIndex();
+            if (selectedChapterIndex < 0) return;
+
+            int selectedBookIndex = bookChooser.getSelectedIndex();
+            if (selectedBookIndex < 0) return;
+
+            int selectedTestamentIndex = testamentChooser.getSelectedIndex();
+
+            // Figure out the folder number
+            int folderNumber;
+            if (selectedTestamentIndex == 1) {
+                folderNumber = selectedBookIndex + 40; // New Testament offset
+            } else {
+                folderNumber = selectedBookIndex + 1;  // Old Testament
+            }
+
+            // Chapter files are named as index+1.pdf
+            int chapterNumber = selectedChapterIndex + 1;
+            File pdfFile = new File(
+                "C:\\Users\\boni\\Desktop\\Files\\The Bible Project\\BibleApp\\src\\main\\resources\\files\\books\\"
+                + folderNumber,
+                chapterNumber + ".pdf"
+            );
+
+            if (!pdfFile.exists()) {
+                mainTextArea.setText("Chapter file not found: " + pdfFile.getName());
+                return;
+            }
+
+            // Load the PDF text into mainTextArea
+            try (PDDocument doc = PDDocument.load(pdfFile)) {
+                PDFTextStripper stripper = new PDFTextStripper();
+                String text = stripper.getText(doc);
+                mainTextArea.setText(text.trim());
+                mainTextArea.setCaretPosition(0); // scroll to top
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                mainTextArea.setText("Error reading: " + pdfFile.getName());
             }
         });
 

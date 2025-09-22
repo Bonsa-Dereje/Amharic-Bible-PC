@@ -738,6 +738,7 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bookChooserActionPerformed"/>
                   </Events>
                   <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int selectedTestamentIndex = testamentChooser.getSelectedIndex();&#xa;    int selectedBookIndex = bookChooser.getSelectedIndex();&#xa;&#xa;    if (selectedTestamentIndex == 1) {  &#xa;        // New Testament selected&#xa;        // Start counting from 38 (since Old Testament has 39 books)&#xa;        // So index 0 -&gt; 38, index 1 -&gt; 39, etc.&#xa;        selectedBookIndex += 38;&#xa;    }&#xa;&#xa;    updateChapterChooser(selectedBookIndex);"/>
                     <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="bookChooser.addActionListener(e -&gt; updateChapterChooser());"/>
                     <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
                   </AuxValues>
