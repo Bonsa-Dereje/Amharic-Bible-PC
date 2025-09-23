@@ -28,6 +28,17 @@ import java.util.regex.Matcher;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import javax.swing.event.DocumentListener;
+import javax.swing.event.DocumentEvent;
+
+
+
+
+import java.io.File;
+import java.nio.file.Files;
 
 
 
@@ -59,6 +70,9 @@ public class mainWindow extends javax.swing.JFrame {
     };
     
     private boolean verseChooserInitialized = false;
+    
+    
+
 
 
     public mainWindow() {
@@ -142,104 +156,178 @@ public class mainWindow extends javax.swing.JFrame {
         }
 
 
-private void updateVerseChooser() {
-    String text = mainTextArea.getText();
-    if (text == null || text.isEmpty()) return;
+        private void updateVerseChooser() {
+            String text = mainTextArea.getText();
+            if (text == null || text.isEmpty()) return;
 
-    Pattern pattern = Pattern.compile("\\b\\d+\\b");
-    Matcher matcher = pattern.matcher(text);
+            Pattern pattern = Pattern.compile("\\b\\d+\\b");
+            Matcher matcher = pattern.matcher(text);
 
-    Set<Integer> verseNumbers = new TreeSet<>();
+            Set<Integer> verseNumbers = new TreeSet<>();
 
-    while (matcher.find()) {
-        try {
-            int num = Integer.parseInt(matcher.group());
-            verseNumbers.add(num);
-        } catch (NumberFormatException ignored) {}
-    }
-
-    // Always include 1
-    verseNumbers.add(1);
-
-    // Convert to String array
-    String[] verses = verseNumbers.stream()
-            .map(String::valueOf)
-            .toArray(String[]::new);
-
-    verseChooser.setModel(new javax.swing.DefaultComboBoxModel<>(verses));
-
-    if (verses.length > 0) {
-        verseChooser.setSelectedIndex(0); // default first verse
-    }
-
-    // Reset flag so first selection is ignored
-    verseChooserInitialized = false;
-}
-
-
-private void scrollToAndHighlightVerse(int verseNumber) {
-    if (verseNumber == 1) return; // ignore verse 1
-
-    String text = mainTextArea.getText();
-    if (text == null || text.isEmpty()) return;
-
-    // Regex: find numbers at the start of lines
-    Pattern pattern = Pattern.compile("(?m)^(\\d+)\\b");
-    Matcher matcher = pattern.matcher(text);
-
-    int start = -1;
-    int end = text.length(); // default: highlight to end of text
-
-    while (matcher.find()) {
-        int foundNum = Integer.parseInt(matcher.group(1));
-
-        // Skip if it’s not the selected verse
-        if (foundNum != verseNumber) continue;
-
-        // Check if the word before the number is "ምዕራፍ"
-        int lineStart = matcher.start(1);
-        String lineText = text.substring(0, lineStart); // text before number
-        String[] words = lineText.split("\\s+");
-        if (words.length > 0 && words[words.length - 1].equals("ምዕራፍ")) {
-            return; // skip highlighting if previous word is ምዕራፍ
-        }
-
-        start = matcher.start(1);
-
-        if (matcher.find()) {
-            end = matcher.start(1); // up to next number
-        }
-        break;
-    }
-
-    if (start != -1) {
-        // Scroll so the verse is at the top
-        try {
-            Rectangle viewRect = mainTextArea.modelToView(start);
-            if (viewRect != null) {
-                JViewport viewport = (JViewport) mainTextArea.getParent();
-                viewRect.y -= 5; // small offset
-                viewport.setViewPosition(viewRect.getLocation());
+            while (matcher.find()) {
+                try {
+                    int num = Integer.parseInt(matcher.group());
+                    verseNumbers.add(num);
+                } catch (NumberFormatException ignored) {}
             }
-        } catch (Exception ignored) {}
 
-        // Highlight
-        Highlighter highlighter = mainTextArea.getHighlighter();
-        highlighter.removeAllHighlights();
-        try {
-            final Object tag = highlighter.addHighlight(start, end,
-                    new DefaultHighlighter.DefaultHighlightPainter(new Color(173, 216, 230, 128))); // light blue
+            // Always include 1
+            verseNumbers.add(1);
 
-            // Remove after 3s
-            Timer timer = new Timer(3000, e -> highlighter.removeHighlight(tag));
-            timer.setRepeats(false);
-            timer.start();
+            // Convert to String array
+            String[] verses = verseNumbers.stream()
+                    .map(String::valueOf)
+                    .toArray(String[]::new);
 
-        } catch (BadLocationException ex) {
-            ex.printStackTrace();
+            verseChooser.setModel(new javax.swing.DefaultComboBoxModel<>(verses));
+
+            if (verses.length > 0) {
+                verseChooser.setSelectedIndex(0); // default first verse
+            }
+
+            // Reset flag so first selection is ignored
+            verseChooserInitialized = false;
         }
+
+
+
+        private void scrollToAndHighlightVerse(int verseNumber) {
+            if (verseNumber == 1) return; // ignore verse 1
+
+            String text = mainTextArea.getText();
+            if (text == null || text.isEmpty()) return;
+
+            // Regex: find numbers at the start of lines
+            Pattern pattern = Pattern.compile("(?m)^(\\d+)\\b");
+            Matcher matcher = pattern.matcher(text);
+
+            int start = -1;
+            int end = text.length(); // default: highlight to end of text
+
+            while (matcher.find()) {
+                int foundNum = Integer.parseInt(matcher.group(1));
+
+                // Skip if it’s not the selected verse
+                if (foundNum != verseNumber) continue;
+
+                // Check if the word before the number is "ምዕራፍ"
+                int lineStart = matcher.start(1);
+                String lineText = text.substring(0, lineStart); // text before number
+                String[] words = lineText.split("\\s+");
+                if (words.length > 0 && words[words.length - 1].equals("ምዕራፍ")) {
+                    return; // skip highlighting if previous word is ምዕራፍ
+                }
+
+                start = matcher.start(1);
+
+                if (matcher.find()) {
+                    end = matcher.start(1); // up to next number
+                }
+                break;
+            }
+
+            if (start != -1) {
+                // Scroll so the verse is at the top
+                try {
+                    Rectangle viewRect = mainTextArea.modelToView(start);
+                    if (viewRect != null) {
+                        JViewport viewport = (JViewport) mainTextArea.getParent();
+                        viewRect.y -= 5; // small offset
+                        viewport.setViewPosition(viewRect.getLocation());
+                    }
+                } catch (Exception ignored) {}
+
+                // Highlight
+                Highlighter highlighter = mainTextArea.getHighlighter();
+                highlighter.removeAllHighlights();
+                try {
+                    final Object tag = highlighter.addHighlight(start, end,
+                            new DefaultHighlighter.DefaultHighlightPainter(new Color(173, 216, 230, 128))); // light blue
+
+                    // Remove after 3s
+                    Timer timer = new Timer(3000, e -> highlighter.removeHighlight(tag));
+                    timer.setRepeats(false);
+                    timer.start();
+
+                } catch (BadLocationException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+
+
+
+
+private void saveHighlight(String text, Color color) {
+    try {
+        File file = new File("highlightState.json");
+        JSONArray highlights;
+
+        // Read existing highlights
+        if (file.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) sb.append(line);
+                highlights = new JSONArray(sb.toString());
+            }
+        } else {
+            highlights = new JSONArray();
+        }
+
+        // Add new highlight
+        JSONObject obj = new JSONObject();
+        obj.put("text", text);
+        obj.put("color", new JSONArray(new int[]{color.getRed(), color.getGreen(), color.getBlue()}));
+        highlights.put(obj);
+
+        // Write back to file
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write(highlights.toString(2));
+        }
+
+    } catch (Exception ex) {
+        ex.printStackTrace();
     }
 }
+
+// -------------------- Restore highlights --------------------
+private void restoreHighlights() {
+    File file = new File("highlightState.json");
+    if (!file.exists()) return;
+
+    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) sb.append(line);
+        JSONArray highlights = new JSONArray(sb.toString());
+
+        // Remove old highlights first
+        mainTextArea.getHighlighter().removeAllHighlights();
+
+        for (int i = 0; i < highlights.length(); i++) {
+            JSONObject obj = highlights.getJSONObject(i);
+            String text = obj.getString("text");
+            JSONArray colorArr = obj.getJSONArray("color");
+            Color color = new Color(colorArr.getInt(0), colorArr.getInt(1), colorArr.getInt(2));
+
+            // Find all occurrences in mainTextArea
+            String areaText = mainTextArea.getText();
+            int index = 0;
+            while ((index = areaText.indexOf(text, index)) != -1) {
+                mainTextArea.getHighlighter().addHighlight(index, index + text.length(),
+                        new DefaultHighlighter.DefaultHighlightPainter(color));
+                index += text.length();
+            }
+        }
+
+    } catch (Exception ex) {
+        ex.printStackTrace();
+    }
+}
+
+
 
 
 
@@ -570,16 +658,13 @@ private void scrollToAndHighlightVerse(int verseNumber) {
         mainTextArea.setRows(5);
         mainTextScrollPanel.setViewportView(mainTextArea);
         mainTextArea.addCaretListener(e -> {
+            if (!highlighterActive || currentHighlightColor == null) return;
+
             String selectedText = mainTextArea.getSelectedText();
-            if (selectedText != null && !selectedText.isEmpty() && currentHighlightColor != null) {
+            if (selectedText != null && !selectedText.isEmpty()) {
+
                 try {
-                    // Remove old highlights (optional)
-                    mainTextArea.getHighlighter().removeAllHighlights();
-
-                    // Force selected text to render in black immediately
-                    mainTextArea.setSelectedTextColor(Color.BLACK);
-
-                    // Apply highlight with chosen color
+                    // Highlight selected text
                     Highlighter.HighlightPainter painter =
                     new DefaultHighlighter.DefaultHighlightPainter(currentHighlightColor);
 
@@ -588,26 +673,48 @@ private void scrollToAndHighlightVerse(int verseNumber) {
 
                     mainTextArea.getHighlighter().addHighlight(start, end, painter);
 
+                    // Save highlight immediately
+                    saveHighlight(selectedText, currentHighlightColor);
+
                 } catch (BadLocationException ex) {
                     ex.printStackTrace();
                 }
             }
         });
 
-        mainTextArea.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+        // -------------------- Document listener --------------------
+        mainTextArea.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(javax.swing.event.DocumentEvent e) {
-                updateVerseChooser();
+            public void insertUpdate(DocumentEvent e) {
+                restoreHighlights(); // live update after insertion
             }
 
             @Override
-            public void removeUpdate(javax.swing.event.DocumentEvent e) {
-                updateVerseChooser();
+            public void removeUpdate(DocumentEvent e) {
+                restoreHighlights(); // live update after removal
             }
 
             @Override
-            public void changedUpdate(javax.swing.event.DocumentEvent e) {
-                updateVerseChooser();
+            public void changedUpdate(DocumentEvent e) {
+                restoreHighlights();
+            }
+        });
+
+        // -------------------- Document listener --------------------
+        mainTextArea.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                restoreHighlights(); // live update after insertion
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                restoreHighlights(); // live update after removal
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                restoreHighlights();
             }
         });
 
@@ -1003,7 +1110,6 @@ private void scrollToAndHighlightVerse(int verseNumber) {
     }//GEN-LAST:event_boldBtnActionPerformed
 
     private void highlightBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_highlightBtnActionPerformed
-
         JPopupMenu popup = new JPopupMenu();
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(1, 4, 5, 5));
@@ -1081,6 +1187,8 @@ private void scrollToAndHighlightVerse(int verseNumber) {
         tabs.setSelectedIndex(1);
     }//GEN-LAST:event_bibleBtnActionPerformed
 
+    
+ 
     
     /**
      * @param args the command line arguments
