@@ -23,6 +23,10 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 
 
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.util.Set;
+import java.util.TreeSet;
 
 
 
@@ -53,6 +57,8 @@ public class mainWindow extends javax.swing.JFrame {
         "2ኛ የዮሐንስ መልእክት", "3ኛ የዮሐንስ መልእክት", "የያዕቆብ መልእክት", "የይሁዳ መልእክት", "የዮሐንስ ራእይ"
 
     };
+    
+    private boolean verseChooserInitialized = false;
 
 
     public mainWindow() {
@@ -74,93 +80,191 @@ public class mainWindow extends javax.swing.JFrame {
         bookChooser.setSelectedIndex(0);
         chapterChooser.setSelectedIndex(0);
         updateBookChooser();
+        updateVerseChooser();
+
       
     }
     
-    private void updateBookChooser() {
-    int selectedTestament = testamentChooser.getSelectedIndex();
-    int start, end;
+        private void updateBookChooser() {
+        int selectedTestament = testamentChooser.getSelectedIndex();
+        int start, end;
 
-    if (selectedTestament == 0) { 
-        start = 0;
-        end = 39;
-    } else { 
-        start = 39;
-        end = allBooks.length;
+        if (selectedTestament == 0) { 
+            start = 0;
+            end = 39;
+        } else { 
+            start = 39;
+            end = allBooks.length;
+        }
+
+        String[] subset = java.util.Arrays.copyOfRange(allBooks, start, end);
+        bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(subset));
     }
-
-    String[] subset = java.util.Arrays.copyOfRange(allBooks, start, end);
-    bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(subset));
-}
-    
-
-     
-private void updateChapterChooser() {
-    int selectedBookIndex = bookChooser.getSelectedIndex(); 
-    if (selectedBookIndex < 0) return;
-
-    int selectedTestamentIndex = testamentChooser.getSelectedIndex();
-
-    // Adjust for New Testament starting after 39 books
-    int folderNumber;
-    if (selectedTestamentIndex == 1) {
-        folderNumber = selectedBookIndex + 40; // since NT starts at book #40 (index 39)
-    } else {
-        folderNumber = selectedBookIndex + 1;  // OT starts at book #1
-    }
-
-    File bookFolder = new File(
-            "C:\\Users\\boni\\Desktop\\Files\\The Bible Project\\BibleApp\\src\\main\\resources\\files\\books",
-            String.valueOf(folderNumber)
-    );
-
-    if (!bookFolder.exists() || !bookFolder.isDirectory()) {
-        chapterChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"1"}));
-        return;
-    }
-
-    // Count all PDF files in the folder
-    File[] chapterFiles = bookFolder.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
-    int chapterCount = (chapterFiles != null) ? chapterFiles.length : 0;
-
-    // Populate chapterChooser with numbers 1 .. chapterCount
-    String[] chapters = new String[chapterCount];
-    for (int i = 0; i < chapterCount; i++) {
-        chapters[i] = String.valueOf(i + 1); // start from 1
-    }
-
-    chapterChooser.setModel(new javax.swing.DefaultComboBoxModel<>(chapters));
-    chapterChooser.setSelectedIndex(0); // default to first chapter
-}
-
-
-
 
 
      
+        private void updateChapterChooser() {
+            int selectedBookIndex = bookChooser.getSelectedIndex(); 
+            if (selectedBookIndex < 0) return;
+
+            int selectedTestamentIndex = testamentChooser.getSelectedIndex();
+
+            // Adjust for New Testament starting after 39 books
+            int folderNumber;
+            if (selectedTestamentIndex == 1) {
+                folderNumber = selectedBookIndex + 40; // since NT starts at book #40 (index 39)
+            } else {
+                folderNumber = selectedBookIndex + 1;  // OT starts at book #1
+            }
+
+            File bookFolder = new File(
+                    "C:\\Users\\boni\\Desktop\\Files\\The Bible Project\\BibleApp\\src\\main\\resources\\files\\books",
+                    String.valueOf(folderNumber)
+            );
+
+            if (!bookFolder.exists() || !bookFolder.isDirectory()) {
+                chapterChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"1"}));
+                return;
+            }
+
+            // Count all PDF files in the folder
+            File[] chapterFiles = bookFolder.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
+            int chapterCount = (chapterFiles != null) ? chapterFiles.length : 0;
+
+            // Populate chapterChooser with numbers 1 .. chapterCount
+            String[] chapters = new String[chapterCount];
+            for (int i = 0; i < chapterCount; i++) {
+                chapters[i] = String.valueOf(i + 1); // start from 1
+            }
+
+            chapterChooser.setModel(new javax.swing.DefaultComboBoxModel<>(chapters));
+            chapterChooser.setSelectedIndex(0); // default to first chapter
+        }
+
+
+private void updateVerseChooser() {
+    String text = mainTextArea.getText();
+    if (text == null || text.isEmpty()) return;
+
+    Pattern pattern = Pattern.compile("\\b\\d+\\b");
+    Matcher matcher = pattern.matcher(text);
+
+    Set<Integer> verseNumbers = new TreeSet<>();
+
+    while (matcher.find()) {
+        try {
+            int num = Integer.parseInt(matcher.group());
+            verseNumbers.add(num);
+        } catch (NumberFormatException ignored) {}
+    }
+
+    // Always include 1
+    verseNumbers.add(1);
+
+    // Convert to String array
+    String[] verses = verseNumbers.stream()
+            .map(String::valueOf)
+            .toArray(String[]::new);
+
+    verseChooser.setModel(new javax.swing.DefaultComboBoxModel<>(verses));
+
+    if (verses.length > 0) {
+        verseChooser.setSelectedIndex(0); // default first verse
+    }
+
+    // Reset flag so first selection is ignored
+    verseChooserInitialized = false;
+}
+
+
+private void scrollToAndHighlightVerse(int verseNumber) {
+    if (verseNumber == 1) return; // ignore verse 1
+
+    String text = mainTextArea.getText();
+    if (text == null || text.isEmpty()) return;
+
+    // Regex: find numbers at the start of lines
+    Pattern pattern = Pattern.compile("(?m)^(\\d+)\\b");
+    Matcher matcher = pattern.matcher(text);
+
+    int start = -1;
+    int end = text.length(); // default: highlight to end of text
+
+    while (matcher.find()) {
+        int foundNum = Integer.parseInt(matcher.group(1));
+
+        // Skip if it’s not the selected verse
+        if (foundNum != verseNumber) continue;
+
+        // Check if the word before the number is "ምዕራፍ"
+        int lineStart = matcher.start(1);
+        String lineText = text.substring(0, lineStart); // text before number
+        String[] words = lineText.split("\\s+");
+        if (words.length > 0 && words[words.length - 1].equals("ምዕራፍ")) {
+            return; // skip highlighting if previous word is ምዕራፍ
+        }
+
+        start = matcher.start(1);
+
+        if (matcher.find()) {
+            end = matcher.start(1); // up to next number
+        }
+        break;
+    }
+
+    if (start != -1) {
+        // Scroll so the verse is at the top
+        try {
+            Rectangle viewRect = mainTextArea.modelToView(start);
+            if (viewRect != null) {
+                JViewport viewport = (JViewport) mainTextArea.getParent();
+                viewRect.y -= 5; // small offset
+                viewport.setViewPosition(viewRect.getLocation());
+            }
+        } catch (Exception ignored) {}
+
+        // Highlight
+        Highlighter highlighter = mainTextArea.getHighlighter();
+        highlighter.removeAllHighlights();
+        try {
+            final Object tag = highlighter.addHighlight(start, end,
+                    new DefaultHighlighter.DefaultHighlightPainter(new Color(173, 216, 230, 128))); // light blue
+
+            // Remove after 3s
+            Timer timer = new Timer(3000, e -> highlighter.removeHighlight(tag));
+            timer.setRepeats(false);
+            timer.start();
+
+        } catch (BadLocationException ex) {
+            ex.printStackTrace();
+        }
+    }
+}
+
+
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         mainPanel_layered = new javax.swing.JLayeredPane();
-        jPanel1 = new javax.swing.JPanel();
+        topBar = new javax.swing.JPanel();
         bookChooserDropDown = new javax.swing.JComboBox<>();
         jTextField1 = new javax.swing.JTextField();
         closeBtn = new javax.swing.JButton();
         appTitle = new javax.swing.JLabel();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
-        jPanel2 = new javax.swing.JPanel();
+        restoreBtn = new javax.swing.JButton();
+        minimizeBtn = new javax.swing.JButton();
+        navBar = new javax.swing.JPanel();
         homeBtnLabel = new javax.swing.JLabel();
         bibleBtnLabel = new javax.swing.JLabel();
         searchBtnLabel = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
+        bookmarksBtn = new javax.swing.JLabel();
         notesBtnLabel = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
+        audiobookLabel = new javax.swing.JLabel();
         cmntrsBtnLabel = new javax.swing.JLabel();
         hostJoinBtnLabel = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
+        settingsLabel = new javax.swing.JLabel();
         homeBtn = new javax.swing.JButton();
         bibleBtn = new javax.swing.JButton();
         searchBtn = new javax.swing.JButton();
@@ -169,17 +273,17 @@ private void updateChapterChooser() {
         audiobookBtn = new javax.swing.JButton();
         cmntrsBtn = new javax.swing.JButton();
         hostJoinBtn = new javax.swing.JButton();
-        homeBtn4 = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
+        settingsBtn = new javax.swing.JButton();
+        tabs = new javax.swing.JTabbedPane();
+        homeTab = new javax.swing.JPanel();
+        mainTextScrollPanel = new javax.swing.JScrollPane();
         mainTextArea = new javax.swing.JTextArea();
         cmtryTabbedPanel = new javax.swing.JTabbedPane();
-        jPanel3 = new javax.swing.JPanel();
+        nodesTabPanel = new javax.swing.JPanel();
+        notesTabPanel = new javax.swing.JPanel();
         addNoteBtn = new javax.swing.JButton();
-        jPanel4 = new javax.swing.JPanel();
-        jPanel5 = new javax.swing.JPanel();
-        Tabs = new javax.swing.JTabbedPane();
-        jPanel6 = new javax.swing.JPanel();
-        jLabel5 = new javax.swing.JLabel();
+        cmtrsTabPanel = new javax.swing.JPanel();
+        biblestudyTitle = new javax.swing.JLabel();
         highlightBtn = new javax.swing.JButton();
         boldBtn = new javax.swing.JButton();
         fontSizeSlider = new javax.swing.JSlider();
@@ -200,8 +304,8 @@ private void updateChapterChooser() {
 
         mainPanel_layered.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel1.setPreferredSize(new java.awt.Dimension(1427, 10));
+        topBar.setBackground(new java.awt.Color(255, 255, 255));
+        topBar.setPreferredSize(new java.awt.Dimension(1427, 10));
 
         bookChooserDropDown.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 12)); // NOI18N
         bookChooserDropDown.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "አማርኛ", "English", "Afaan Oromoo", " " }));
@@ -224,27 +328,27 @@ private void updateChapterChooser() {
         appTitle.setFont(new java.awt.Font("Nokia Pure Headline", 0, 24)); // NOI18N
         appTitle.setText("መፅሀፍ ቅዱስ");
 
-        jButton2.setFont(new java.awt.Font("Segoe UI Symbol", 0, 14)); // NOI18N
-        jButton2.setText("☐");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        restoreBtn.setFont(new java.awt.Font("Segoe UI Symbol", 0, 14)); // NOI18N
+        restoreBtn.setText("☐");
+        restoreBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                restoreBtnActionPerformed(evt);
             }
         });
 
-        jButton3.setFont(new java.awt.Font("Segoe UI Light", 0, 14)); // NOI18N
-        jButton3.setText("‒");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        minimizeBtn.setFont(new java.awt.Font("Segoe UI Light", 0, 14)); // NOI18N
+        minimizeBtn.setText("‒");
+        minimizeBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                minimizeBtnActionPerformed(evt);
             }
         });
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+        javax.swing.GroupLayout topBarLayout = new javax.swing.GroupLayout(topBar);
+        topBar.setLayout(topBarLayout);
+        topBarLayout.setHorizontalGroup(
+            topBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(topBarLayout.createSequentialGroup()
                 .addGap(6, 6, 6)
                 .addComponent(appTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 1058, Short.MAX_VALUE)
@@ -252,29 +356,29 @@ private void updateChapterChooser() {
                 .addGap(12, 12, 12)
                 .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(40, 40, 40)
-                .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(minimizeBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(8, 8, 8)
-                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(restoreBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(8, 8, 8)
                 .addComponent(closeBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        topBarLayout.setVerticalGroup(
+            topBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(appTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+            .addGroup(topBarLayout.createSequentialGroup()
                 .addGap(6, 6, 6)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(topBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(minimizeBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(restoreBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(closeBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(bookChooserDropDown, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
 
-        mainPanel_layered.add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1650, 35));
+        mainPanel_layered.add(topBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1650, 35));
 
-        jPanel2.setBackground(new java.awt.Color(40, 43, 45));
+        navBar.setBackground(new java.awt.Color(40, 43, 45));
 
         homeBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
         homeBtnLabel.setText("Home");
@@ -285,14 +389,14 @@ private void updateChapterChooser() {
         searchBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
         searchBtnLabel.setText("Search");
 
-        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel2.setText("Bookmarks");
+        bookmarksBtn.setForeground(new java.awt.Color(255, 255, 255));
+        bookmarksBtn.setText("Bookmarks");
 
         notesBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
         notesBtnLabel.setText("Notes");
 
-        jLabel3.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel3.setText("Audiobook");
+        audiobookLabel.setForeground(new java.awt.Color(255, 255, 255));
+        audiobookLabel.setText("Audiobook");
 
         cmntrsBtnLabel.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
         cmntrsBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
@@ -302,16 +406,32 @@ private void updateChapterChooser() {
         hostJoinBtnLabel.setText(" Host/Join");
         hostJoinBtnLabel.setAlignmentX(0.5F);
 
-        jLabel4.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel4.setText("   Settings");
+        settingsLabel.setForeground(new java.awt.Color(255, 255, 255));
+        settingsLabel.setText("   Settings");
 
         homeBtn.setBackground(new java.awt.Color(40, 43, 45));
         homeBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/home.png"))); // NOI18N
         homeBtn.setBorder(null);
+        homeBtn.setBorderPainted(false);
+        homeBtn.setContentAreaFilled(false);
+        homeBtn.setFocusPainted(false);
+        homeBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                homeBtnActionPerformed(evt);
+            }
+        });
 
         bibleBtn.setBackground(new java.awt.Color(40, 43, 45));
         bibleBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/book.png"))); // NOI18N
         bibleBtn.setBorder(null);
+        bibleBtn.setBorderPainted(false);
+        bibleBtn.setContentAreaFilled(false);
+        bibleBtn.setFocusable(false);
+        bibleBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bibleBtnActionPerformed(evt);
+            }
+        });
 
         searchBtn.setBackground(new java.awt.Color(40, 43, 45));
         searchBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/search.png"))); // NOI18N
@@ -337,29 +457,29 @@ private void updateChapterChooser() {
         hostJoinBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/hostJoin.png"))); // NOI18N
         hostJoinBtn.setBorder(null);
 
-        homeBtn4.setBackground(new java.awt.Color(40, 43, 45));
-        homeBtn4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/settings.png"))); // NOI18N
-        homeBtn4.setBorder(null);
-        homeBtn4.addActionListener(new java.awt.event.ActionListener() {
+        settingsBtn.setBackground(new java.awt.Color(40, 43, 45));
+        settingsBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/settings.png"))); // NOI18N
+        settingsBtn.setBorder(null);
+        settingsBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                homeBtn4ActionPerformed(evt);
+                settingsBtnActionPerformed(evt);
             }
         });
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+        javax.swing.GroupLayout navBarLayout = new javax.swing.GroupLayout(navBar);
+        navBar.setLayout(navBarLayout);
+        navBarLayout.setHorizontalGroup(
+            navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(navBarLayout.createSequentialGroup()
+                .addGroup(navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, navBarLayout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(cmntrsBtnLabel))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
+                    .addGroup(navBarLayout.createSequentialGroup()
+                        .addGroup(navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(navBarLayout.createSequentialGroup()
                                 .addGap(21, 21, 21)
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(homeBtnLabel)
                                     .addComponent(bibleBtnLabel)
                                     .addComponent(searchBtnLabel)
@@ -367,40 +487,40 @@ private void updateChapterChooser() {
                                     .addComponent(bibleBtn)
                                     .addComponent(searchBtn)
                                     .addComponent(bookmarkBtn)))
-                            .addGroup(jPanel2Layout.createSequentialGroup()
+                            .addGroup(navBarLayout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(jLabel2))
-                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(bookmarksBtn))
+                            .addGroup(navBarLayout.createSequentialGroup()
                                 .addGap(18, 18, 18)
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(notesBtnLabel)
                                     .addComponent(homeBtn5)
                                     .addComponent(audiobookBtn)))
-                            .addGroup(jPanel2Layout.createSequentialGroup()
+                            .addGroup(navBarLayout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(jLabel3))
-                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(audiobookLabel))
+                            .addGroup(navBarLayout.createSequentialGroup()
                                 .addContainerGap()
                                 .addComponent(hostJoinBtnLabel))
-                            .addGroup(jPanel2Layout.createSequentialGroup()
+                            .addGroup(navBarLayout.createSequentialGroup()
                                 .addGap(19, 19, 19)
                                 .addComponent(cmntrsBtn))
-                            .addGroup(jPanel2Layout.createSequentialGroup()
+                            .addGroup(navBarLayout.createSequentialGroup()
                                 .addGap(20, 20, 20)
                                 .addComponent(hostJoinBtn))
-                            .addGroup(jPanel2Layout.createSequentialGroup()
+                            .addGroup(navBarLayout.createSequentialGroup()
                                 .addGap(14, 14, 14)
-                                .addComponent(homeBtn4, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(settingsBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
-            .addGroup(jPanel2Layout.createSequentialGroup()
+            .addGroup(navBarLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(settingsLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        navBarLayout.setVerticalGroup(
+            navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(navBarLayout.createSequentialGroup()
                 .addGap(20, 20, 20)
                 .addComponent(homeBtn)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -416,7 +536,7 @@ private void updateChapterChooser() {
                 .addGap(18, 18, 18)
                 .addComponent(bookmarkBtn)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel2)
+                .addComponent(bookmarksBtn)
                 .addGap(24, 24, 24)
                 .addComponent(homeBtn5)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -424,7 +544,7 @@ private void updateChapterChooser() {
                 .addGap(18, 18, 18)
                 .addComponent(audiobookBtn)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel3)
+                .addComponent(audiobookLabel)
                 .addGap(18, 18, 18)
                 .addComponent(cmntrsBtn)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -434,19 +554,21 @@ private void updateChapterChooser() {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(hostJoinBtnLabel)
                 .addGap(18, 18, 18)
-                .addComponent(homeBtn4)
+                .addComponent(settingsBtn)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel4)
+                .addComponent(settingsLabel)
                 .addContainerGap(294, Short.MAX_VALUE))
         );
 
-        mainPanel_layered.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 30, 70, 930));
+        mainPanel_layered.add(navBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 30, 70, 930));
+
+        homeTab.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         mainTextArea.setEditable(false);
         mainTextArea.setColumns(20);
         mainTextArea.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 18)); // NOI18N
         mainTextArea.setRows(5);
-        jScrollPane1.setViewportView(mainTextArea);
+        mainTextScrollPanel.setViewportView(mainTextArea);
         mainTextArea.addCaretListener(e -> {
             String selectedText = mainTextArea.getSelectedText();
             if (selectedText != null && !selectedText.isEmpty() && currentHighlightColor != null) {
@@ -472,57 +594,75 @@ private void updateChapterChooser() {
             }
         });
 
-        mainPanel_layered.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 90, 870, 860));
+        mainTextArea.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                updateVerseChooser();
+            }
+
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                updateVerseChooser();
+            }
+
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                updateVerseChooser();
+            }
+        });
+
+        homeTab.add(mainTextScrollPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 110, 870, 860));
 
         cmtryTabbedPanel.setBackground(new java.awt.Color(255, 255, 255));
         cmtryTabbedPanel.setFont(new java.awt.Font("Roboto", 0, 12)); // NOI18N
 
-        jPanel3.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel3.setLayout(new java.awt.GridBagLayout());
+        nodesTabPanel.setBackground(new java.awt.Color(255, 255, 255));
+
+        javax.swing.GroupLayout nodesTabPanelLayout = new javax.swing.GroupLayout(nodesTabPanel);
+        nodesTabPanel.setLayout(nodesTabPanelLayout);
+        nodesTabPanelLayout.setHorizontalGroup(
+            nodesTabPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 660, Short.MAX_VALUE)
+        );
+        nodesTabPanelLayout.setVerticalGroup(
+            nodesTabPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 825, Short.MAX_VALUE)
+        );
+
+        cmtryTabbedPanel.addTab("Nodes", nodesTabPanel);
+
+        notesTabPanel.setBackground(new java.awt.Color(255, 255, 255));
+        notesTabPanel.setLayout(new java.awt.GridBagLayout());
 
         addNoteBtn.setBackground(new java.awt.Color(204, 204, 204));
         addNoteBtn.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         addNoteBtn.setForeground(new java.awt.Color(102, 102, 102));
         addNoteBtn.setText("Create a new note");
         addNoteBtn.setAlignmentY(0.0F);
-        jPanel3.add(addNoteBtn, new java.awt.GridBagConstraints());
+        notesTabPanel.add(addNoteBtn, new java.awt.GridBagConstraints());
 
-        cmtryTabbedPanel.addTab("Notes", jPanel3);
+        cmtryTabbedPanel.addTab("Notes", notesTabPanel);
 
-        jPanel4.setBackground(new java.awt.Color(255, 255, 255));
+        cmtrsTabPanel.setBackground(new java.awt.Color(255, 255, 255));
 
-        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
-        jPanel4.setLayout(jPanel4Layout);
-        jPanel4Layout.setHorizontalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout cmtrsTabPanelLayout = new javax.swing.GroupLayout(cmtrsTabPanel);
+        cmtrsTabPanel.setLayout(cmtrsTabPanelLayout);
+        cmtrsTabPanelLayout.setHorizontalGroup(
+            cmtrsTabPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 660, Short.MAX_VALUE)
         );
-        jPanel4Layout.setVerticalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        cmtrsTabPanelLayout.setVerticalGroup(
+            cmtrsTabPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 825, Short.MAX_VALUE)
         );
 
-        cmtryTabbedPanel.addTab("Commentaries", jPanel4);
+        cmtryTabbedPanel.addTab("Commentaries", cmtrsTabPanel);
 
-        jPanel5.setBackground(new java.awt.Color(255, 255, 255));
+        homeTab.add(cmtryTabbedPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(910, 110, 660, 860));
 
-        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
-        jPanel5.setLayout(jPanel5Layout);
-        jPanel5Layout.setHorizontalGroup(
-            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 660, Short.MAX_VALUE)
-        );
-        jPanel5Layout.setVerticalGroup(
-            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 825, Short.MAX_VALUE)
-        );
-
-        cmtryTabbedPanel.addTab("Nodes", jPanel5);
-
-        mainPanel_layered.add(cmtryTabbedPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(980, 90, 660, 860));
-
-        jLabel5.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 18)); // NOI18N
-        jLabel5.setText("መፅሀፍ ቅዱስ ጥናት");
+        biblestudyTitle.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 18)); // NOI18N
+        biblestudyTitle.setText("መፅሀፍ ቅዱስ ጥናት");
+        homeTab.add(biblestudyTitle, new org.netbeans.lib.awtextra.AbsoluteConstraints(907, 74, -1, 20));
 
         highlightBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/highlight.png"))); // NOI18N
         highlightBtn.addActionListener(new java.awt.event.ActionListener() {
@@ -530,6 +670,7 @@ private void updateChapterChooser() {
                 highlightBtnActionPerformed(evt);
             }
         });
+        homeTab.add(highlightBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(863, 67, -1, -1));
 
         boldBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/bold.png"))); // NOI18N
         boldBtn.addActionListener(new java.awt.event.ActionListener() {
@@ -537,69 +678,12 @@ private void updateChapterChooser() {
                 boldBtnActionPerformed(evt);
             }
         });
+        homeTab.add(boldBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(831, 67, -1, -1));
 
         fontSizeSlider.setSnapToTicks(true);
         fontSizeSlider.setFocusable(false);
         fontSizeSlider.setOpaque(true);
-
-        bookChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
-        bookChooser.addActionListener(e -> updateChapterChooser());
-        bookChooser.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                bookChooserActionPerformed(evt);
-            }
-        });
-
-        chapterChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-
-        verseChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        verseChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "1", "2", "3", "4" }));
-
-        testamentChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
-        testamentChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ብሉይ ኪዳን", "አዲስ ኪዳን" }));
-
-        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
-        jPanel6.setLayout(jPanel6Layout);
-        jPanel6Layout.setHorizontalGroup(
-            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
-                .addGap(17, 17, 17)
-                .addComponent(testamentChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(bookChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(chapterChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(verseChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 269, Short.MAX_VALUE)
-                .addComponent(fontSizeSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 104, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(boldBtn)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(highlightBtn)
-                .addGap(18, 18, 18)
-                .addComponent(jLabel5)
-                .addGap(310, 310, 310))
-        );
-        jPanel6Layout.setVerticalGroup(
-            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel6Layout.createSequentialGroup()
-                .addGap(67, 67, 67)
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(chapterChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(verseChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addComponent(highlightBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(boldBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(fontSizeSlider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addComponent(testamentChooser, javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(bookChooser)))
-                .addContainerGap(721, Short.MAX_VALUE))
-        );
-
+        homeTab.add(fontSizeSlider, new org.netbeans.lib.awtextra.AbsoluteConstraints(721, 67, 104, 27));
         fontSizeSlider.setMinimum(18);
         fontSizeSlider.setMaximum(48);
         fontSizeSlider.setValue(16);   // default starting value
@@ -615,6 +699,18 @@ private void updateChapterChooser() {
                 ));
             }
         });
+
+        bookChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
+        bookChooser.addActionListener(e -> updateChapterChooser());
+        bookChooser.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookChooserActionPerformed(evt);
+            }
+        });
+        homeTab.add(bookChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(128, 67, 182, -1));
+
+        chapterChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        homeTab.add(chapterChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(322, 68, 60, -1));
         chapterChooser.addActionListener(e -> {
             int selectedChapterIndex = chapterChooser.getSelectedIndex();
             if (selectedChapterIndex < 0) return;
@@ -657,113 +753,192 @@ private void updateChapterChooser() {
             }
         });
 
-        Tabs.addTab("Home", jPanel6);
+        verseChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        homeTab.add(verseChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(394, 68, 59, -1));
+        verseChooser.addActionListener(e -> {
+            String selected = (String) verseChooser.getSelectedItem();
+            if (selected == null || selected.isEmpty()) return;
+
+            int verse;
+            try {
+                verse = Integer.parseInt(selected.split("-")[0]); // allow "1-2" as valid
+            } catch (NumberFormatException ex) {
+                return;
+            }
+
+            // Skip verse 1 only if it’s exactly "1"
+            if (verse == 1 && !selected.contains("-")) return;
+
+            String text = mainTextArea.getText();
+            if (text == null || text.isEmpty()) return;
+
+            // Regex: find numbers at start of lines
+            Pattern pattern = Pattern.compile("(?m)^(\\d+)\\b");
+            Matcher matcher = pattern.matcher(text);
+
+            int start = -1;
+            int end = text.length();
+
+            while (matcher.find()) {
+                int foundNum = Integer.parseInt(matcher.group(1));
+                if (foundNum != verse) continue;
+
+                // skip if previous word is "ምዕራፍ"
+                int lineStart = matcher.start(1);
+                String lineText = text.substring(0, lineStart);
+                String[] words = lineText.split("\\s+");
+                if (words.length > 0 && words[words.length - 1].equals("ምዕራፍ")) {
+                    return;
+                }
+
+                start = matcher.start(1);
+
+                if (matcher.find()) {
+                    end = matcher.start(1);
+                }
+                break;
+            }
+
+            if (start != -1) {
+                // Scroll to top
+                try {
+                    Rectangle rect = mainTextArea.modelToView(start);
+                    if (rect != null) {
+                        JViewport viewport = (JViewport) mainTextArea.getParent();
+                        rect.y = Math.max(0, rect.y - mainTextArea.getVisibleRect().height / 2);
+                        viewport.setViewPosition(rect.getLocation());
+                    }
+                } catch (Exception ignored) {}
+
+                // Highlight
+                Highlighter highlighter = mainTextArea.getHighlighter();
+                highlighter.removeAllHighlights();
+                try {
+                    final Object tag = highlighter.addHighlight(start, end,
+                        new DefaultHighlighter.DefaultHighlightPainter(new Color(173, 216, 230, 128)));
+
+                    // Remove after 3s
+                    Timer timer = new Timer(3000, ev -> highlighter.removeHighlight(tag));
+                    timer.setRepeats(false);
+                    timer.start();
+
+                } catch (BadLocationException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+        testamentChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
+        testamentChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ብሉይ ኪዳን", "አዲስ ኪዳን" }));
+        homeTab.add(testamentChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(17, 67, 105, -1));
+
+        tabs.addTab("Home", homeTab);
 
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
         jPanel7.setLayout(jPanel7Layout);
         jPanel7Layout.setHorizontalGroup(
             jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1350, Short.MAX_VALUE)
+            .addGap(0, 1580, Short.MAX_VALUE)
         );
         jPanel7Layout.setVerticalGroup(
             jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 815, Short.MAX_VALUE)
+            .addGap(0, 975, Short.MAX_VALUE)
         );
 
-        Tabs.addTab("Bible", jPanel7);
+        tabs.addTab("Bible", jPanel7);
 
         javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
         jPanel8.setLayout(jPanel8Layout);
         jPanel8Layout.setHorizontalGroup(
             jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1350, Short.MAX_VALUE)
+            .addGap(0, 1580, Short.MAX_VALUE)
         );
         jPanel8Layout.setVerticalGroup(
             jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 815, Short.MAX_VALUE)
+            .addGap(0, 975, Short.MAX_VALUE)
         );
 
-        Tabs.addTab("Search", jPanel8);
+        tabs.addTab("Search", jPanel8);
 
         javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
         jPanel9.setLayout(jPanel9Layout);
         jPanel9Layout.setHorizontalGroup(
             jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1350, Short.MAX_VALUE)
+            .addGap(0, 1580, Short.MAX_VALUE)
         );
         jPanel9Layout.setVerticalGroup(
             jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 815, Short.MAX_VALUE)
+            .addGap(0, 975, Short.MAX_VALUE)
         );
 
-        Tabs.addTab("Boomarks", jPanel9);
+        tabs.addTab("Boomarks", jPanel9);
 
         javax.swing.GroupLayout jPanel10Layout = new javax.swing.GroupLayout(jPanel10);
         jPanel10.setLayout(jPanel10Layout);
         jPanel10Layout.setHorizontalGroup(
             jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1350, Short.MAX_VALUE)
+            .addGap(0, 1580, Short.MAX_VALUE)
         );
         jPanel10Layout.setVerticalGroup(
             jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 815, Short.MAX_VALUE)
+            .addGap(0, 975, Short.MAX_VALUE)
         );
 
-        Tabs.addTab("Notes", jPanel10);
+        tabs.addTab("Notes", jPanel10);
 
         javax.swing.GroupLayout jPanel11Layout = new javax.swing.GroupLayout(jPanel11);
         jPanel11.setLayout(jPanel11Layout);
         jPanel11Layout.setHorizontalGroup(
             jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1350, Short.MAX_VALUE)
+            .addGap(0, 1580, Short.MAX_VALUE)
         );
         jPanel11Layout.setVerticalGroup(
             jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 815, Short.MAX_VALUE)
+            .addGap(0, 975, Short.MAX_VALUE)
         );
 
-        Tabs.addTab("AudioBooks", jPanel11);
+        tabs.addTab("AudioBooks", jPanel11);
 
         javax.swing.GroupLayout jPanel12Layout = new javax.swing.GroupLayout(jPanel12);
         jPanel12.setLayout(jPanel12Layout);
         jPanel12Layout.setHorizontalGroup(
             jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1350, Short.MAX_VALUE)
+            .addGap(0, 1580, Short.MAX_VALUE)
         );
         jPanel12Layout.setVerticalGroup(
             jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 815, Short.MAX_VALUE)
+            .addGap(0, 975, Short.MAX_VALUE)
         );
 
-        Tabs.addTab("Commentaries", jPanel12);
+        tabs.addTab("Commentaries", jPanel12);
 
         javax.swing.GroupLayout jPanel13Layout = new javax.swing.GroupLayout(jPanel13);
         jPanel13.setLayout(jPanel13Layout);
         jPanel13Layout.setHorizontalGroup(
             jPanel13Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1350, Short.MAX_VALUE)
+            .addGap(0, 1580, Short.MAX_VALUE)
         );
         jPanel13Layout.setVerticalGroup(
             jPanel13Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 815, Short.MAX_VALUE)
+            .addGap(0, 975, Short.MAX_VALUE)
         );
 
-        Tabs.addTab("HostJoin", jPanel13);
+        tabs.addTab("HostJoin", jPanel13);
 
         javax.swing.GroupLayout jPanel14Layout = new javax.swing.GroupLayout(jPanel14);
         jPanel14.setLayout(jPanel14Layout);
         jPanel14Layout.setHorizontalGroup(
             jPanel14Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1350, Short.MAX_VALUE)
+            .addGap(0, 1580, Short.MAX_VALUE)
         );
         jPanel14Layout.setVerticalGroup(
             jPanel14Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 815, Short.MAX_VALUE)
+            .addGap(0, 975, Short.MAX_VALUE)
         );
 
-        Tabs.addTab("Settings", jPanel14);
+        tabs.addTab("Settings", jPanel14);
 
-        mainPanel_layered.add(Tabs, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, -50, 1350, 850));
+        mainPanel_layered.add(tabs, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, -50, 1580, 1010));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -783,20 +958,52 @@ private void updateChapterChooser() {
         // TODO add your handling code here:
     }//GEN-LAST:event_bookChooserDropDownActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void restoreBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_restoreBtnActionPerformed
         
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_restoreBtnActionPerformed
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+    private void minimizeBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_minimizeBtnActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jButton3ActionPerformed
+    }//GEN-LAST:event_minimizeBtnActionPerformed
 
-    private void homeBtn4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_homeBtn4ActionPerformed
+    private void settingsBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsBtnActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_homeBtn4ActionPerformed
+    }//GEN-LAST:event_settingsBtnActionPerformed
+
+    
+    
+    private void closeBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeBtnActionPerformed
+           int result = JOptionPane.showConfirmDialog(
+            this, 
+            "Are you sure you want to exit?", 
+            "Warning", 
+            JOptionPane.YES_NO_OPTION, 
+            JOptionPane.WARNING_MESSAGE
+            );
+
+            if (result == JOptionPane.YES_OPTION) {
+                System.exit(0);
+            }
+    }//GEN-LAST:event_closeBtnActionPerformed
+
+    private void bookChooserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookChooserActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_bookChooserActionPerformed
+
+    private void boldBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_boldBtnActionPerformed
+
+        isBoldActive = !isBoldActive;
+
+        Font currentFont = mainTextArea.getFont();
+
+        Font newFont = currentFont.deriveFont(isBoldActive ? Font.BOLD : Font.PLAIN);
+        mainTextArea.setFont(newFont);
+
+        boldBtn.setBackground(isBoldActive ? Color.LIGHT_GRAY : UIManager.getColor("Button.background"));
+    }//GEN-LAST:event_boldBtnActionPerformed
 
     private void highlightBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_highlightBtnActionPerformed
-      
+
         JPopupMenu popup = new JPopupMenu();
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(1, 4, 5, 5));
@@ -864,41 +1071,15 @@ private void updateChapterChooser() {
         } else {
             popup.show(highlightBtn, -panel.getPreferredSize().width, 0); // show color selection
         }
-
     }//GEN-LAST:event_highlightBtnActionPerformed
 
-    
-    
-    private void closeBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeBtnActionPerformed
-           int result = JOptionPane.showConfirmDialog(
-            this, 
-            "Are you sure you want to exit?", 
-            "Warning", 
-            JOptionPane.YES_NO_OPTION, 
-            JOptionPane.WARNING_MESSAGE
-            );
+    private void homeBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_homeBtnActionPerformed
+        tabs.setSelectedIndex(0);
+    }//GEN-LAST:event_homeBtnActionPerformed
 
-            if (result == JOptionPane.YES_OPTION) {
-                System.exit(0);
-            }
-    }//GEN-LAST:event_closeBtnActionPerformed
-
-    private void boldBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_boldBtnActionPerformed
-       
-        isBoldActive = !isBoldActive;
-
-        Font currentFont = mainTextArea.getFont();
-
-        Font newFont = currentFont.deriveFont(isBoldActive ? Font.BOLD : Font.PLAIN);
-        mainTextArea.setFont(newFont);
-
-        boldBtn.setBackground(isBoldActive ? Color.LIGHT_GRAY : UIManager.getColor("Button.background"));
-
-    }//GEN-LAST:event_boldBtnActionPerformed
-
-    private void bookChooserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookChooserActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_bookChooserActionPerformed
+    private void bibleBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bibleBtnActionPerformed
+        tabs.setSelectedIndex(1);
+    }//GEN-LAST:event_bibleBtnActionPerformed
 
     
     /**
@@ -949,57 +1130,57 @@ private void updateChapterChooser() {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTabbedPane Tabs;
     private javax.swing.JButton addNoteBtn;
     private javax.swing.JLabel appTitle;
     private javax.swing.JButton audiobookBtn;
+    private javax.swing.JLabel audiobookLabel;
     private javax.swing.JButton bibleBtn;
     private javax.swing.JLabel bibleBtnLabel;
+    private javax.swing.JLabel biblestudyTitle;
     private javax.swing.JButton boldBtn;
     private javax.swing.JComboBox<String> bookChooser;
     private javax.swing.JComboBox<String> bookChooserDropDown;
     private javax.swing.JButton bookmarkBtn;
+    private javax.swing.JLabel bookmarksBtn;
     private javax.swing.JComboBox<String> chapterChooser;
     private javax.swing.JButton closeBtn;
     private javax.swing.JButton cmntrsBtn;
     private javax.swing.JLabel cmntrsBtnLabel;
+    private javax.swing.JPanel cmtrsTabPanel;
     private javax.swing.JTabbedPane cmtryTabbedPanel;
     private javax.swing.JSlider fontSizeSlider;
     private javax.swing.JButton highlightBtn;
     private javax.swing.JButton homeBtn;
-    private javax.swing.JButton homeBtn4;
     private javax.swing.JButton homeBtn5;
     private javax.swing.JLabel homeBtnLabel;
+    private javax.swing.JPanel homeTab;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel10;
     private javax.swing.JPanel jPanel11;
     private javax.swing.JPanel jPanel12;
     private javax.swing.JPanel jPanel13;
     private javax.swing.JPanel jPanel14;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JPanel jPanel4;
-    private javax.swing.JPanel jPanel5;
-    private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
     private javax.swing.JPanel jPanel9;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JLayeredPane mainPanel_layered;
     private javax.swing.JTextArea mainTextArea;
+    private javax.swing.JScrollPane mainTextScrollPanel;
+    private javax.swing.JButton minimizeBtn;
+    private javax.swing.JPanel navBar;
+    private javax.swing.JPanel nodesTabPanel;
     private javax.swing.JLabel notesBtnLabel;
+    private javax.swing.JPanel notesTabPanel;
+    private javax.swing.JButton restoreBtn;
     private javax.swing.JButton searchBtn;
     private javax.swing.JLabel searchBtnLabel;
+    private javax.swing.JButton settingsBtn;
+    private javax.swing.JLabel settingsLabel;
+    private javax.swing.JTabbedPane tabs;
     private javax.swing.JComboBox<String> testamentChooser;
+    private javax.swing.JPanel topBar;
     private javax.swing.JComboBox<String> verseChooser;
     // End of variables declaration//GEN-END:variables
 }

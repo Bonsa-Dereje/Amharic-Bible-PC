@@ -646,12 +646,12 @@
                           <EmptySpace min="-2" pref="17" max="-2" attributes="0"/>
                           <Component id="testamentChooser" min="-2" pref="105" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="bookChooser" min="-2" pref="148" max="-2" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Component id="chapterChooser" min="-2" pref="50" max="-2" attributes="0"/>
-                          <EmptySpace min="10" pref="10" max="-2" attributes="0"/>
-                          <Component id="verseChooser" min="-2" pref="50" max="-2" attributes="0"/>
-                          <EmptySpace pref="330" max="32767" attributes="0"/>
+                          <Component id="bookChooser" min="-2" pref="182" max="-2" attributes="0"/>
+                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                          <Component id="chapterChooser" min="-2" pref="60" max="-2" attributes="0"/>
+                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                          <Component id="verseChooser" min="-2" pref="59" max="-2" attributes="0"/>
+                          <EmptySpace pref="269" max="32767" attributes="0"/>
                           <Component id="fontSizeSlider" min="-2" pref="104" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="boldBtn" min="-2" max="-2" attributes="0"/>
@@ -668,8 +668,10 @@
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace min="-2" pref="67" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
-                              <Component id="chapterChooser" alignment="1" min="-2" max="-2" attributes="0"/>
-                              <Component id="verseChooser" min="-2" max="-2" attributes="0"/>
+                              <Group type="103" alignment="1" groupAlignment="3" attributes="0">
+                                  <Component id="chapterChooser" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="verseChooser" alignment="3" min="-2" max="-2" attributes="0"/>
+                              </Group>
                               <Group type="103" groupAlignment="1" max="-2" attributes="0">
                                   <Component id="highlightBtn" max="32767" attributes="0"/>
                                   <Component id="jLabel5" min="-2" pref="20" max="-2" attributes="0"/>
@@ -738,7 +740,6 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bookChooserActionPerformed"/>
                   </Events>
                   <AuxValues>
-                    <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int selectedTestamentIndex = testamentChooser.getSelectedIndex();&#xa;    int selectedBookIndex = bookChooser.getSelectedIndex();&#xa;&#xa;    if (selectedTestamentIndex == 1) {  &#xa;        // New Testament selected&#xa;        // Start counting from 38 (since Old Testament has 39 books)&#xa;        // So index 0 -&gt; 38, index 1 -&gt; 39, etc.&#xa;        selectedBookIndex += 38;&#xa;    }&#xa;&#xa;    updateChapterChooser(selectedBookIndex);"/>
                     <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="bookChooser.addActionListener(e -&gt; updateChapterChooser());"/>
                     <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
                   </AuxValues>
@@ -753,6 +754,7 @@
                     </Property>
                   </Properties>
                   <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="chapterChooser.addActionListener(e -&gt; {&#xa;    int selectedChapterIndex = chapterChooser.getSelectedIndex();&#xa;    if (selectedChapterIndex &lt; 0) return;&#xa;&#xa;    int selectedBookIndex = bookChooser.getSelectedIndex();&#xa;    if (selectedBookIndex &lt; 0) return;&#xa;&#xa;    int selectedTestamentIndex = testamentChooser.getSelectedIndex();&#xa;&#xa;    // Figure out the folder number&#xa;    int folderNumber;&#xa;    if (selectedTestamentIndex == 1) {&#xa;        folderNumber = selectedBookIndex + 40; // New Testament offset&#xa;    } else {&#xa;        folderNumber = selectedBookIndex + 1;  // Old Testament&#xa;    }&#xa;&#xa;    // Chapter files are named as index+1.pdf&#xa;    int chapterNumber = selectedChapterIndex + 1;&#xa;    File pdfFile = new File(&#xa;            &quot;C:\\Users\\boni\\Desktop\\Files\\The Bible Project\\BibleApp\\src\\main\\resources\\files\\books\\&quot;&#xa;                    + folderNumber,&#xa;            chapterNumber + &quot;.pdf&quot;&#xa;    );&#xa;&#xa;    if (!pdfFile.exists()) {&#xa;        mainTextArea.setText(&quot;Chapter file not found: &quot; + pdfFile.getName());&#xa;        return;&#xa;    }&#xa;&#xa;    // Load the PDF text into mainTextArea&#xa;    try (PDDocument doc = PDDocument.load(pdfFile)) {&#xa;        PDFTextStripper stripper = new PDFTextStripper();&#xa;        String text = stripper.getText(doc);&#xa;        mainTextArea.setText(text.trim());&#xa;        mainTextArea.setCaretPosition(0); // scroll to top&#xa;    } catch (IOException ex) {&#xa;        ex.printStackTrace();&#xa;        mainTextArea.setText(&quot;Error reading: &quot; + pdfFile.getName());&#xa;    }&#xa;});"/>
                     <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
                   </AuxValues>
                 </Component>
