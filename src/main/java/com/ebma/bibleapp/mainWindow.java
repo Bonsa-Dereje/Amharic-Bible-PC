@@ -40,7 +40,14 @@ import javax.swing.event.DocumentEvent;
 import java.io.File;
 import java.nio.file.Files;
 
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 
+import java.awt.Robot;
+import java.awt.event.InputEvent;
+import java.awt.Point;
+import java.awt.Rectangle;
+import javax.swing.text.BadLocationException;
 
 public class mainWindow extends javax.swing.JFrame {
 
@@ -675,6 +682,28 @@ private void restoreHighlights() {
 
                     // Save highlight immediately
                     saveHighlight(selectedText, currentHighlightColor);
+
+                    // Simulate actual mouse click after 5 ms
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(5); // 5 ms delay
+
+                            // Get the screen location of the caret
+                            Rectangle caretRect = mainTextArea.modelToView(start);
+                            Point textAreaOnScreen = mainTextArea.getLocationOnScreen();
+                            int mouseX = textAreaOnScreen.x + caretRect.x + 1;
+                            int mouseY = textAreaOnScreen.y + caretRect.y + 1;
+
+                            // Create Robot and click
+                            Robot robot = new Robot();
+                            robot.mouseMove(mouseX, mouseY);
+                            robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+                            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
 
                 } catch (BadLocationException ex) {
                     ex.printStackTrace();
