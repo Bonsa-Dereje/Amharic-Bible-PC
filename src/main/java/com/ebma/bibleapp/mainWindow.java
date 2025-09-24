@@ -49,6 +49,9 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import javax.swing.text.BadLocationException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class mainWindow extends javax.swing.JFrame {
 
     private boolean isBoldActive = true;
@@ -78,7 +81,8 @@ public class mainWindow extends javax.swing.JFrame {
     
     private boolean verseChooserInitialized = false;
     
-    
+    public int currentBookIndex;
+    public int currentChapterIndex;
 
 
 
@@ -265,33 +269,110 @@ public class mainWindow extends javax.swing.JFrame {
 
 
 
-
+// -------------------- Save Highlight --------------------
 private void saveHighlight(String text, Color color) {
     try {
         File file = new File("highlightState.json");
-        JSONArray highlights;
+        JSONArray allSections;
 
-        // Read existing highlights
+        // Load existing data
         if (file.exists()) {
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 StringBuilder sb = new StringBuilder();
                 String line;
                 while ((line = reader.readLine()) != null) sb.append(line);
-                highlights = new JSONArray(sb.toString());
+                allSections = new JSONArray(sb.toString());
             }
         } else {
-            highlights = new JSONArray();
+            allSections = new JSONArray();
         }
 
-        // Add new highlight
+        // Determine line number of selection
+        int caretPosition = mainTextArea.getSelectionStart();
+        int lineNumber = mainTextArea.getLineOfOffset(caretPosition); // zero-based
+
+        // Determine wordDistIndex from leftmost word in line
+        int lineStartOffset = mainTextArea.getLineStartOffset(lineNumber);
+        String lineText = mainTextArea.getText(lineStartOffset,
+                mainTextArea.getLineEndOffset(lineNumber) - lineStartOffset);
+
+        String[] words = lineText.split("\\s+");
+        int wordDistIndex = -1;
+        int selectionStartInLine = caretPosition - lineStartOffset;
+        int cumulativeIndex = 0;
+
+        for (int i = 0; i < words.length; i++) {
+            int wordStart = cumulativeIndex;
+            int wordEnd = cumulativeIndex + words[i].length();
+            if (selectionStartInLine >= wordStart && selectionStartInLine < wordEnd) {
+                wordDistIndex = i;
+                break;
+            }
+            cumulativeIndex = wordEnd + 1; // +1 for space
+        }
+
+        if (wordDistIndex == -1) wordDistIndex = 0; // fallback
+
+        // Create section header
+        String header = "#" + currentBookIndex + "_*" + currentChapterIndex;
+
+        // Find or create section
+        JSONArray section = null;
+        for (int i = 0; i < allSections.length(); i++) {
+            Object item = allSections.get(i);
+            if (item instanceof String && item.equals(header)) {
+                if (i + 1 < allSections.length() && allSections.get(i + 1) instanceof JSONArray) {
+                    section = allSections.getJSONArray(i + 1);
+                } else {
+                    section = new JSONArray();
+                    allSections.put(i + 1, section);
+                }
+                break;
+            }
+        }
+
+        if (section == null) {
+            section = new JSONArray();
+            allSections.put(header);
+            allSections.put(section);
+        }
+
+        // ---- Remove overlapping highlights in the same book, chapter, line, AND text ----
+        JSONArray updatedSection = new JSONArray();
+        for (int j = 0; j < section.length(); j++) {
+            JSONObject obj = section.getJSONObject(j);
+            int existingLine = obj.getInt("line");
+            int existingWord = obj.getInt("wordDistIndex");
+            String existingText = obj.getString("text");
+
+            // Only keep highlights that are not shadowed by the new one
+            if (!(existingLine == lineNumber &&
+                  existingWord >= wordDistIndex &&
+                  existingText.equals(text))) {
+                updatedSection.put(obj);
+            }
+        }
+        section = updatedSection;
+
+        // ---- Add new highlight ----
         JSONObject obj = new JSONObject();
         obj.put("text", text);
+        obj.put("line", lineNumber);
+        obj.put("wordDistIndex", wordDistIndex);
         obj.put("color", new JSONArray(new int[]{color.getRed(), color.getGreen(), color.getBlue()}));
-        highlights.put(obj);
+        section.put(obj);
 
-        // Write back to file
+        // Replace the section in allSections
+        for (int i = 0; i < allSections.length(); i++) {
+            if (allSections.get(i) instanceof String && allSections.get(i).equals(header)) {
+                allSections.put(i + 1, section);
+                break;
+            }
+        }
+
+        // Save JSON back to file
         try (FileWriter writer = new FileWriter(file)) {
-            writer.write(highlights.toString(2));
+            writer.write(allSections.toString(2));
         }
 
     } catch (Exception ex) {
@@ -299,7 +380,8 @@ private void saveHighlight(String text, Color color) {
     }
 }
 
-// -------------------- Restore highlights --------------------
+
+// -------------------- Restore Highlights --------------------
 private void restoreHighlights() {
     File file = new File("highlightState.json");
     if (!file.exists()) return;
@@ -308,24 +390,55 @@ private void restoreHighlights() {
         StringBuilder sb = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) sb.append(line);
-        JSONArray highlights = new JSONArray(sb.toString());
+        JSONArray allSections = new JSONArray(sb.toString());
 
-        // Remove old highlights first
+        // Remove old highlights
         mainTextArea.getHighlighter().removeAllHighlights();
 
-        for (int i = 0; i < highlights.length(); i++) {
-            JSONObject obj = highlights.getJSONObject(i);
-            String text = obj.getString("text");
-            JSONArray colorArr = obj.getJSONArray("color");
-            Color color = new Color(colorArr.getInt(0), colorArr.getInt(1), colorArr.getInt(2));
+        String targetHeader = "#" + currentBookIndex + "_*" + currentChapterIndex;
 
-            // Find all occurrences in mainTextArea
-            String areaText = mainTextArea.getText();
-            int index = 0;
-            while ((index = areaText.indexOf(text, index)) != -1) {
-                mainTextArea.getHighlighter().addHighlight(index, index + text.length(),
-                        new DefaultHighlighter.DefaultHighlightPainter(color));
-                index += text.length();
+        for (int i = 0; i < allSections.length(); i++) {
+            Object item = allSections.get(i);
+            if (item instanceof String && item.equals(targetHeader)) {
+                if (i + 1 < allSections.length() && allSections.get(i + 1) instanceof JSONArray) {
+                    JSONArray section = allSections.getJSONArray(i + 1);
+
+                    for (int j = 0; j < section.length(); j++) {
+                        JSONObject obj = section.getJSONObject(j);
+                        String text = obj.getString("text");
+                        int lineNumber = obj.getInt("line");
+                        int wordDistIndex = obj.getInt("wordDistIndex");
+                        JSONArray colorArr = obj.getJSONArray("color");
+                        Color color = new Color(colorArr.getInt(0), colorArr.getInt(1), colorArr.getInt(2));
+
+                        // Get line text
+                        int lineStartOffset = mainTextArea.getLineStartOffset(lineNumber);
+                        int lineEndOffset = mainTextArea.getLineEndOffset(lineNumber);
+                        String lineText = mainTextArea.getText(lineStartOffset, lineEndOffset - lineStartOffset);
+
+                        // Split into words and find start offset using wordDistIndex
+                        String[] words = lineText.split("\\s+");
+                        int cumulativeIndex = 0;
+                        int startInLine = 0;
+
+                        if (wordDistIndex < words.length) {
+                            for (int k = 0; k < wordDistIndex; k++) {
+                                cumulativeIndex += words[k].length() + 1; // +1 for space
+                            }
+                            startInLine = cumulativeIndex;
+                        }
+
+                        int start = lineStartOffset + startInLine;
+                        int end = Math.min(start + text.length(), mainTextArea.getText().length());
+
+                        // Apply highlight
+                        mainTextArea.getHighlighter().addHighlight(
+                                start, end,
+                                new DefaultHighlighter.DefaultHighlightPainter(color)
+                        );
+                    }
+                }
+                break;
             }
         }
 
@@ -333,7 +446,6 @@ private void restoreHighlights() {
         ex.printStackTrace();
     }
 }
-
 
 
 
@@ -374,9 +486,9 @@ private void restoreHighlights() {
         mainTextScrollPanel = new javax.swing.JScrollPane();
         mainTextArea = new javax.swing.JTextArea();
         cmtryTabbedPanel = new javax.swing.JTabbedPane();
-        nodesTabPanel = new javax.swing.JPanel();
         notesTabPanel = new javax.swing.JPanel();
         addNoteBtn = new javax.swing.JButton();
+        nodesTabPanel = new javax.swing.JPanel();
         cmtrsTabPanel = new javax.swing.JPanel();
         biblestudyTitle = new javax.swing.JLabel();
         highlightBtn = new javax.swing.JButton();
@@ -752,6 +864,18 @@ private void restoreHighlights() {
         cmtryTabbedPanel.setBackground(new java.awt.Color(255, 255, 255));
         cmtryTabbedPanel.setFont(new java.awt.Font("Roboto", 0, 12)); // NOI18N
 
+        notesTabPanel.setBackground(new java.awt.Color(255, 255, 255));
+        notesTabPanel.setLayout(new java.awt.GridBagLayout());
+
+        addNoteBtn.setBackground(new java.awt.Color(204, 204, 204));
+        addNoteBtn.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        addNoteBtn.setForeground(new java.awt.Color(102, 102, 102));
+        addNoteBtn.setText("Create a new note");
+        addNoteBtn.setAlignmentY(0.0F);
+        notesTabPanel.add(addNoteBtn, new java.awt.GridBagConstraints());
+
+        cmtryTabbedPanel.addTab("Notes", notesTabPanel);
+
         nodesTabPanel.setBackground(new java.awt.Color(255, 255, 255));
 
         javax.swing.GroupLayout nodesTabPanelLayout = new javax.swing.GroupLayout(nodesTabPanel);
@@ -766,18 +890,6 @@ private void restoreHighlights() {
         );
 
         cmtryTabbedPanel.addTab("Nodes", nodesTabPanel);
-
-        notesTabPanel.setBackground(new java.awt.Color(255, 255, 255));
-        notesTabPanel.setLayout(new java.awt.GridBagLayout());
-
-        addNoteBtn.setBackground(new java.awt.Color(204, 204, 204));
-        addNoteBtn.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        addNoteBtn.setForeground(new java.awt.Color(102, 102, 102));
-        addNoteBtn.setText("Create a new note");
-        addNoteBtn.setAlignmentY(0.0F);
-        notesTabPanel.add(addNoteBtn, new java.awt.GridBagConstraints());
-
-        cmtryTabbedPanel.addTab("Notes", notesTabPanel);
 
         cmtrsTabPanel.setBackground(new java.awt.Color(255, 255, 255));
 
@@ -844,6 +956,10 @@ private void restoreHighlights() {
             }
         });
         homeTab.add(bookChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(128, 67, 182, -1));
+        bookChooser.addActionListener(e ->{
+            currentBookIndex = bookChooser.getSelectedIndex();
+
+        });
 
         chapterChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         homeTab.add(chapterChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(322, 68, 60, -1));
@@ -887,6 +1003,9 @@ private void restoreHighlights() {
                 ex.printStackTrace();
                 mainTextArea.setText("Error reading: " + pdfFile.getName());
             }
+        });
+        chapterChooser.addActionListener(e ->{
+            currentChapterIndex = chapterChooser.getSelectedIndex();
         });
 
         verseChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
