@@ -50,7 +50,20 @@ import java.awt.Rectangle;
 import javax.swing.text.BadLocationException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+
+import java.util.Map;
+import java.util.HashMap;
+
+
+import com.ebma.bibleapp.DBManager;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 
 public class mainWindow extends javax.swing.JFrame {
 
@@ -106,7 +119,8 @@ public class mainWindow extends javax.swing.JFrame {
         chapterChooser.setSelectedIndex(0);
         updateBookChooser();
         updateVerseChooser();
-
+        
+        
       
     }
     
@@ -268,111 +282,59 @@ public class mainWindow extends javax.swing.JFrame {
         }
 
 
-
-// -------------------- Save Highlight --------------------
 private void saveHighlight(String text, Color color) {
-    try {
-        File file = new File("highlightState.json");
-        JSONArray allSections;
+    try (Connection conn = DBManager.getConnection()) {
 
-        // Load existing data
-        if (file.exists()) {
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                StringBuilder sb = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) sb.append(line);
-                allSections = new JSONArray(sb.toString());
-            }
-        } else {
-            allSections = new JSONArray();
+        // Remove overlapping highlights in same book, chapter, line, and text
+        String delete = """
+            DELETE FROM highlights
+            WHERE bookIndex=? AND chapterIndex=? AND line=? AND wordDistIndex>=? AND text=?
+        """;
+        try (PreparedStatement ps = conn.prepareStatement(delete)) {
+            ps.setInt(1, currentBookIndex);
+            ps.setInt(2, currentChapterIndex);
+            ps.setInt(3, mainTextArea.getLineOfOffset(mainTextArea.getSelectionStart()));
+            ps.setInt(4, 0); // fallback
+            ps.setString(5, text);
+            ps.executeUpdate();
         }
 
-        // Determine line number of selection
-        int caretPosition = mainTextArea.getSelectionStart();
-        int lineNumber = mainTextArea.getLineOfOffset(caretPosition); // zero-based
+        // Insert new highlight
+        String insert = """
+            INSERT INTO highlights (bookIndex, chapterIndex, line, wordDistIndex, text, colorR, colorG, colorB)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """;
+        try (PreparedStatement ps = conn.prepareStatement(insert)) {
+            int caretPosition = mainTextArea.getSelectionStart();
+            int lineNumber = mainTextArea.getLineOfOffset(caretPosition);
 
-        // Determine wordDistIndex from leftmost word in line
-        int lineStartOffset = mainTextArea.getLineStartOffset(lineNumber);
-        String lineText = mainTextArea.getText(lineStartOffset,
-                mainTextArea.getLineEndOffset(lineNumber) - lineStartOffset);
+            int lineStartOffset = mainTextArea.getLineStartOffset(lineNumber);
+            String lineText = mainTextArea.getText(lineStartOffset,
+                    mainTextArea.getLineEndOffset(lineNumber) - lineStartOffset);
 
-        String[] words = lineText.split("\\s+");
-        int wordDistIndex = -1;
-        int selectionStartInLine = caretPosition - lineStartOffset;
-        int cumulativeIndex = 0;
-
-        for (int i = 0; i < words.length; i++) {
-            int wordStart = cumulativeIndex;
-            int wordEnd = cumulativeIndex + words[i].length();
-            if (selectionStartInLine >= wordStart && selectionStartInLine < wordEnd) {
-                wordDistIndex = i;
-                break;
-            }
-            cumulativeIndex = wordEnd + 1; // +1 for space
-        }
-
-        if (wordDistIndex == -1) wordDistIndex = 0; // fallback
-
-        // Create section header
-        String header = "#" + currentBookIndex + "_*" + currentChapterIndex;
-
-        // Find or create section
-        JSONArray section = null;
-        for (int i = 0; i < allSections.length(); i++) {
-            Object item = allSections.get(i);
-            if (item instanceof String && item.equals(header)) {
-                if (i + 1 < allSections.length() && allSections.get(i + 1) instanceof JSONArray) {
-                    section = allSections.getJSONArray(i + 1);
-                } else {
-                    section = new JSONArray();
-                    allSections.put(i + 1, section);
+            String[] words = lineText.split("\\s+");
+            int wordDistIndex = 0;
+            int selectionStartInLine = caretPosition - lineStartOffset;
+            int cumulativeIndex = 0;
+            for (int i = 0; i < words.length; i++) {
+                int wordStart = cumulativeIndex;
+                int wordEnd = cumulativeIndex + words[i].length();
+                if (selectionStartInLine >= wordStart && selectionStartInLine < wordEnd) {
+                    wordDistIndex = i;
+                    break;
                 }
-                break;
+                cumulativeIndex = wordEnd + 1;
             }
-        }
 
-        if (section == null) {
-            section = new JSONArray();
-            allSections.put(header);
-            allSections.put(section);
-        }
-
-        // ---- Remove overlapping highlights in the same book, chapter, line, AND text ----
-        JSONArray updatedSection = new JSONArray();
-        for (int j = 0; j < section.length(); j++) {
-            JSONObject obj = section.getJSONObject(j);
-            int existingLine = obj.getInt("line");
-            int existingWord = obj.getInt("wordDistIndex");
-            String existingText = obj.getString("text");
-
-            // Only keep highlights that are not shadowed by the new one
-            if (!(existingLine == lineNumber &&
-                  existingWord >= wordDistIndex &&
-                  existingText.equals(text))) {
-                updatedSection.put(obj);
-            }
-        }
-        section = updatedSection;
-
-        // ---- Add new highlight ----
-        JSONObject obj = new JSONObject();
-        obj.put("text", text);
-        obj.put("line", lineNumber);
-        obj.put("wordDistIndex", wordDistIndex);
-        obj.put("color", new JSONArray(new int[]{color.getRed(), color.getGreen(), color.getBlue()}));
-        section.put(obj);
-
-        // Replace the section in allSections
-        for (int i = 0; i < allSections.length(); i++) {
-            if (allSections.get(i) instanceof String && allSections.get(i).equals(header)) {
-                allSections.put(i + 1, section);
-                break;
-            }
-        }
-
-        // Save JSON back to file
-        try (FileWriter writer = new FileWriter(file)) {
-            writer.write(allSections.toString(2));
+            ps.setInt(1, currentBookIndex);
+            ps.setInt(2, currentChapterIndex);
+            ps.setInt(3, lineNumber);
+            ps.setInt(4, wordDistIndex);
+            ps.setString(5, text);
+            ps.setInt(6, color.getRed());
+            ps.setInt(7, color.getGreen());
+            ps.setInt(8, color.getBlue());
+            ps.executeUpdate();
         }
 
     } catch (Exception ex) {
@@ -381,64 +343,44 @@ private void saveHighlight(String text, Color color) {
 }
 
 
-// -------------------- Restore Highlights --------------------
 private void restoreHighlights() {
-    File file = new File("highlightState.json");
-    if (!file.exists()) return;
+    try (Connection conn = DBManager.getConnection()) {
+        String query = """
+            SELECT line, wordDistIndex, text, colorR, colorG, colorB
+            FROM highlights
+            WHERE bookIndex=? AND chapterIndex=?
+        """;
 
-    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-        StringBuilder sb = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) sb.append(line);
-        JSONArray allSections = new JSONArray(sb.toString());
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setInt(1, currentBookIndex);
+            ps.setInt(2, currentChapterIndex);
 
-        // Remove old highlights
-        mainTextArea.getHighlighter().removeAllHighlights();
+            ResultSet rs = ps.executeQuery();
+            mainTextArea.getHighlighter().removeAllHighlights();
 
-        String targetHeader = "#" + currentBookIndex + "_*" + currentChapterIndex;
+            while (rs.next()) {
+                int lineNumber = rs.getInt("line");
+                int wordDistIndex = rs.getInt("wordDistIndex");
+                String text = rs.getString("text");
+                Color color = new Color(rs.getInt("colorR"), rs.getInt("colorG"), rs.getInt("colorB"));
 
-        for (int i = 0; i < allSections.length(); i++) {
-            Object item = allSections.get(i);
-            if (item instanceof String && item.equals(targetHeader)) {
-                if (i + 1 < allSections.length() && allSections.get(i + 1) instanceof JSONArray) {
-                    JSONArray section = allSections.getJSONArray(i + 1);
+                int lineStartOffset = mainTextArea.getLineStartOffset(lineNumber);
+                int lineEndOffset = mainTextArea.getLineEndOffset(lineNumber);
+                String lineText = mainTextArea.getText(lineStartOffset, lineEndOffset - lineStartOffset);
 
-                    for (int j = 0; j < section.length(); j++) {
-                        JSONObject obj = section.getJSONObject(j);
-                        String text = obj.getString("text");
-                        int lineNumber = obj.getInt("line");
-                        int wordDistIndex = obj.getInt("wordDistIndex");
-                        JSONArray colorArr = obj.getJSONArray("color");
-                        Color color = new Color(colorArr.getInt(0), colorArr.getInt(1), colorArr.getInt(2));
-
-                        // Get line text
-                        int lineStartOffset = mainTextArea.getLineStartOffset(lineNumber);
-                        int lineEndOffset = mainTextArea.getLineEndOffset(lineNumber);
-                        String lineText = mainTextArea.getText(lineStartOffset, lineEndOffset - lineStartOffset);
-
-                        // Split into words and find start offset using wordDistIndex
-                        String[] words = lineText.split("\\s+");
-                        int cumulativeIndex = 0;
-                        int startInLine = 0;
-
-                        if (wordDistIndex < words.length) {
-                            for (int k = 0; k < wordDistIndex; k++) {
-                                cumulativeIndex += words[k].length() + 1; // +1 for space
-                            }
-                            startInLine = cumulativeIndex;
-                        }
-
-                        int start = lineStartOffset + startInLine;
-                        int end = Math.min(start + text.length(), mainTextArea.getText().length());
-
-                        // Apply highlight
-                        mainTextArea.getHighlighter().addHighlight(
-                                start, end,
-                                new DefaultHighlighter.DefaultHighlightPainter(color)
-                        );
-                    }
+                String[] words = lineText.split("\\s+");
+                int cumulativeIndex = 0;
+                for (int i = 0; i < wordDistIndex; i++) {
+                    cumulativeIndex += words[i].length() + 1;
                 }
-                break;
+                int startInLine = cumulativeIndex;
+                int start = lineStartOffset + startInLine;
+                int end = Math.min(start + text.length(), mainTextArea.getText().length());
+
+                mainTextArea.getHighlighter().addHighlight(
+                        start, end,
+                        new DefaultHighlighter.DefaultHighlightPainter(color)
+                );
             }
         }
 
@@ -446,7 +388,6 @@ private void restoreHighlights() {
         ex.printStackTrace();
     }
 }
-
 
 
 
@@ -462,6 +403,7 @@ private void restoreHighlights() {
         appTitle = new javax.swing.JLabel();
         restoreBtn = new javax.swing.JButton();
         minimizeBtn = new javax.swing.JButton();
+        JSON = new javax.swing.JButton();
         navBar = new javax.swing.JPanel();
         homeBtnLabel = new javax.swing.JLabel();
         bibleBtnLabel = new javax.swing.JLabel();
@@ -551,6 +493,13 @@ private void restoreHighlights() {
             }
         });
 
+        JSON.setText("JSON");
+        JSON.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                JSONActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout topBarLayout = new javax.swing.GroupLayout(topBar);
         topBar.setLayout(topBarLayout);
         topBarLayout.setHorizontalGroup(
@@ -558,7 +507,9 @@ private void restoreHighlights() {
             .addGroup(topBarLayout.createSequentialGroup()
                 .addGap(6, 6, 6)
                 .addComponent(appTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 1058, Short.MAX_VALUE)
+                .addGap(461, 461, 461)
+                .addComponent(JSON)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 525, Short.MAX_VALUE)
                 .addComponent(bookChooserDropDown, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(12, 12, 12)
                 .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -581,6 +532,9 @@ private void restoreHighlights() {
                     .addComponent(closeBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(bookChooserDropDown, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+            .addGroup(topBarLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(JSON))
         );
 
         mainPanel_layered.add(topBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1650, 35));
@@ -781,7 +735,6 @@ private void restoreHighlights() {
 
             String selectedText = mainTextArea.getSelectedText();
             if (selectedText != null && !selectedText.isEmpty()) {
-
                 try {
                     // Highlight selected text
                     Highlighter.HighlightPainter painter =
@@ -792,7 +745,7 @@ private void restoreHighlights() {
 
                     mainTextArea.getHighlighter().addHighlight(start, end, painter);
 
-                    // Save highlight immediately
+                    // Save highlight immediately into SQLite
                     saveHighlight(selectedText, currentHighlightColor);
 
                     // Simulate actual mouse click after 5 ms
@@ -820,24 +773,6 @@ private void restoreHighlights() {
                 } catch (BadLocationException ex) {
                     ex.printStackTrace();
                 }
-            }
-        });
-
-        // -------------------- Document listener --------------------
-        mainTextArea.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                restoreHighlights(); // live update after insertion
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                restoreHighlights(); // live update after removal
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                restoreHighlights();
             }
         });
 
@@ -1335,6 +1270,67 @@ private void restoreHighlights() {
         tabs.setSelectedIndex(1);
     }//GEN-LAST:event_bibleBtnActionPerformed
 
+    private void JSONActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_JSONActionPerformed
+    File file = new File("highlightState.json");
+    if (!file.exists()) {
+        System.out.println("No highlight JSON file found.");
+        return;
+    }
+
+    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) sb.append(line);
+
+        JSONArray allSections = new JSONArray(sb.toString());
+        String targetHeader = "#" + currentBookIndex + "_*" + currentChapterIndex;
+
+        for (int i = 0; i < allSections.length(); i++) {
+            Object item = allSections.get(i);
+            if (item instanceof String && item.equals(targetHeader)) {
+                if (i + 1 < allSections.length() && allSections.get(i + 1) instanceof JSONArray) {
+                    JSONArray section = allSections.getJSONArray(i + 1);
+
+                    // Compare each highlight with every other on the same line
+                    for (int j = 0; j < section.length(); j++) {
+                        JSONObject lowObj = section.getJSONObject(j);
+                        int lowLine = lowObj.getInt("line");
+                        int lowIndex = lowObj.getInt("wordDistIndex");
+                        List<String> lowWords = new ArrayList<>(List.of(lowObj.getString("text").split("\\s+")));
+
+                        for (int k = 0; k < section.length(); k++) {
+                            if (j == k) continue;
+
+                            JSONObject highObj = section.getJSONObject(k);
+                            int highLine = highObj.getInt("line");
+                            int highIndex = highObj.getInt("wordDistIndex");
+                            List<String> highWords = new ArrayList<>(List.of(highObj.getString("text").split("\\s+")));
+
+                            // Only act if same line and highIndex > lowIndex
+                            if (lowLine == highLine && highIndex > lowIndex) {
+                                List<String> omitted = new ArrayList<>(lowWords);
+                                omitted.retainAll(highWords); // words present in highWords
+
+                                if (!omitted.isEmpty()) {
+                                    // Remove omitted words from lower highlight
+                                    lowWords.removeAll(omitted);
+                                    lowObj.put("text", String.join(" ", lowWords));
+
+                                    // Print omitted words
+                                    System.out.println("Omitted words from lower highlight: " + omitted);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    } catch (Exception ex) {
+        ex.printStackTrace();
+    }
+    }//GEN-LAST:event_JSONActionPerformed
+
     
  
     
@@ -1386,6 +1382,7 @@ private void restoreHighlights() {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton JSON;
     private javax.swing.JButton addNoteBtn;
     private javax.swing.JLabel appTitle;
     private javax.swing.JButton audiobookBtn;

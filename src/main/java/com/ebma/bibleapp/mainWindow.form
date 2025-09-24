@@ -60,7 +60,9 @@
                   <Group type="102" attributes="0">
                       <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
                       <Component id="appTitle" min="-2" pref="136" max="-2" attributes="0"/>
-                      <EmptySpace pref="1058" max="32767" attributes="0"/>
+                      <EmptySpace min="-2" pref="461" max="-2" attributes="0"/>
+                      <Component id="JSON" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace pref="525" max="32767" attributes="0"/>
                       <Component id="bookChooserDropDown" min="-2" pref="89" max="-2" attributes="0"/>
                       <EmptySpace min="12" pref="12" max="-2" attributes="0"/>
                       <Component id="jTextField1" min="-2" pref="161" max="-2" attributes="0"/>
@@ -86,6 +88,10 @@
                           <Component id="bookChooserDropDown" min="-2" max="-2" attributes="0"/>
                           <Component id="jTextField1" min="-2" max="-2" attributes="0"/>
                       </Group>
+                  </Group>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="JSON" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -156,6 +162,14 @@
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="minimizeBtnActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JButton" name="JSON">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="JSON"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="JSONActionPerformed"/>
               </Events>
             </Component>
           </SubComponents>
@@ -539,7 +553,7 @@
                         <Property name="rows" type="int" value="5"/>
                       </Properties>
                       <AuxValues>
-                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="mainTextArea.addCaretListener(e -&gt; {&#xa;            if (!highlighterActive || currentHighlightColor == null) return;&#xa;&#xa;            String selectedText = mainTextArea.getSelectedText();&#xa;            if (selectedText != null &amp;&amp; !selectedText.isEmpty()) {&#xa;&#xa;                try {&#xa;                    // Highlight selected text&#xa;                    Highlighter.HighlightPainter painter =&#xa;                    new DefaultHighlighter.DefaultHighlightPainter(currentHighlightColor);&#xa;&#xa;                    int start = mainTextArea.getSelectionStart();&#xa;                    int end = mainTextArea.getSelectionEnd();&#xa;&#xa;                    mainTextArea.getHighlighter().addHighlight(start, end, painter);&#xa;&#xa;                    // Save highlight immediately&#xa;                    saveHighlight(selectedText, currentHighlightColor);&#xa;&#xa;                    // Simulate actual mouse click after 5 ms&#xa;                    new Thread(() -&gt; {&#xa;                        try {&#xa;                            Thread.sleep(5); // 5 ms delay&#xa;&#xa;                            // Get the screen location of the caret&#xa;                            Rectangle caretRect = mainTextArea.modelToView(start);&#xa;                            Point textAreaOnScreen = mainTextArea.getLocationOnScreen();&#xa;                            int mouseX = textAreaOnScreen.x + caretRect.x + 1;&#xa;                            int mouseY = textAreaOnScreen.y + caretRect.y + 1;&#xa;&#xa;                            // Create Robot and click&#xa;                            Robot robot = new Robot();&#xa;                            robot.mouseMove(mouseX, mouseY);&#xa;                            robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);&#xa;                            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);&#xa;&#xa;                        } catch (Exception ex) {&#xa;                            ex.printStackTrace();&#xa;                        }&#xa;                    }).start();&#xa;&#xa;                } catch (BadLocationException ex) {&#xa;                    ex.printStackTrace();&#xa;                }&#xa;            }&#xa;        });&#xa;&#xa;        // -------------------- Document listener --------------------&#xa;        mainTextArea.getDocument().addDocumentListener(new DocumentListener() {&#xa;            @Override&#xa;            public void insertUpdate(DocumentEvent e) {&#xa;                restoreHighlights(); // live update after insertion&#xa;            }&#xa;&#xa;            @Override&#xa;            public void removeUpdate(DocumentEvent e) {&#xa;                restoreHighlights(); // live update after removal&#xa;            }&#xa;&#xa;            @Override&#xa;            public void changedUpdate(DocumentEvent e) {&#xa;                restoreHighlights();&#xa;            }&#xa;        });&#xa;&#xa;        // -------------------- Document listener --------------------&#xa;        mainTextArea.getDocument().addDocumentListener(new DocumentListener() {&#xa;            @Override&#xa;            public void insertUpdate(DocumentEvent e) {&#xa;                restoreHighlights(); // live update after insertion&#xa;            }&#xa;&#xa;            @Override&#xa;            public void removeUpdate(DocumentEvent e) {&#xa;                restoreHighlights(); // live update after removal&#xa;            }&#xa;&#xa;            @Override&#xa;            public void changedUpdate(DocumentEvent e) {&#xa;                restoreHighlights();&#xa;            }&#xa;        });"/>
+                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="mainTextArea.addCaretListener(e -&gt; {&#xa;    if (!highlighterActive || currentHighlightColor == null) return;&#xa;&#xa;    String selectedText = mainTextArea.getSelectedText();&#xa;    if (selectedText != null &amp;&amp; !selectedText.isEmpty()) {&#xa;        try {&#xa;            // Highlight selected text&#xa;            Highlighter.HighlightPainter painter =&#xa;                    new DefaultHighlighter.DefaultHighlightPainter(currentHighlightColor);&#xa;&#xa;            int start = mainTextArea.getSelectionStart();&#xa;            int end = mainTextArea.getSelectionEnd();&#xa;&#xa;            mainTextArea.getHighlighter().addHighlight(start, end, painter);&#xa;&#xa;            // Save highlight immediately into SQLite&#xa;            saveHighlight(selectedText, currentHighlightColor);&#xa;&#xa;            // Simulate actual mouse click after 5 ms&#xa;            new Thread(() -&gt; {&#xa;                try {&#xa;                    Thread.sleep(5); // 5 ms delay&#xa;&#xa;                    // Get the screen location of the caret&#xa;                    Rectangle caretRect = mainTextArea.modelToView(start);&#xa;                    Point textAreaOnScreen = mainTextArea.getLocationOnScreen();&#xa;                    int mouseX = textAreaOnScreen.x + caretRect.x + 1;&#xa;                    int mouseY = textAreaOnScreen.y + caretRect.y + 1;&#xa;&#xa;                    // Create Robot and click&#xa;                    Robot robot = new Robot();&#xa;                    robot.mouseMove(mouseX, mouseY);&#xa;                    robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);&#xa;                    robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);&#xa;&#xa;                } catch (Exception ex) {&#xa;                    ex.printStackTrace();&#xa;                }&#xa;            }).start();&#xa;&#xa;        } catch (BadLocationException ex) {&#xa;            ex.printStackTrace();&#xa;        }&#xa;    }&#xa;});&#xa;&#xa;// -------------------- Document listener --------------------&#xa;mainTextArea.getDocument().addDocumentListener(new DocumentListener() {&#xa;    @Override&#xa;    public void insertUpdate(DocumentEvent e) {&#xa;        restoreHighlights(); // live update after insertion&#xa;    }&#xa;&#xa;    @Override&#xa;    public void removeUpdate(DocumentEvent e) {&#xa;        restoreHighlights(); // live update after removal&#xa;    }&#xa;&#xa;    @Override&#xa;    public void changedUpdate(DocumentEvent e) {&#xa;        restoreHighlights();&#xa;    }&#xa;});"/>
                       </AuxValues>
                     </Component>
                   </SubComponents>

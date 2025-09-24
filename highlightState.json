@@ -2,64 +2,96 @@
   "#0_*0",
   [
     {
-      "wordDistIndex": 6,
-      "color": [
-        0,
-        255,
-        0
-      ],
-      "line": 6,
-      "text": "ጠራው"
-    },
-    {
-      "wordDistIndex": 7,
-      "color": [
-        0,
-        255,
-        0
-      ],
-      "line": 6,
-      "text": "ጨለማውንም"
-    },
-    {
-      "wordDistIndex": 10,
-      "color": [
-        0,
-        255,
-        0
-      ],
-      "line": 6,
-      "text": "ማታም"
-    },
-    {
-      "wordDistIndex": 1,
-      "color": [
-        0,
-        255,
-        0
-      ],
-      "line": 13,
-      "text": "እንደ "
-    },
-    {
-      "wordDistIndex": 7,
+      "wordDistIndex": 0,
       "color": [
         0,
         255,
         0
       ],
       "line": 14,
-      "text": "ቡቃያን"
+      "text": "11 ፤ እግዚአብሔርም። ምድር ዘርን የሚሰጥ ሣርንና ቡቃያን በምድርም ላይ እንደ ወገኑ ዘሩ ያለበትን ፍሬን\r\nየሚያፈራ ዛፍን ታብቅል አለ፤ እንዲሁም ሆነ።\r"
     },
     {
-      "wordDistIndex": 4,
+      "wordDistIndex": 7,
+      "color": [
+        0,
+        255,
+        0
+      ],
+      "line": 12,
+      "text": "የውኃ መከማቻውንም ባሕር አለው"
+    },
+    {
+      "wordDistIndex": 9,
+      "color": [
+        255,
+        175,
+        175
+      ],
+      "line": 12,
+      "text": "ባሕር"
+    },
+    {
+      "wordDistIndex": 2,
       "color": [
         0,
         255,
         0
       ],
       "line": 19,
-      "text": "ቀንና "
+      "text": "ሔርም አለ። ቀንና ሌሊትን ይለዩ ዘንድ ብርሃናት "
+    },
+    {
+      "wordDistIndex": 11,
+      "color": [
+        0,
+        255,
+        0
+      ],
+      "line": 19,
+      "text": "፤ ለምልክቶች ለዘመ"
+    },
+    {
+      "wordDistIndex": 2,
+      "color": [
+        0,
+        255,
+        0
+      ],
+      "line": 21,
+      "text": "በምድር ላይ ያበሩ ዘንድ በሰማይ ጠፈር ብርሃናት ይሁኑ"
+    },
+    {
+      "wordDistIndex": 0,
+      "color": [
+        0,
+        255,
+        255
+      ],
+      "line": 21,
+      "text": " በሰማይ ጠፈር "
     }
-  ]
+  ],
+  "#1_*1",
+  [{
+    "wordDistIndex": 0,
+    "color": [
+      0,
+      255,
+      0
+    ],
+    "line": 8,
+    "text": " ያለቅስ ነበር"
+  }],
+  "#8_*0",
+  [{
+    "wordDistIndex": 0,
+    "color": [
+      0,
+      255,
+      0
+    ],
+    "line": 7,
+    "text": "\n7 እርሱ ግን ሌላ ወንጌል አይደለም፤ የሚያናውጡአችሁ የክርስቶስንም ወን"
+  }]
 ]
