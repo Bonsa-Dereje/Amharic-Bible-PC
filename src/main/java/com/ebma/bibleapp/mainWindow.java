@@ -67,6 +67,8 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Comparator;
 
+import java.util.HashSet;
+
 public class mainWindow extends javax.swing.JFrame {
 
     private boolean isBoldActive = true;
@@ -282,72 +284,59 @@ public class mainWindow extends javax.swing.JFrame {
                 }
             }
         }
-        private void saveHighlight(String text, Color color) {
+        
+        
+        
+private void saveHighlight(String text, Color color) {
     try (Connection conn = DBManager.getConnection()) {
 
         int caretPosition = mainTextArea.getSelectionStart();
         int lineNumber = mainTextArea.getLineOfOffset(caretPosition);
-
         int lineStartOffset = mainTextArea.getLineStartOffset(lineNumber);
-        String lineText = mainTextArea.getText(lineStartOffset,
-                mainTextArea.getLineEndOffset(lineNumber) - lineStartOffset);
+        String lineText = mainTextArea.getText(
+                lineStartOffset,
+                mainTextArea.getLineEndOffset(lineNumber) - lineStartOffset
+        );
 
-        // Split selected text into words
-        String[] selectedWords = text.split("\\s+");
-
-        // Split line into words with trailing spaces preserved
-        String[] lineWords = lineText.split("(?<=\\s)");
         int selectionStartInLine = caretPosition - lineStartOffset;
-        int wordDistIndex = 0;
-        int cumulativeIndex = 0;
 
-        // Determine first word index of selection
-        for (int i = 0; i < lineWords.length; i++) {
-            int wordStart = cumulativeIndex;
-            int wordEnd = cumulativeIndex + lineWords[i].length();
-            if (selectionStartInLine >= wordStart && selectionStartInLine < wordEnd) {
-                wordDistIndex = i;
-                break;
-            }
-            cumulativeIndex = wordEnd;
-        }
+        // Split line into individual characters
+        char[] lineChars = lineText.toCharArray();
 
-        // Insert each word with spacing trace
+        // Determine starting character index in the line
+        int charDistIndex = selectionStartInLine;
+
         String insert = """
-            INSERT INTO highlights (bookIndex, chapterIndex, line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """;
+                INSERT INTO highlights 
+                (bookIndex, chapterIndex, line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """;
 
         try (PreparedStatement ps = conn.prepareStatement(insert)) {
-            for (int i = 0; i < selectedWords.length; i++) {
-                int wordIndex = wordDistIndex + i;
-                String word = selectedWords[i];
+            for (int i = 0; i < text.length(); i++) {
+                char c = text.charAt(i);
 
-                // Compute postSpaceLength from original line if possible
-                int postSpace = 1; // default
-                if (wordIndex < lineWords.length) {
-                    postSpace = lineWords[wordIndex].length() - selectedWords[i].length();
-                    if (postSpace < 0) postSpace = 0;
-                }
-
-                // Optional: remove existing word at same position
+                // Remove existing character at same position if exists
                 String delete = """
-                    DELETE FROM highlights
-                    WHERE bookIndex=? AND chapterIndex=? AND line=? AND wordDistIndex=?
-                """;
+                        DELETE FROM highlights 
+                        WHERE bookIndex=? AND chapterIndex=? AND line=? AND wordDistIndex=?
+                        """;
                 try (PreparedStatement del = conn.prepareStatement(delete)) {
                     del.setInt(1, currentBookIndex);
                     del.setInt(2, currentChapterIndex);
                     del.setInt(3, lineNumber);
-                    del.setInt(4, wordIndex);
+                    del.setInt(4, charDistIndex + i);
                     del.executeUpdate();
                 }
+
+                // For individual characters, postSpaceLength is usually 0
+                int postSpace = 0;
 
                 ps.setInt(1, currentBookIndex);
                 ps.setInt(2, currentChapterIndex);
                 ps.setInt(3, lineNumber);
-                ps.setInt(4, wordIndex);
-                ps.setString(5, word);
+                ps.setInt(4, charDistIndex + i);
+                ps.setString(5, String.valueOf(c));
                 ps.setInt(6, color.getRed());
                 ps.setInt(7, color.getGreen());
                 ps.setInt(8, color.getBlue());
@@ -362,6 +351,9 @@ public class mainWindow extends javax.swing.JFrame {
     }
 }
 
+
+
+
 private void restoreHighlights() {
     try (Connection conn = DBManager.getConnection()) {
 
@@ -370,11 +362,11 @@ private void restoreHighlights() {
 
         // Fetch all highlights for the current book and chapter
         String query = """
-            SELECT line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength
-            FROM highlights
-            WHERE bookIndex=? AND chapterIndex=?
+            SELECT line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength 
+            FROM highlights 
+            WHERE bookIndex=? AND chapterIndex=? 
             ORDER BY line, wordDistIndex
-        """;
+            """;
 
         try (PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, currentBookIndex);
@@ -389,7 +381,7 @@ private void restoreHighlights() {
                     int wordDistIndex = rs.getInt("wordDistIndex");
                     String text = rs.getString("text");
                     Color color = new Color(rs.getInt("colorR"), rs.getInt("colorG"), rs.getInt("colorB"));
-                    int postSpaceLength = rs.getInt("postSpaceLength"); // space after word
+                    int postSpaceLength = rs.getInt("postSpaceLength");
 
                     lineMap.computeIfAbsent(lineNumber, k -> new ArrayList<>())
                            .add(new HighlightWord(wordDistIndex, text, color, postSpaceLength));
@@ -399,22 +391,19 @@ private void restoreHighlights() {
                 for (Map.Entry<Integer, List<HighlightWord>> entry : lineMap.entrySet()) {
                     int lineNumber = entry.getKey();
                     List<HighlightWord> words = entry.getValue();
-                    Collections.sort(words, Comparator.comparingInt(w -> w.wordDistIndex));
+                    words.sort(Comparator.comparingInt(w -> w.wordDistIndex));
 
-                    // Get line text
                     int lineStartOffset = mainTextArea.getLineStartOffset(lineNumber);
-                    String lineText = mainTextArea.getText(lineStartOffset,
-                            mainTextArea.getLineEndOffset(lineNumber) - lineStartOffset);
-
-                    // Compute start positions and merge words according to postSpaceLength
                     int cumulativeIndex = 0;
+
                     for (HighlightWord hw : words) {
                         int start = lineStartOffset + cumulativeIndex;
                         int end = Math.min(start + hw.text.length(), mainTextArea.getText().length());
 
                         mainTextArea.getHighlighter().addHighlight(
-                                start, end,
-                                new DefaultHighlighter.DefaultHighlightPainter(hw.color)
+                            start,
+                            end,
+                            new DefaultHighlighter.DefaultHighlightPainter(hw.color)
                         );
 
                         // Move cumulative index forward by word length + recorded post-space length
@@ -429,19 +418,14 @@ private void restoreHighlights() {
     }
 }
 
-
-
 public class HighlightWord {
     public int wordDistIndex;
     public String text;
     public Color color;
-    public int postSpaceLength; // optional, for preserving spaces
+    public int postSpaceLength;
 
     public HighlightWord(int wordDistIndex, String text, Color color) {
-        this.wordDistIndex = wordDistIndex;
-        this.text = text;
-        this.color = color;
-        this.postSpaceLength = 1; // default
+        this(wordDistIndex, text, color, 1); // default post-space
     }
 
     public HighlightWord(int wordDistIndex, String text, Color color, int postSpaceLength) {

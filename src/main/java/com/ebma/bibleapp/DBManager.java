@@ -25,7 +25,7 @@ public class DBManager {
                     colorG INTEGER,
                     colorB INTEGER
                 )
-            """);
+                """);
 
             // Add postSpaceLength column if it doesn't exist
             try {
