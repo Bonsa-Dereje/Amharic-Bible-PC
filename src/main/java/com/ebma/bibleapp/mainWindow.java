@@ -64,6 +64,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import java.util.Collections;
+import java.util.Comparator;
 
 public class mainWindow extends javax.swing.JFrame {
 
@@ -280,61 +282,79 @@ public class mainWindow extends javax.swing.JFrame {
                 }
             }
         }
-
-
-private void saveHighlight(String text, Color color) {
+        private void saveHighlight(String text, Color color) {
     try (Connection conn = DBManager.getConnection()) {
 
-        // Remove overlapping highlights in same book, chapter, line, and text
-        String delete = """
-            DELETE FROM highlights
-            WHERE bookIndex=? AND chapterIndex=? AND line=? AND wordDistIndex>=? AND text=?
-        """;
-        try (PreparedStatement ps = conn.prepareStatement(delete)) {
-            ps.setInt(1, currentBookIndex);
-            ps.setInt(2, currentChapterIndex);
-            ps.setInt(3, mainTextArea.getLineOfOffset(mainTextArea.getSelectionStart()));
-            ps.setInt(4, 0); // fallback
-            ps.setString(5, text);
-            ps.executeUpdate();
+        int caretPosition = mainTextArea.getSelectionStart();
+        int lineNumber = mainTextArea.getLineOfOffset(caretPosition);
+
+        int lineStartOffset = mainTextArea.getLineStartOffset(lineNumber);
+        String lineText = mainTextArea.getText(lineStartOffset,
+                mainTextArea.getLineEndOffset(lineNumber) - lineStartOffset);
+
+        // Split selected text into words
+        String[] selectedWords = text.split("\\s+");
+
+        // Split line into words with trailing spaces preserved
+        String[] lineWords = lineText.split("(?<=\\s)");
+        int selectionStartInLine = caretPosition - lineStartOffset;
+        int wordDistIndex = 0;
+        int cumulativeIndex = 0;
+
+        // Determine first word index of selection
+        for (int i = 0; i < lineWords.length; i++) {
+            int wordStart = cumulativeIndex;
+            int wordEnd = cumulativeIndex + lineWords[i].length();
+            if (selectionStartInLine >= wordStart && selectionStartInLine < wordEnd) {
+                wordDistIndex = i;
+                break;
+            }
+            cumulativeIndex = wordEnd;
         }
 
-        // Insert new highlight
+        // Insert each word with spacing trace
         String insert = """
-            INSERT INTO highlights (bookIndex, chapterIndex, line, wordDistIndex, text, colorR, colorG, colorB)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO highlights (bookIndex, chapterIndex, line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
+
         try (PreparedStatement ps = conn.prepareStatement(insert)) {
-            int caretPosition = mainTextArea.getSelectionStart();
-            int lineNumber = mainTextArea.getLineOfOffset(caretPosition);
+            for (int i = 0; i < selectedWords.length; i++) {
+                int wordIndex = wordDistIndex + i;
+                String word = selectedWords[i];
 
-            int lineStartOffset = mainTextArea.getLineStartOffset(lineNumber);
-            String lineText = mainTextArea.getText(lineStartOffset,
-                    mainTextArea.getLineEndOffset(lineNumber) - lineStartOffset);
-
-            String[] words = lineText.split("\\s+");
-            int wordDistIndex = 0;
-            int selectionStartInLine = caretPosition - lineStartOffset;
-            int cumulativeIndex = 0;
-            for (int i = 0; i < words.length; i++) {
-                int wordStart = cumulativeIndex;
-                int wordEnd = cumulativeIndex + words[i].length();
-                if (selectionStartInLine >= wordStart && selectionStartInLine < wordEnd) {
-                    wordDistIndex = i;
-                    break;
+                // Compute postSpaceLength from original line if possible
+                int postSpace = 1; // default
+                if (wordIndex < lineWords.length) {
+                    postSpace = lineWords[wordIndex].length() - selectedWords[i].length();
+                    if (postSpace < 0) postSpace = 0;
                 }
-                cumulativeIndex = wordEnd + 1;
-            }
 
-            ps.setInt(1, currentBookIndex);
-            ps.setInt(2, currentChapterIndex);
-            ps.setInt(3, lineNumber);
-            ps.setInt(4, wordDistIndex);
-            ps.setString(5, text);
-            ps.setInt(6, color.getRed());
-            ps.setInt(7, color.getGreen());
-            ps.setInt(8, color.getBlue());
-            ps.executeUpdate();
+                // Optional: remove existing word at same position
+                String delete = """
+                    DELETE FROM highlights
+                    WHERE bookIndex=? AND chapterIndex=? AND line=? AND wordDistIndex=?
+                """;
+                try (PreparedStatement del = conn.prepareStatement(delete)) {
+                    del.setInt(1, currentBookIndex);
+                    del.setInt(2, currentChapterIndex);
+                    del.setInt(3, lineNumber);
+                    del.setInt(4, wordIndex);
+                    del.executeUpdate();
+                }
+
+                ps.setInt(1, currentBookIndex);
+                ps.setInt(2, currentChapterIndex);
+                ps.setInt(3, lineNumber);
+                ps.setInt(4, wordIndex);
+                ps.setString(5, word);
+                ps.setInt(6, color.getRed());
+                ps.setInt(7, color.getGreen());
+                ps.setInt(8, color.getBlue());
+                ps.setInt(9, postSpace);
+                ps.addBatch();
+            }
+            ps.executeBatch();
         }
 
     } catch (Exception ex) {
@@ -342,45 +362,65 @@ private void saveHighlight(String text, Color color) {
     }
 }
 
-
 private void restoreHighlights() {
     try (Connection conn = DBManager.getConnection()) {
+
+        // Remove old highlights
+        mainTextArea.getHighlighter().removeAllHighlights();
+
+        // Fetch all highlights for the current book and chapter
         String query = """
-            SELECT line, wordDistIndex, text, colorR, colorG, colorB
+            SELECT line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength
             FROM highlights
             WHERE bookIndex=? AND chapterIndex=?
+            ORDER BY line, wordDistIndex
         """;
 
         try (PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, currentBookIndex);
             ps.setInt(2, currentChapterIndex);
 
-            ResultSet rs = ps.executeQuery();
-            mainTextArea.getHighlighter().removeAllHighlights();
+            try (ResultSet rs = ps.executeQuery()) {
+                Map<Integer, List<HighlightWord>> lineMap = new HashMap<>();
 
-            while (rs.next()) {
-                int lineNumber = rs.getInt("line");
-                int wordDistIndex = rs.getInt("wordDistIndex");
-                String text = rs.getString("text");
-                Color color = new Color(rs.getInt("colorR"), rs.getInt("colorG"), rs.getInt("colorB"));
+                // Group words by line
+                while (rs.next()) {
+                    int lineNumber = rs.getInt("line");
+                    int wordDistIndex = rs.getInt("wordDistIndex");
+                    String text = rs.getString("text");
+                    Color color = new Color(rs.getInt("colorR"), rs.getInt("colorG"), rs.getInt("colorB"));
+                    int postSpaceLength = rs.getInt("postSpaceLength"); // space after word
 
-                int lineStartOffset = mainTextArea.getLineStartOffset(lineNumber);
-                int lineEndOffset = mainTextArea.getLineEndOffset(lineNumber);
-                String lineText = mainTextArea.getText(lineStartOffset, lineEndOffset - lineStartOffset);
-
-                String[] words = lineText.split("\\s+");
-                int cumulativeIndex = 0;
-                for (int i = 0; i < wordDistIndex; i++) {
-                    cumulativeIndex += words[i].length() + 1;
+                    lineMap.computeIfAbsent(lineNumber, k -> new ArrayList<>())
+                           .add(new HighlightWord(wordDistIndex, text, color, postSpaceLength));
                 }
-                int startInLine = cumulativeIndex;
-                int start = lineStartOffset + startInLine;
-                int end = Math.min(start + text.length(), mainTextArea.getText().length());
 
-                mainTextArea.getHighlighter().addHighlight(
-                        start, end,
-                        new DefaultHighlighter.DefaultHighlightPainter(color)
-                );
+                // Apply highlights for each line
+                for (Map.Entry<Integer, List<HighlightWord>> entry : lineMap.entrySet()) {
+                    int lineNumber = entry.getKey();
+                    List<HighlightWord> words = entry.getValue();
+                    Collections.sort(words, Comparator.comparingInt(w -> w.wordDistIndex));
+
+                    // Get line text
+                    int lineStartOffset = mainTextArea.getLineStartOffset(lineNumber);
+                    String lineText = mainTextArea.getText(lineStartOffset,
+                            mainTextArea.getLineEndOffset(lineNumber) - lineStartOffset);
+
+                    // Compute start positions and merge words according to postSpaceLength
+                    int cumulativeIndex = 0;
+                    for (HighlightWord hw : words) {
+                        int start = lineStartOffset + cumulativeIndex;
+                        int end = Math.min(start + hw.text.length(), mainTextArea.getText().length());
+
+                        mainTextArea.getHighlighter().addHighlight(
+                                start, end,
+                                new DefaultHighlighter.DefaultHighlightPainter(hw.color)
+                        );
+
+                        // Move cumulative index forward by word length + recorded post-space length
+                        cumulativeIndex += hw.text.length() + hw.postSpaceLength;
+                    }
+                }
             }
         }
 
@@ -388,6 +428,30 @@ private void restoreHighlights() {
         ex.printStackTrace();
     }
 }
+
+
+
+public class HighlightWord {
+    public int wordDistIndex;
+    public String text;
+    public Color color;
+    public int postSpaceLength; // optional, for preserving spaces
+
+    public HighlightWord(int wordDistIndex, String text, Color color) {
+        this.wordDistIndex = wordDistIndex;
+        this.text = text;
+        this.color = color;
+        this.postSpaceLength = 1; // default
+    }
+
+    public HighlightWord(int wordDistIndex, String text, Color color, int postSpaceLength) {
+        this.wordDistIndex = wordDistIndex;
+        this.text = text;
+        this.color = color;
+        this.postSpaceLength = postSpaceLength;
+    }
+}
+
 
 
 
@@ -736,35 +800,33 @@ private void restoreHighlights() {
             String selectedText = mainTextArea.getSelectedText();
             if (selectedText != null && !selectedText.isEmpty()) {
                 try {
-                    // Highlight selected text
+                    // Highlight selected text in JTextArea
                     Highlighter.HighlightPainter painter =
                     new DefaultHighlighter.DefaultHighlightPainter(currentHighlightColor);
 
                     int start = mainTextArea.getSelectionStart();
                     int end = mainTextArea.getSelectionEnd();
-
                     mainTextArea.getHighlighter().addHighlight(start, end, painter);
 
                     // Save highlight immediately into SQLite
                     saveHighlight(selectedText, currentHighlightColor);
 
-                    // Simulate actual mouse click after 5 ms
+                    // Live reload after saving to ensure latest highlights are displayed
+                    restoreHighlights();
+
+                    // Optional: simulate actual mouse click
                     new Thread(() -> {
                         try {
                             Thread.sleep(5); // 5 ms delay
-
-                            // Get the screen location of the caret
                             Rectangle caretRect = mainTextArea.modelToView(start);
                             Point textAreaOnScreen = mainTextArea.getLocationOnScreen();
                             int mouseX = textAreaOnScreen.x + caretRect.x + 1;
                             int mouseY = textAreaOnScreen.y + caretRect.y + 1;
 
-                            // Create Robot and click
                             Robot robot = new Robot();
                             robot.mouseMove(mouseX, mouseY);
                             robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -776,21 +838,21 @@ private void restoreHighlights() {
             }
         });
 
-        // -------------------- Document listener --------------------
+        // -------------------- Document Listener (Live Reload) --------------------
         mainTextArea.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                restoreHighlights(); // live update after insertion
+                restoreHighlights(); // live reload on insertion
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                restoreHighlights(); // live update after removal
+                restoreHighlights(); // live reload on deletion
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                restoreHighlights();
+                restoreHighlights(); // live reload on style changes
             }
         });
 
@@ -1271,64 +1333,7 @@ private void restoreHighlights() {
     }//GEN-LAST:event_bibleBtnActionPerformed
 
     private void JSONActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_JSONActionPerformed
-    File file = new File("highlightState.json");
-    if (!file.exists()) {
-        System.out.println("No highlight JSON file found.");
-        return;
-    }
-
-    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-        StringBuilder sb = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) sb.append(line);
-
-        JSONArray allSections = new JSONArray(sb.toString());
-        String targetHeader = "#" + currentBookIndex + "_*" + currentChapterIndex;
-
-        for (int i = 0; i < allSections.length(); i++) {
-            Object item = allSections.get(i);
-            if (item instanceof String && item.equals(targetHeader)) {
-                if (i + 1 < allSections.length() && allSections.get(i + 1) instanceof JSONArray) {
-                    JSONArray section = allSections.getJSONArray(i + 1);
-
-                    // Compare each highlight with every other on the same line
-                    for (int j = 0; j < section.length(); j++) {
-                        JSONObject lowObj = section.getJSONObject(j);
-                        int lowLine = lowObj.getInt("line");
-                        int lowIndex = lowObj.getInt("wordDistIndex");
-                        List<String> lowWords = new ArrayList<>(List.of(lowObj.getString("text").split("\\s+")));
-
-                        for (int k = 0; k < section.length(); k++) {
-                            if (j == k) continue;
-
-                            JSONObject highObj = section.getJSONObject(k);
-                            int highLine = highObj.getInt("line");
-                            int highIndex = highObj.getInt("wordDistIndex");
-                            List<String> highWords = new ArrayList<>(List.of(highObj.getString("text").split("\\s+")));
-
-                            // Only act if same line and highIndex > lowIndex
-                            if (lowLine == highLine && highIndex > lowIndex) {
-                                List<String> omitted = new ArrayList<>(lowWords);
-                                omitted.retainAll(highWords); // words present in highWords
-
-                                if (!omitted.isEmpty()) {
-                                    // Remove omitted words from lower highlight
-                                    lowWords.removeAll(omitted);
-                                    lowObj.put("text", String.join(" ", lowWords));
-
-                                    // Print omitted words
-                                    System.out.println("Omitted words from lower highlight: " + omitted);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-    } catch (Exception ex) {
-        ex.printStackTrace();
-    }
+   
     }//GEN-LAST:event_JSONActionPerformed
 
     

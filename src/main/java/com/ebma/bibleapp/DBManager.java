@@ -12,6 +12,8 @@ public class DBManager {
         // Ensure table exists when class is loaded
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
+
+            // Create table if it doesn't exist
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS highlights (
                     bookIndex INTEGER,
@@ -24,6 +26,14 @@ public class DBManager {
                     colorB INTEGER
                 )
             """);
+
+            // Add postSpaceLength column if it doesn't exist
+            try {
+                stmt.execute("ALTER TABLE highlights ADD COLUMN postSpaceLength INTEGER DEFAULT 1");
+            } catch (SQLException ex) {
+                // Column already exists — ignore
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
