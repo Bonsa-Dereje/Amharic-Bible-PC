@@ -69,6 +69,11 @@ import java.util.Comparator;
 
 import java.util.HashSet;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
+
+
 public class mainWindow extends javax.swing.JFrame {
 
     private boolean isBoldActive = true;
@@ -100,11 +105,9 @@ public class mainWindow extends javax.swing.JFrame {
     
     public int currentBookIndex;
     public int currentChapterIndex;
-    // In your class
+   
 
-
-
-
+ 
 
     public mainWindow() {
         
@@ -127,7 +130,8 @@ public class mainWindow extends javax.swing.JFrame {
         updateBookChooser();
         updateVerseChooser();
         
-        
+       
+
       
     }
     
@@ -447,10 +451,44 @@ public class HighlightWord {
 
 
 
+private void saveNotes() {
+    // get text from JTextArea
+    String text = notesInput.getText();
+
+    // build path to Notes folder relative to project directory
+    // (user.dir gives the working directory of the program)
+    String projectDir = System.getProperty("user.dir");
+    String notesDir = projectDir + File.separator + "Notes";
+
+    // make sure the Notes folder exists
+    File dir = new File(notesDir);
+    if (!dir.exists()) {
+        dir.mkdirs(); // create Notes folder if it doesn’t exist
+    }
+
+    // build the filename
+    String filename = "notes" + currentBookIndex + "_" + currentChapterIndex + "notes.txt";
+
+    // full file path
+    File file = new File(dir, filename);
+
+    try (FileWriter writer = new FileWriter(file)) {
+        writer.write(text);
+        System.out.println("Saved to: " + file.getAbsolutePath());
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+    
+
+
+
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        tileOne4 = new javax.swing.JLabel();
         mainPanel_layered = new javax.swing.JLayeredPane();
         topBar = new javax.swing.JPanel();
         bookChooserDropDown = new javax.swing.JComboBox<>();
@@ -459,7 +497,6 @@ public class HighlightWord {
         appTitle = new javax.swing.JLabel();
         restoreBtn = new javax.swing.JButton();
         minimizeBtn = new javax.swing.JButton();
-        JSON = new javax.swing.JButton();
         navBar = new javax.swing.JPanel();
         homeBtnLabel = new javax.swing.JLabel();
         bibleBtnLabel = new javax.swing.JLabel();
@@ -471,21 +508,23 @@ public class HighlightWord {
         hostJoinBtnLabel = new javax.swing.JLabel();
         settingsLabel = new javax.swing.JLabel();
         homeBtn = new javax.swing.JButton();
-        bibleBtn = new javax.swing.JButton();
+        libraryBtn = new javax.swing.JButton();
         searchBtn = new javax.swing.JButton();
         bookmarkBtn = new javax.swing.JButton();
-        homeBtn5 = new javax.swing.JButton();
+        journalBtn = new javax.swing.JButton();
         audiobookBtn = new javax.swing.JButton();
         cmntrsBtn = new javax.swing.JButton();
         hostJoinBtn = new javax.swing.JButton();
         settingsBtn = new javax.swing.JButton();
         tabs = new javax.swing.JTabbedPane();
-        homeTab = new javax.swing.JPanel();
+        bibleTab = new javax.swing.JPanel();
         mainTextScrollPanel = new javax.swing.JScrollPane();
         mainTextArea = new javax.swing.JTextArea();
         cmtryTabbedPanel = new javax.swing.JTabbedPane();
         notesTabPanel = new javax.swing.JPanel();
+        notesTabLayers = new javax.swing.JLayeredPane();
         addNoteBtn = new javax.swing.JButton();
+        notesInput = new javax.swing.JTextArea();
         nodesTabPanel = new javax.swing.JPanel();
         cmtrsTabPanel = new javax.swing.JPanel();
         biblestudyTitle = new javax.swing.JLabel();
@@ -496,14 +535,36 @@ public class HighlightWord {
         chapterChooser = new javax.swing.JComboBox<>();
         verseChooser = new javax.swing.JComboBox<>();
         testamentChooser = new javax.swing.JComboBox<>();
-        jPanel7 = new javax.swing.JPanel();
-        jPanel8 = new javax.swing.JPanel();
+        libraryTab = new javax.swing.JPanel();
+        tileOne = new javax.swing.JLabel();
+        jPanel1 = new javax.swing.JPanel();
+        bookDescriptionTileOne = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        tileOne1 = new javax.swing.JLabel();
+        bookDescriptionTileOne1 = new javax.swing.JPanel();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        tileOne2 = new javax.swing.JLabel();
+        tileOne3 = new javax.swing.JLabel();
+        bookDescriptionTileOne2 = new javax.swing.JPanel();
+        jLabel8 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
+        bookDescriptionTileOne3 = new javax.swing.JPanel();
+        jLabel11 = new javax.swing.JLabel();
+        jLabel12 = new javax.swing.JLabel();
+        jLabel13 = new javax.swing.JLabel();
         jPanel9 = new javax.swing.JPanel();
         jPanel10 = new javax.swing.JPanel();
         jPanel11 = new javax.swing.JPanel();
         jPanel12 = new javax.swing.JPanel();
         jPanel13 = new javax.swing.JPanel();
         jPanel14 = new javax.swing.JPanel();
+
+        tileOne4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/bookTiles/1V1S9h1Ey1zGTa-QIn83.jpeg"))); // NOI18N
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -549,13 +610,6 @@ public class HighlightWord {
             }
         });
 
-        JSON.setText("JSON");
-        JSON.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                JSONActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout topBarLayout = new javax.swing.GroupLayout(topBar);
         topBar.setLayout(topBarLayout);
         topBarLayout.setHorizontalGroup(
@@ -563,9 +617,7 @@ public class HighlightWord {
             .addGroup(topBarLayout.createSequentialGroup()
                 .addGap(6, 6, 6)
                 .addComponent(appTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(461, 461, 461)
-                .addComponent(JSON)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 525, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 1058, Short.MAX_VALUE)
                 .addComponent(bookChooserDropDown, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(12, 12, 12)
                 .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -579,18 +631,18 @@ public class HighlightWord {
         );
         topBarLayout.setVerticalGroup(
             topBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(appTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addGroup(topBarLayout.createSequentialGroup()
-                .addGap(6, 6, 6)
                 .addGroup(topBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(minimizeBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(restoreBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(closeBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(bookChooserDropDown, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-            .addGroup(topBarLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(JSON))
+                    .addComponent(appTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(topBarLayout.createSequentialGroup()
+                        .addGap(6, 6, 6)
+                        .addGroup(topBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(minimizeBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(restoreBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(closeBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(bookChooserDropDown, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         mainPanel_layered.add(topBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1650, 35));
@@ -598,10 +650,10 @@ public class HighlightWord {
         navBar.setBackground(new java.awt.Color(40, 43, 45));
 
         homeBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
-        homeBtnLabel.setText("Home");
+        homeBtnLabel.setText("Bible");
 
         bibleBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
-        bibleBtnLabel.setText(" Bible");
+        bibleBtnLabel.setText(" Library");
 
         searchBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
         searchBtnLabel.setText("Search");
@@ -610,7 +662,7 @@ public class HighlightWord {
         bookmarksBtn.setText("Bookmarks");
 
         notesBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
-        notesBtnLabel.setText("Notes");
+        notesBtnLabel.setText(" Journal");
 
         audiobookLabel.setForeground(new java.awt.Color(255, 255, 255));
         audiobookLabel.setText("Audiobook");
@@ -627,7 +679,7 @@ public class HighlightWord {
         settingsLabel.setText("   Settings");
 
         homeBtn.setBackground(new java.awt.Color(40, 43, 45));
-        homeBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/home.png"))); // NOI18N
+        homeBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/book.png"))); // NOI18N
         homeBtn.setBorder(null);
         homeBtn.setBorderPainted(false);
         homeBtn.setContentAreaFilled(false);
@@ -638,15 +690,15 @@ public class HighlightWord {
             }
         });
 
-        bibleBtn.setBackground(new java.awt.Color(40, 43, 45));
-        bibleBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/book.png"))); // NOI18N
-        bibleBtn.setBorder(null);
-        bibleBtn.setBorderPainted(false);
-        bibleBtn.setContentAreaFilled(false);
-        bibleBtn.setFocusable(false);
-        bibleBtn.addActionListener(new java.awt.event.ActionListener() {
+        libraryBtn.setBackground(new java.awt.Color(40, 43, 45));
+        libraryBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/icons8-library-35 (1).png"))); // NOI18N
+        libraryBtn.setBorder(null);
+        libraryBtn.setBorderPainted(false);
+        libraryBtn.setContentAreaFilled(false);
+        libraryBtn.setFocusable(false);
+        libraryBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                bibleBtnActionPerformed(evt);
+                libraryBtnActionPerformed(evt);
             }
         });
 
@@ -658,9 +710,9 @@ public class HighlightWord {
         bookmarkBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/bookmark.png"))); // NOI18N
         bookmarkBtn.setBorder(null);
 
-        homeBtn5.setBackground(new java.awt.Color(40, 43, 45));
-        homeBtn5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/notes.png"))); // NOI18N
-        homeBtn5.setBorder(null);
+        journalBtn.setBackground(new java.awt.Color(40, 43, 45));
+        journalBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/notes.png"))); // NOI18N
+        journalBtn.setBorder(null);
 
         audiobookBtn.setBackground(new java.awt.Color(40, 43, 45));
         audiobookBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/audiobook.png"))); // NOI18N
@@ -687,6 +739,10 @@ public class HighlightWord {
         navBar.setLayout(navBarLayout);
         navBarLayout.setHorizontalGroup(
             navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, navBarLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(notesBtnLabel)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(navBarLayout.createSequentialGroup()
                 .addGroup(navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, navBarLayout.createSequentialGroup()
@@ -698,21 +754,13 @@ public class HighlightWord {
                                 .addGap(21, 21, 21)
                                 .addGroup(navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(homeBtnLabel)
-                                    .addComponent(bibleBtnLabel)
                                     .addComponent(searchBtnLabel)
                                     .addComponent(homeBtn)
-                                    .addComponent(bibleBtn)
                                     .addComponent(searchBtn)
                                     .addComponent(bookmarkBtn)))
                             .addGroup(navBarLayout.createSequentialGroup()
                                 .addContainerGap()
                                 .addComponent(bookmarksBtn))
-                            .addGroup(navBarLayout.createSequentialGroup()
-                                .addGap(18, 18, 18)
-                                .addGroup(navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(notesBtnLabel)
-                                    .addComponent(homeBtn5)
-                                    .addComponent(audiobookBtn)))
                             .addGroup(navBarLayout.createSequentialGroup()
                                 .addContainerGap()
                                 .addComponent(audiobookLabel))
@@ -727,13 +775,25 @@ public class HighlightWord {
                                 .addComponent(hostJoinBtn))
                             .addGroup(navBarLayout.createSequentialGroup()
                                 .addGap(14, 14, 14)
-                                .addComponent(settingsBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                                .addComponent(settingsBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(navBarLayout.createSequentialGroup()
+                                .addGap(18, 18, 18)
+                                .addGroup(navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(journalBtn)
+                                    .addComponent(audiobookBtn)))
+                            .addGroup(navBarLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(settingsLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(navBarLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(navBarLayout.createSequentialGroup()
+                                .addGap(6, 6, 6)
+                                .addComponent(bibleBtnLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addComponent(libraryBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
-            .addGroup(navBarLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(settingsLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         navBarLayout.setVerticalGroup(
             navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -743,7 +803,7 @@ public class HighlightWord {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(homeBtnLabel)
                 .addGap(18, 18, 18)
-                .addComponent(bibleBtn)
+                .addComponent(libraryBtn)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(bibleBtnLabel)
                 .addGap(18, 18, 18)
@@ -755,7 +815,7 @@ public class HighlightWord {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(bookmarksBtn)
                 .addGap(24, 24, 24)
-                .addComponent(homeBtn5)
+                .addComponent(journalBtn)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(notesBtnLabel)
                 .addGap(18, 18, 18)
@@ -774,12 +834,12 @@ public class HighlightWord {
                 .addComponent(settingsBtn)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(settingsLabel)
-                .addContainerGap(294, Short.MAX_VALUE))
+                .addContainerGap(289, Short.MAX_VALUE))
         );
 
         mainPanel_layered.add(navBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 30, 70, 930));
 
-        homeTab.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+        bibleTab.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         mainTextArea.setEditable(false);
         mainTextArea.setColumns(20);
@@ -848,20 +908,35 @@ public class HighlightWord {
             }
         });
 
-        homeTab.add(mainTextScrollPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 110, 870, 860));
+        bibleTab.add(mainTextScrollPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 110, 870, 860));
 
         cmtryTabbedPanel.setBackground(new java.awt.Color(255, 255, 255));
         cmtryTabbedPanel.setFont(new java.awt.Font("Roboto", 0, 12)); // NOI18N
 
         notesTabPanel.setBackground(new java.awt.Color(255, 255, 255));
-        notesTabPanel.setLayout(new java.awt.GridBagLayout());
+        notesTabPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         addNoteBtn.setBackground(new java.awt.Color(204, 204, 204));
         addNoteBtn.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         addNoteBtn.setForeground(new java.awt.Color(102, 102, 102));
         addNoteBtn.setText("Create a new note");
         addNoteBtn.setAlignmentY(0.0F);
-        notesTabPanel.add(addNoteBtn, new java.awt.GridBagConstraints());
+        addNoteBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addNoteBtnActionPerformed(evt);
+            }
+        });
+        notesTabLayers.add(addNoteBtn);
+        addNoteBtn.setBounds(260, 390, 172, 32);
+
+        notesInput.setColumns(20);
+        notesInput.setRows(5);
+        notesInput.setBorder(null);
+        notesTabLayers.add(notesInput);
+        notesInput.setBounds(0, 0, 670, 820);
+        notesInput.setMargin(new Insets(10, 10, 10, 10));
+
+        notesTabPanel.add(notesTabLayers, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 660, 820));
 
         cmtryTabbedPanel.addTab("Notes", notesTabPanel);
 
@@ -871,7 +946,7 @@ public class HighlightWord {
         nodesTabPanel.setLayout(nodesTabPanelLayout);
         nodesTabPanelLayout.setHorizontalGroup(
             nodesTabPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 660, Short.MAX_VALUE)
+            .addGap(0, 650, Short.MAX_VALUE)
         );
         nodesTabPanelLayout.setVerticalGroup(
             nodesTabPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -886,7 +961,7 @@ public class HighlightWord {
         cmtrsTabPanel.setLayout(cmtrsTabPanelLayout);
         cmtrsTabPanelLayout.setHorizontalGroup(
             cmtrsTabPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 660, Short.MAX_VALUE)
+            .addGap(0, 650, Short.MAX_VALUE)
         );
         cmtrsTabPanelLayout.setVerticalGroup(
             cmtrsTabPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -895,11 +970,11 @@ public class HighlightWord {
 
         cmtryTabbedPanel.addTab("Commentaries", cmtrsTabPanel);
 
-        homeTab.add(cmtryTabbedPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(910, 110, 660, 860));
+        bibleTab.add(cmtryTabbedPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(910, 110, 650, 860));
 
         biblestudyTitle.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 18)); // NOI18N
         biblestudyTitle.setText("መፅሀፍ ቅዱስ ጥናት");
-        homeTab.add(biblestudyTitle, new org.netbeans.lib.awtextra.AbsoluteConstraints(907, 74, -1, 20));
+        bibleTab.add(biblestudyTitle, new org.netbeans.lib.awtextra.AbsoluteConstraints(907, 74, -1, 20));
 
         highlightBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/highlight.png"))); // NOI18N
         highlightBtn.addActionListener(new java.awt.event.ActionListener() {
@@ -907,7 +982,7 @@ public class HighlightWord {
                 highlightBtnActionPerformed(evt);
             }
         });
-        homeTab.add(highlightBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(863, 67, -1, -1));
+        bibleTab.add(highlightBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(863, 67, -1, -1));
 
         boldBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/bold.png"))); // NOI18N
         boldBtn.addActionListener(new java.awt.event.ActionListener() {
@@ -915,12 +990,12 @@ public class HighlightWord {
                 boldBtnActionPerformed(evt);
             }
         });
-        homeTab.add(boldBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(831, 67, -1, -1));
+        bibleTab.add(boldBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(831, 67, -1, -1));
 
         fontSizeSlider.setSnapToTicks(true);
         fontSizeSlider.setFocusable(false);
         fontSizeSlider.setOpaque(true);
-        homeTab.add(fontSizeSlider, new org.netbeans.lib.awtextra.AbsoluteConstraints(721, 67, 104, 27));
+        bibleTab.add(fontSizeSlider, new org.netbeans.lib.awtextra.AbsoluteConstraints(721, 67, 104, 27));
         fontSizeSlider.setMinimum(18);
         fontSizeSlider.setMaximum(48);
         fontSizeSlider.setValue(16);   // default starting value
@@ -944,14 +1019,14 @@ public class HighlightWord {
                 bookChooserActionPerformed(evt);
             }
         });
-        homeTab.add(bookChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(128, 67, 182, -1));
+        bibleTab.add(bookChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(128, 67, 182, -1));
         bookChooser.addActionListener(e ->{
             currentBookIndex = bookChooser.getSelectedIndex();
 
         });
 
         chapterChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        homeTab.add(chapterChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(322, 68, 60, -1));
+        bibleTab.add(chapterChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(322, 68, 60, -1));
         chapterChooser.addActionListener(e -> {
             int selectedChapterIndex = chapterChooser.getSelectedIndex();
             if (selectedChapterIndex < 0) return;
@@ -998,7 +1073,7 @@ public class HighlightWord {
         });
 
         verseChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        homeTab.add(verseChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(394, 68, 59, -1));
+        bibleTab.add(verseChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(394, 68, 59, -1));
         verseChooser.addActionListener(e -> {
             String selected = (String) verseChooser.getSelectedItem();
             if (selected == null || selected.isEmpty()) return;
@@ -1074,35 +1149,233 @@ public class HighlightWord {
 
         testamentChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
         testamentChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ብሉይ ኪዳን", "አዲስ ኪዳን" }));
-        homeTab.add(testamentChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(17, 67, 105, -1));
+        bibleTab.add(testamentChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(17, 67, 105, -1));
 
-        tabs.addTab("Home", homeTab);
+        tabs.addTab("Home", bibleTab);
 
-        javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
-        jPanel7.setLayout(jPanel7Layout);
-        jPanel7Layout.setHorizontalGroup(
-            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1580, Short.MAX_VALUE)
+        tileOne.setIcon(new javax.swing.ImageIcon(getClass().getResource("/bookTiles/1V1S9h1Ey1zGTa-QIn83.jpeg"))); // NOI18N
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
         );
-        jPanel7Layout.setVerticalGroup(
-            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 975, Short.MAX_VALUE)
-        );
-
-        tabs.addTab("Bible", jPanel7);
-
-        javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
-        jPanel8.setLayout(jPanel8Layout);
-        jPanel8Layout.setHorizontalGroup(
-            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1580, Short.MAX_VALUE)
-        );
-        jPanel8Layout.setVerticalGroup(
-            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 975, Short.MAX_VALUE)
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
         );
 
-        tabs.addTab("Search", jPanel8);
+        bookDescriptionTileOne.setBackground(new java.awt.Color(204, 204, 204));
+
+        jLabel2.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 18)); // NOI18N
+        jLabel2.setText("Desiring GOD by John Piper");
+
+        jLabel3.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        jLabel3.setText("Page Count:");
+
+        jLabel4.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
+        jLabel4.setText("224");
+
+        javax.swing.GroupLayout bookDescriptionTileOneLayout = new javax.swing.GroupLayout(bookDescriptionTileOne);
+        bookDescriptionTileOne.setLayout(bookDescriptionTileOneLayout);
+        bookDescriptionTileOneLayout.setHorizontalGroup(
+            bookDescriptionTileOneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionTileOneLayout.createSequentialGroup()
+                .addContainerGap(60, Short.MAX_VALUE)
+                .addComponent(jLabel2)
+                .addGap(45, 45, 45))
+            .addGroup(bookDescriptionTileOneLayout.createSequentialGroup()
+                .addGap(104, 104, 104)
+                .addComponent(jLabel3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel4)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        bookDescriptionTileOneLayout.setVerticalGroup(
+            bookDescriptionTileOneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(bookDescriptionTileOneLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(bookDescriptionTileOneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(jLabel4))
+                .addGap(0, 9, Short.MAX_VALUE))
+        );
+
+        tileOne1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/bookTiles/1V1SrF1BZ2uDBV-ndXZj.jpeg"))); // NOI18N
+
+        bookDescriptionTileOne1.setBackground(new java.awt.Color(204, 204, 204));
+
+        jLabel5.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 18)); // NOI18N
+        jLabel5.setText("With Christ in the School of Prayer");
+
+        jLabel6.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        jLabel6.setText("Page Count:");
+
+        jLabel7.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
+        jLabel7.setText("125");
+
+        javax.swing.GroupLayout bookDescriptionTileOne1Layout = new javax.swing.GroupLayout(bookDescriptionTileOne1);
+        bookDescriptionTileOne1.setLayout(bookDescriptionTileOne1Layout);
+        bookDescriptionTileOne1Layout.setHorizontalGroup(
+            bookDescriptionTileOne1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(bookDescriptionTileOne1Layout.createSequentialGroup()
+                .addGap(104, 104, 104)
+                .addComponent(jLabel6)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel7)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionTileOne1Layout.createSequentialGroup()
+                .addContainerGap(39, Short.MAX_VALUE)
+                .addComponent(jLabel5)
+                .addGap(25, 25, 25))
+        );
+        bookDescriptionTileOne1Layout.setVerticalGroup(
+            bookDescriptionTileOne1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(bookDescriptionTileOne1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel5)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(bookDescriptionTileOne1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel6)
+                    .addComponent(jLabel7))
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+
+        tileOne2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/bookTiles/1V1SFW1LlyJ9te-cLuOA.jpeg"))); // NOI18N
+
+        tileOne3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/bookTiles/1V1SyG12FcdRFF-m2vIY.jpeg"))); // NOI18N
+
+        bookDescriptionTileOne2.setBackground(new java.awt.Color(204, 204, 204));
+
+        jLabel8.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 18)); // NOI18N
+        jLabel8.setText("Good Morning Holy Spirit");
+
+        jLabel9.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        jLabel9.setText("Page Count:");
+
+        jLabel10.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
+        jLabel10.setText("224");
+
+        javax.swing.GroupLayout bookDescriptionTileOne2Layout = new javax.swing.GroupLayout(bookDescriptionTileOne2);
+        bookDescriptionTileOne2.setLayout(bookDescriptionTileOne2Layout);
+        bookDescriptionTileOne2Layout.setHorizontalGroup(
+            bookDescriptionTileOne2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(bookDescriptionTileOne2Layout.createSequentialGroup()
+                .addGroup(bookDescriptionTileOne2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(bookDescriptionTileOne2Layout.createSequentialGroup()
+                        .addGap(104, 104, 104)
+                        .addComponent(jLabel9)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel10))
+                    .addGroup(bookDescriptionTileOne2Layout.createSequentialGroup()
+                        .addGap(57, 57, 57)
+                        .addComponent(jLabel8)))
+                .addContainerGap(72, Short.MAX_VALUE))
+        );
+        bookDescriptionTileOne2Layout.setVerticalGroup(
+            bookDescriptionTileOne2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(bookDescriptionTileOne2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel8)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(bookDescriptionTileOne2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel9)
+                    .addComponent(jLabel10))
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+
+        bookDescriptionTileOne3.setBackground(new java.awt.Color(204, 204, 204));
+
+        jLabel11.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 18)); // NOI18N
+        jLabel11.setText("Crazy Love");
+
+        jLabel12.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        jLabel12.setText("Page Count:");
+
+        jLabel13.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
+        jLabel13.setText("224");
+
+        javax.swing.GroupLayout bookDescriptionTileOne3Layout = new javax.swing.GroupLayout(bookDescriptionTileOne3);
+        bookDescriptionTileOne3.setLayout(bookDescriptionTileOne3Layout);
+        bookDescriptionTileOne3Layout.setHorizontalGroup(
+            bookDescriptionTileOne3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(bookDescriptionTileOne3Layout.createSequentialGroup()
+                .addGap(104, 104, 104)
+                .addGroup(bookDescriptionTileOne3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(bookDescriptionTileOne3Layout.createSequentialGroup()
+                        .addComponent(jLabel12)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel13)))
+                .addContainerGap(92, Short.MAX_VALUE))
+        );
+        bookDescriptionTileOne3Layout.setVerticalGroup(
+            bookDescriptionTileOne3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(bookDescriptionTileOne3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel11)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(bookDescriptionTileOne3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel12)
+                    .addComponent(jLabel13))
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+
+        javax.swing.GroupLayout libraryTabLayout = new javax.swing.GroupLayout(libraryTab);
+        libraryTab.setLayout(libraryTabLayout);
+        libraryTabLayout.setHorizontalGroup(
+            libraryTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(libraryTabLayout.createSequentialGroup()
+                .addGap(53, 53, 53)
+                .addGroup(libraryTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(libraryTabLayout.createSequentialGroup()
+                        .addComponent(tileOne, javax.swing.GroupLayout.PREFERRED_SIZE, 329, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(tileOne1, javax.swing.GroupLayout.PREFERRED_SIZE, 329, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(tileOne3, javax.swing.GroupLayout.PREFERRED_SIZE, 329, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tileOne2, javax.swing.GroupLayout.PREFERRED_SIZE, 310, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(69, 69, 69)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(libraryTabLayout.createSequentialGroup()
+                        .addComponent(bookDescriptionTileOne, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(27, 27, 27)
+                        .addComponent(bookDescriptionTileOne1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(bookDescriptionTileOne2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(bookDescriptionTileOne3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(19, Short.MAX_VALUE))
+        );
+        libraryTabLayout.setVerticalGroup(
+            libraryTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(libraryTabLayout.createSequentialGroup()
+                .addGroup(libraryTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(libraryTabLayout.createSequentialGroup()
+                        .addGap(74, 74, 74)
+                        .addGroup(libraryTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(tileOne1, javax.swing.GroupLayout.PREFERRED_SIZE, 449, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(libraryTabLayout.createSequentialGroup()
+                        .addGap(64, 64, 64)
+                        .addGroup(libraryTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(tileOne, javax.swing.GroupLayout.PREFERRED_SIZE, 471, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(tileOne3, javax.swing.GroupLayout.PREFERRED_SIZE, 459, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(tileOne2, javax.swing.GroupLayout.PREFERRED_SIZE, 459, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(libraryTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(bookDescriptionTileOne, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(bookDescriptionTileOne1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(bookDescriptionTileOne2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(bookDescriptionTileOne3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(368, Short.MAX_VALUE))
+        );
+
+        tabs.addTab("Search", libraryTab);
 
         javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
         jPanel9.setLayout(jPanel9Layout);
@@ -1316,17 +1589,17 @@ public class HighlightWord {
         }
     }//GEN-LAST:event_highlightBtnActionPerformed
 
+    private void libraryBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_libraryBtnActionPerformed
+        tabs.setSelectedIndex(1);
+    }//GEN-LAST:event_libraryBtnActionPerformed
+
+    private void addNoteBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addNoteBtnActionPerformed
+        
+    }//GEN-LAST:event_addNoteBtnActionPerformed
+
     private void homeBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_homeBtnActionPerformed
         tabs.setSelectedIndex(0);
     }//GEN-LAST:event_homeBtnActionPerformed
-
-    private void bibleBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bibleBtnActionPerformed
-        tabs.setSelectedIndex(1);
-    }//GEN-LAST:event_bibleBtnActionPerformed
-
-    private void JSONActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_JSONActionPerformed
-   
-    }//GEN-LAST:event_JSONActionPerformed
 
     
  
@@ -1379,17 +1652,20 @@ public class HighlightWord {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton JSON;
     private javax.swing.JButton addNoteBtn;
     private javax.swing.JLabel appTitle;
     private javax.swing.JButton audiobookBtn;
     private javax.swing.JLabel audiobookLabel;
-    private javax.swing.JButton bibleBtn;
     private javax.swing.JLabel bibleBtnLabel;
+    private javax.swing.JPanel bibleTab;
     private javax.swing.JLabel biblestudyTitle;
     private javax.swing.JButton boldBtn;
     private javax.swing.JComboBox<String> bookChooser;
     private javax.swing.JComboBox<String> bookChooserDropDown;
+    private javax.swing.JPanel bookDescriptionTileOne;
+    private javax.swing.JPanel bookDescriptionTileOne1;
+    private javax.swing.JPanel bookDescriptionTileOne2;
+    private javax.swing.JPanel bookDescriptionTileOne3;
     private javax.swing.JButton bookmarkBtn;
     private javax.swing.JLabel bookmarksBtn;
     private javax.swing.JComboBox<String> chapterChooser;
@@ -1401,20 +1677,32 @@ public class HighlightWord {
     private javax.swing.JSlider fontSizeSlider;
     private javax.swing.JButton highlightBtn;
     private javax.swing.JButton homeBtn;
-    private javax.swing.JButton homeBtn5;
     private javax.swing.JLabel homeBtnLabel;
-    private javax.swing.JPanel homeTab;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel10;
     private javax.swing.JPanel jPanel11;
     private javax.swing.JPanel jPanel12;
     private javax.swing.JPanel jPanel13;
     private javax.swing.JPanel jPanel14;
-    private javax.swing.JPanel jPanel7;
-    private javax.swing.JPanel jPanel8;
     private javax.swing.JPanel jPanel9;
     private javax.swing.JTextField jTextField1;
+    private javax.swing.JButton journalBtn;
+    private javax.swing.JButton libraryBtn;
+    private javax.swing.JPanel libraryTab;
     private javax.swing.JLayeredPane mainPanel_layered;
     private javax.swing.JTextArea mainTextArea;
     private javax.swing.JScrollPane mainTextScrollPanel;
@@ -1422,6 +1710,8 @@ public class HighlightWord {
     private javax.swing.JPanel navBar;
     private javax.swing.JPanel nodesTabPanel;
     private javax.swing.JLabel notesBtnLabel;
+    private javax.swing.JTextArea notesInput;
+    private javax.swing.JLayeredPane notesTabLayers;
     private javax.swing.JPanel notesTabPanel;
     private javax.swing.JButton restoreBtn;
     private javax.swing.JButton searchBtn;
@@ -1430,6 +1720,11 @@ public class HighlightWord {
     private javax.swing.JLabel settingsLabel;
     private javax.swing.JTabbedPane tabs;
     private javax.swing.JComboBox<String> testamentChooser;
+    private javax.swing.JLabel tileOne;
+    private javax.swing.JLabel tileOne1;
+    private javax.swing.JLabel tileOne2;
+    private javax.swing.JLabel tileOne3;
+    private javax.swing.JLabel tileOne4;
     private javax.swing.JPanel topBar;
     private javax.swing.JComboBox<String> verseChooser;
     // End of variables declaration//GEN-END:variables

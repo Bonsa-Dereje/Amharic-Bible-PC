@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <Form version="1.9" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JFrameFormInfo">
+  <NonVisualComponents>
+    <Component class="javax.swing.JLabel" name="tileOne4">
+      <Properties>
+        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+          <Image iconType="3" name="/bookTiles/1V1S9h1Ey1zGTa-QIn83.jpeg"/>
+        </Property>
+      </Properties>
+    </Component>
+  </NonVisualComponents>
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="3"/>
   </Properties>
@@ -60,9 +69,7 @@
                   <Group type="102" attributes="0">
                       <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
                       <Component id="appTitle" min="-2" pref="136" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" pref="461" max="-2" attributes="0"/>
-                      <Component id="JSON" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="525" max="32767" attributes="0"/>
+                      <EmptySpace pref="1058" max="32767" attributes="0"/>
                       <Component id="bookChooserDropDown" min="-2" pref="89" max="-2" attributes="0"/>
                       <EmptySpace min="12" pref="12" max="-2" attributes="0"/>
                       <Component id="jTextField1" min="-2" pref="161" max="-2" attributes="0"/>
@@ -78,20 +85,21 @@
             </DimensionLayout>
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="appTitle" min="-2" pref="35" max="-2" attributes="0"/>
-                  <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+                  <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="minimizeBtn" min="-2" pref="23" max="-2" attributes="0"/>
-                          <Component id="restoreBtn" min="-2" pref="23" max="-2" attributes="0"/>
-                          <Component id="closeBtn" min="-2" pref="23" max="-2" attributes="0"/>
-                          <Component id="bookChooserDropDown" min="-2" max="-2" attributes="0"/>
-                          <Component id="jTextField1" min="-2" max="-2" attributes="0"/>
+                          <Component id="appTitle" min="-2" pref="35" max="-2" attributes="0"/>
+                          <Group type="102" alignment="0" attributes="0">
+                              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Component id="minimizeBtn" min="-2" pref="23" max="-2" attributes="0"/>
+                                  <Component id="restoreBtn" min="-2" pref="23" max="-2" attributes="0"/>
+                                  <Component id="closeBtn" min="-2" pref="23" max="-2" attributes="0"/>
+                                  <Component id="bookChooserDropDown" min="-2" max="-2" attributes="0"/>
+                                  <Component id="jTextField1" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                          </Group>
                       </Group>
-                  </Group>
-                  <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="JSON" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="3" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -164,14 +172,6 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="minimizeBtnActionPerformed"/>
               </Events>
             </Component>
-            <Component class="javax.swing.JButton" name="JSON">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="JSON"/>
-              </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="JSONActionPerformed"/>
-              </Events>
-            </Component>
           </SubComponents>
         </Container>
         <Container class="javax.swing.JPanel" name="navBar">
@@ -189,6 +189,11 @@
           <Layout>
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="1" attributes="0">
+                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                      <Component id="notesBtnLabel" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="32767" attributes="0"/>
+                  </Group>
                   <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="1" attributes="0">
@@ -201,10 +206,8 @@
                                       <EmptySpace min="-2" pref="21" max="-2" attributes="0"/>
                                       <Group type="103" groupAlignment="0" attributes="0">
                                           <Component id="homeBtnLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                                          <Component id="bibleBtnLabel" alignment="0" min="-2" max="-2" attributes="0"/>
                                           <Component id="searchBtnLabel" min="-2" max="-2" attributes="0"/>
                                           <Component id="homeBtn" alignment="0" min="-2" max="-2" attributes="0"/>
-                                          <Component id="bibleBtn" alignment="0" min="-2" max="-2" attributes="0"/>
                                           <Component id="searchBtn" alignment="0" min="-2" max="-2" attributes="0"/>
                                           <Component id="bookmarkBtn" alignment="0" min="-2" max="-2" attributes="0"/>
                                       </Group>
@@ -212,14 +215,6 @@
                                   <Group type="102" alignment="0" attributes="0">
                                       <EmptySpace max="-2" attributes="0"/>
                                       <Component id="bookmarksBtn" min="-2" max="-2" attributes="0"/>
-                                  </Group>
-                                  <Group type="102" alignment="0" attributes="0">
-                                      <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
-                                      <Group type="103" groupAlignment="0" attributes="0">
-                                          <Component id="notesBtnLabel" min="-2" max="-2" attributes="0"/>
-                                          <Component id="homeBtn5" alignment="0" min="-2" max="-2" attributes="0"/>
-                                          <Component id="audiobookBtn" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      </Group>
                                   </Group>
                                   <Group type="102" alignment="0" attributes="0">
                                       <EmptySpace max="-2" attributes="0"/>
@@ -241,16 +236,33 @@
                                       <EmptySpace min="-2" pref="14" max="-2" attributes="0"/>
                                       <Component id="settingsBtn" min="-2" pref="43" max="-2" attributes="0"/>
                                   </Group>
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
+                                      <Group type="103" groupAlignment="0" attributes="0">
+                                          <Component id="journalBtn" alignment="0" min="-2" max="-2" attributes="0"/>
+                                          <Component id="audiobookBtn" alignment="0" min="-2" max="-2" attributes="0"/>
+                                      </Group>
+                                  </Group>
+                                  <Group type="102" attributes="0">
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="settingsLabel" min="-2" pref="51" max="-2" attributes="0"/>
+                                  </Group>
                               </Group>
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                           </Group>
+                          <Group type="102" alignment="0" attributes="0">
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+                                      <Component id="bibleBtnLabel" min="-2" pref="45" max="-2" attributes="0"/>
+                                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                                  </Group>
+                                  <Component id="libraryBtn" max="32767" attributes="0"/>
+                              </Group>
+                          </Group>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
-                  </Group>
-                  <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="settingsLabel" min="-2" pref="51" max="-2" attributes="0"/>
-                      <EmptySpace max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -262,7 +274,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="homeBtnLabel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
-                      <Component id="bibleBtn" min="-2" max="-2" attributes="0"/>
+                      <Component id="libraryBtn" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="bibleBtnLabel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
@@ -274,7 +286,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="bookmarksBtn" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" pref="24" max="-2" attributes="0"/>
-                      <Component id="homeBtn5" min="-2" max="-2" attributes="0"/>
+                      <Component id="journalBtn" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="notesBtnLabel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
@@ -293,7 +305,7 @@
                       <Component id="settingsBtn" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="settingsLabel" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="294" max="32767" attributes="0"/>
+                      <EmptySpace pref="289" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -304,7 +316,7 @@
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                   <Color blue="ff" green="ff" red="ff" type="rgb"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Home"/>
+                <Property name="text" type="java.lang.String" value="Bible"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="bibleBtnLabel">
@@ -312,7 +324,7 @@
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                   <Color blue="ff" green="ff" red="ff" type="rgb"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value=" Bible"/>
+                <Property name="text" type="java.lang.String" value=" Library"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="searchBtnLabel">
@@ -336,7 +348,7 @@
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                   <Color blue="ff" green="ff" red="ff" type="rgb"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Notes"/>
+                <Property name="text" type="java.lang.String" value=" Journal"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="audiobookLabel">
@@ -381,7 +393,7 @@
                   <Color blue="2d" green="2b" red="28" type="rgb"/>
                 </Property>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/icons/home.png"/>
+                  <Image iconType="3" name="/icons/book.png"/>
                 </Property>
                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                   <Border info="null"/>
@@ -394,13 +406,13 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="homeBtnActionPerformed"/>
               </Events>
             </Component>
-            <Component class="javax.swing.JButton" name="bibleBtn">
+            <Component class="javax.swing.JButton" name="libraryBtn">
               <Properties>
                 <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                   <Color blue="2d" green="2b" red="28" type="rgb"/>
                 </Property>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/icons/book.png"/>
+                  <Image iconType="3" name="/icons/icons8-library-35 (1).png"/>
                 </Property>
                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                   <Border info="null"/>
@@ -410,7 +422,7 @@
                 <Property name="focusable" type="boolean" value="false"/>
               </Properties>
               <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bibleBtnActionPerformed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="libraryBtnActionPerformed"/>
               </Events>
             </Component>
             <Component class="javax.swing.JButton" name="searchBtn">
@@ -439,7 +451,7 @@
                 </Property>
               </Properties>
             </Component>
-            <Component class="javax.swing.JButton" name="homeBtn5">
+            <Component class="javax.swing.JButton" name="journalBtn">
               <Properties>
                 <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                   <Color blue="2d" green="2b" red="28" type="rgb"/>
@@ -518,7 +530,7 @@
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout"/>
           <SubComponents>
-            <Container class="javax.swing.JPanel" name="homeTab">
+            <Container class="javax.swing.JPanel" name="bibleTab">
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
                   <JTabbedPaneConstraints tabName="Home">
@@ -553,7 +565,7 @@
                         <Property name="rows" type="int" value="5"/>
                       </Properties>
                       <AuxValues>
-                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="mainTextArea.addCaretListener(e -&gt; {&#xa;            if (!highlighterActive || currentHighlightColor == null) return;&#xa;&#xa;            String selectedText = mainTextArea.getSelectedText();&#xa;            if (selectedText != null &amp;&amp; !selectedText.isEmpty()) {&#xa;                try {&#xa;                    // Highlight selected text in JTextArea&#xa;                    Highlighter.HighlightPainter painter =&#xa;                    new DefaultHighlighter.DefaultHighlightPainter(currentHighlightColor);&#xa;&#xa;                    int start = mainTextArea.getSelectionStart();&#xa;                    int end = mainTextArea.getSelectionEnd();&#xa;                    mainTextArea.getHighlighter().addHighlight(start, end, painter);&#xa;&#xa;                    // Save highlight immediately into SQLite&#xa;                    saveHighlight(selectedText, currentHighlightColor);&#xa;&#xa;                    // Live reload after saving to ensure latest highlights are displayed&#xa;                    restoreHighlights();&#xa;&#xa;                    // Optional: simulate actual mouse click&#xa;                    new Thread(() -&gt; {&#xa;                        try {&#xa;                            Thread.sleep(5); // 5 ms delay&#xa;                            Rectangle caretRect = mainTextArea.modelToView(start);&#xa;                            Point textAreaOnScreen = mainTextArea.getLocationOnScreen();&#xa;                            int mouseX = textAreaOnScreen.x + caretRect.x + 1;&#xa;                            int mouseY = textAreaOnScreen.y + caretRect.y + 1;&#xa;&#xa;                            Robot robot = new Robot();&#xa;                            robot.mouseMove(mouseX, mouseY);&#xa;                            robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);&#xa;                            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);&#xa;                        } catch (Exception ex) {&#xa;                            ex.printStackTrace();&#xa;                        }&#xa;                    }).start();&#xa;&#xa;                } catch (BadLocationException ex) {&#xa;                    ex.printStackTrace();&#xa;                }&#xa;            }&#xa;        });&#xa;&#xa;        // -------------------- Document Listener (Live Reload) --------------------&#xa;        mainTextArea.getDocument().addDocumentListener(new DocumentListener() {&#xa;            @Override&#xa;            public void insertUpdate(DocumentEvent e) {&#xa;                restoreHighlights(); // live reload on insertion&#xa;            }&#xa;&#xa;            @Override&#xa;            public void removeUpdate(DocumentEvent e) {&#xa;                restoreHighlights(); // live reload on deletion&#xa;            }&#xa;&#xa;            @Override&#xa;            public void changedUpdate(DocumentEvent e) {&#xa;                restoreHighlights(); // live reload on style changes&#xa;            }&#xa;        });"/>
+                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="mainTextArea.addCaretListener(e -&gt; {&#xa;    if (!highlighterActive || currentHighlightColor == null) return;&#xa;&#xa;    String selectedText = mainTextArea.getSelectedText();&#xa;    if (selectedText != null &amp;&amp; !selectedText.isEmpty()) {&#xa;        try {&#xa;            // Highlight selected text in JTextArea&#xa;            Highlighter.HighlightPainter painter =&#xa;                    new DefaultHighlighter.DefaultHighlightPainter(currentHighlightColor);&#xa;&#xa;            int start = mainTextArea.getSelectionStart();&#xa;            int end = mainTextArea.getSelectionEnd();&#xa;            mainTextArea.getHighlighter().addHighlight(start, end, painter);&#xa;&#xa;            // Save highlight immediately into SQLite&#xa;            saveHighlight(selectedText, currentHighlightColor);&#xa;&#xa;            // Live reload after saving to ensure latest highlights are displayed&#xa;            restoreHighlights();&#xa;&#xa;            // Optional: simulate actual mouse click&#xa;            new Thread(() -&gt; {&#xa;                try {&#xa;                    Thread.sleep(5); // 5 ms delay&#xa;                    Rectangle caretRect = mainTextArea.modelToView(start);&#xa;                    Point textAreaOnScreen = mainTextArea.getLocationOnScreen();&#xa;                    int mouseX = textAreaOnScreen.x + caretRect.x + 1;&#xa;                    int mouseY = textAreaOnScreen.y + caretRect.y + 1;&#xa;&#xa;                    Robot robot = new Robot();&#xa;                    robot.mouseMove(mouseX, mouseY);&#xa;                    robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);&#xa;                    robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);&#xa;                } catch (Exception ex) {&#xa;                    ex.printStackTrace();&#xa;                }&#xa;            }).start();&#xa;&#xa;        } catch (BadLocationException ex) {&#xa;            ex.printStackTrace();&#xa;        }&#xa;    }&#xa;});&#xa;&#xa;// -------------------- Document Listener (Live Reload) --------------------&#xa;mainTextArea.getDocument().addDocumentListener(new DocumentListener() {&#xa;    @Override&#xa;    public void insertUpdate(DocumentEvent e) {&#xa;        restoreHighlights(); // live reload on insertion&#xa;    }&#xa;&#xa;    @Override&#xa;    public void removeUpdate(DocumentEvent e) {&#xa;        restoreHighlights(); // live reload on deletion&#xa;    }&#xa;&#xa;    @Override&#xa;    public void changedUpdate(DocumentEvent e) {&#xa;        restoreHighlights(); // live reload on style changes&#xa;    }&#xa;});"/>
                       </AuxValues>
                     </Component>
                   </SubComponents>
@@ -569,7 +581,7 @@
                   </Properties>
                   <Constraints>
                     <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-                      <AbsoluteConstraints x="910" y="110" width="660" height="860"/>
+                      <AbsoluteConstraints x="910" y="110" width="650" height="860"/>
                     </Constraint>
                   </Constraints>
 
@@ -589,28 +601,63 @@
                         </Constraint>
                       </Constraints>
 
-                      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout"/>
+                      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
+                        <Property name="useNullLayout" type="boolean" value="false"/>
+                      </Layout>
                       <SubComponents>
-                        <Component class="javax.swing.JButton" name="addNoteBtn">
-                          <Properties>
-                            <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                              <Color blue="cc" green="cc" red="cc" type="rgb"/>
-                            </Property>
-                            <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                              <Font name="Segoe UI" size="18" style="0"/>
-                            </Property>
-                            <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                              <Color blue="66" green="66" red="66" type="rgb"/>
-                            </Property>
-                            <Property name="text" type="java.lang.String" value="Create a new note"/>
-                            <Property name="alignmentY" type="float" value="0.0"/>
-                          </Properties>
+                        <Container class="javax.swing.JLayeredPane" name="notesTabLayers">
                           <Constraints>
-                            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-                              <GridBagConstraints gridX="-1" gridY="-1" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="0" insetsRight="0" anchor="10" weightX="0.0" weightY="0.0"/>
+                            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
+                              <AbsoluteConstraints x="0" y="0" width="660" height="820"/>
                             </Constraint>
                           </Constraints>
-                        </Component>
+
+                          <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
+                            <Property name="useNullLayout" type="boolean" value="true"/>
+                          </Layout>
+                          <SubComponents>
+                            <Component class="javax.swing.JButton" name="addNoteBtn">
+                              <Properties>
+                                <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                                  <Color blue="cc" green="cc" red="cc" type="rgb"/>
+                                </Property>
+                                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                                  <Font name="Segoe UI" size="18" style="0"/>
+                                </Property>
+                                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                                  <Color blue="66" green="66" red="66" type="rgb"/>
+                                </Property>
+                                <Property name="text" type="java.lang.String" value="Create a new note"/>
+                                <Property name="alignmentY" type="float" value="0.0"/>
+                              </Properties>
+                              <Events>
+                                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="addNoteBtnActionPerformed"/>
+                              </Events>
+                              <Constraints>
+                                <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
+                                  <AbsoluteConstraints x="260" y="390" width="-1" height="-1"/>
+                                </Constraint>
+                              </Constraints>
+                            </Component>
+                            <Component class="javax.swing.JTextArea" name="notesInput">
+                              <Properties>
+                                <Property name="columns" type="int" value="20"/>
+                                <Property name="rows" type="int" value="5"/>
+                                <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+                                  <Border info="null"/>
+                                </Property>
+                              </Properties>
+                              <AuxValues>
+                                <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="notesInput.setMargin(new Insets(10, 10, 10, 10));"/>
+                              </AuxValues>
+                              <Constraints>
+                                <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
+                                  <AbsoluteConstraints x="0" y="0" width="670" height="820"/>
+                                </Constraint>
+                              </Constraints>
+                            </Component>
+                          </SubComponents>
+                        </Container>
                       </SubComponents>
                     </Container>
                     <Container class="javax.swing.JPanel" name="nodesTabPanel">
@@ -630,7 +677,7 @@
                       <Layout>
                         <DimensionLayout dim="0">
                           <Group type="103" groupAlignment="0" attributes="0">
-                              <EmptySpace min="0" pref="660" max="32767" attributes="0"/>
+                              <EmptySpace min="0" pref="650" max="32767" attributes="0"/>
                           </Group>
                         </DimensionLayout>
                         <DimensionLayout dim="1">
@@ -657,7 +704,7 @@
                       <Layout>
                         <DimensionLayout dim="0">
                           <Group type="103" groupAlignment="0" attributes="0">
-                              <EmptySpace min="0" pref="660" max="32767" attributes="0"/>
+                              <EmptySpace min="0" pref="650" max="32767" attributes="0"/>
                           </Group>
                         </DimensionLayout>
                         <DimensionLayout dim="1">
@@ -811,29 +858,7 @@
                 </Component>
               </SubComponents>
             </Container>
-            <Container class="javax.swing.JPanel" name="jPanel7">
-              <Constraints>
-                <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-                  <JTabbedPaneConstraints tabName="Bible">
-                    <Property name="tabTitle" type="java.lang.String" value="Bible"/>
-                  </JTabbedPaneConstraints>
-                </Constraint>
-              </Constraints>
-
-              <Layout>
-                <DimensionLayout dim="0">
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <EmptySpace min="0" pref="1580" max="32767" attributes="0"/>
-                  </Group>
-                </DimensionLayout>
-                <DimensionLayout dim="1">
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <EmptySpace min="0" pref="975" max="32767" attributes="0"/>
-                  </Group>
-                </DimensionLayout>
-              </Layout>
-            </Container>
-            <Container class="javax.swing.JPanel" name="jPanel8">
+            <Container class="javax.swing.JPanel" name="libraryTab">
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
                   <JTabbedPaneConstraints tabName="Search">
@@ -845,15 +870,378 @@
               <Layout>
                 <DimensionLayout dim="0">
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <EmptySpace min="0" pref="1580" max="32767" attributes="0"/>
+                      <Group type="102" attributes="0">
+                          <EmptySpace min="-2" pref="53" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Group type="102" attributes="0">
+                                  <Component id="tileOne" min="-2" pref="329" max="-2" attributes="0"/>
+                                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                                  <Component id="tileOne1" min="-2" pref="329" max="-2" attributes="0"/>
+                                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                                  <Component id="tileOne3" min="-2" pref="329" max="-2" attributes="0"/>
+                                  <EmptySpace max="-2" attributes="0"/>
+                                  <Component id="tileOne2" min="-2" pref="310" max="-2" attributes="0"/>
+                                  <EmptySpace min="-2" pref="69" max="-2" attributes="0"/>
+                                  <Component id="jPanel1" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <Group type="102" attributes="0">
+                                  <Component id="bookDescriptionTileOne" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace min="-2" pref="27" max="-2" attributes="0"/>
+                                  <Component id="bookDescriptionTileOne1" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                                  <Component id="bookDescriptionTileOne2" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                                  <Component id="bookDescriptionTileOne3" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                          </Group>
+                          <EmptySpace pref="19" max="32767" attributes="0"/>
+                      </Group>
                   </Group>
                 </DimensionLayout>
                 <DimensionLayout dim="1">
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <EmptySpace min="0" pref="975" max="32767" attributes="0"/>
+                      <Group type="102" attributes="0">
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Group type="102" alignment="0" attributes="0">
+                                  <EmptySpace min="-2" pref="74" max="-2" attributes="0"/>
+                                  <Group type="103" groupAlignment="0" attributes="0">
+                                      <Component id="jPanel1" min="-2" max="-2" attributes="0"/>
+                                      <Component id="tileOne1" min="-2" pref="449" max="-2" attributes="0"/>
+                                  </Group>
+                              </Group>
+                              <Group type="102" alignment="0" attributes="0">
+                                  <EmptySpace min="-2" pref="64" max="-2" attributes="0"/>
+                                  <Group type="103" groupAlignment="0" attributes="0">
+                                      <Component id="tileOne" min="-2" pref="471" max="-2" attributes="0"/>
+                                      <Component id="tileOne3" alignment="0" min="-2" pref="459" max="-2" attributes="0"/>
+                                      <Component id="tileOne2" alignment="0" min="-2" pref="459" max="-2" attributes="0"/>
+                                  </Group>
+                              </Group>
+                          </Group>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                              <Component id="bookDescriptionTileOne" max="32767" attributes="0"/>
+                              <Component id="bookDescriptionTileOne1" alignment="0" max="32767" attributes="0"/>
+                              <Component id="bookDescriptionTileOne2" alignment="0" max="32767" attributes="0"/>
+                              <Component id="bookDescriptionTileOne3" max="32767" attributes="0"/>
+                          </Group>
+                          <EmptySpace pref="368" max="32767" attributes="0"/>
+                      </Group>
                   </Group>
                 </DimensionLayout>
               </Layout>
+              <SubComponents>
+                <Component class="javax.swing.JLabel" name="tileOne">
+                  <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/bookTiles/1V1S9h1Ey1zGTa-QIn83.jpeg"/>
+                    </Property>
+                  </Properties>
+                </Component>
+                <Container class="javax.swing.JPanel" name="jPanel1">
+
+                  <Layout>
+                    <DimensionLayout dim="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <EmptySpace min="0" pref="100" max="32767" attributes="0"/>
+                      </Group>
+                    </DimensionLayout>
+                    <DimensionLayout dim="1">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <EmptySpace min="0" pref="100" max="32767" attributes="0"/>
+                      </Group>
+                    </DimensionLayout>
+                  </Layout>
+                </Container>
+                <Container class="javax.swing.JPanel" name="bookDescriptionTileOne">
+                  <Properties>
+                    <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                      <Color blue="cc" green="cc" red="cc" type="rgb"/>
+                    </Property>
+                  </Properties>
+
+                  <Layout>
+                    <DimensionLayout dim="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" alignment="1" attributes="0">
+                              <EmptySpace pref="60" max="32767" attributes="0"/>
+                              <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace min="-2" pref="45" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" alignment="0" attributes="0">
+                              <EmptySpace min="-2" pref="104" max="-2" attributes="0"/>
+                              <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="jLabel4" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="32767" attributes="0"/>
+                          </Group>
+                      </Group>
+                    </DimensionLayout>
+                    <DimensionLayout dim="1">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" alignment="0" attributes="0">
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Group type="103" groupAlignment="3" attributes="0">
+                                  <Component id="jLabel3" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="jLabel4" alignment="3" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <EmptySpace min="0" pref="9" max="32767" attributes="0"/>
+                          </Group>
+                      </Group>
+                    </DimensionLayout>
+                  </Layout>
+                  <SubComponents>
+                    <Component class="javax.swing.JLabel" name="jLabel2">
+                      <Properties>
+                        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                          <Font name="Nokia Pure Headline Ultra Light" size="18" style="1"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="Desiring GOD by John Piper"/>
+                      </Properties>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="jLabel3">
+                      <Properties>
+                        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                          <Font name="Nokia Pure Headline Ultra Light" size="14" style="0"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="Page Count:"/>
+                      </Properties>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="jLabel4">
+                      <Properties>
+                        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                          <Font name="Nokia Pure Headline Ultra Light" size="14" style="1"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="224"/>
+                      </Properties>
+                    </Component>
+                  </SubComponents>
+                </Container>
+                <Component class="javax.swing.JLabel" name="tileOne1">
+                  <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/bookTiles/1V1SrF1BZ2uDBV-ndXZj.jpeg"/>
+                    </Property>
+                  </Properties>
+                </Component>
+                <Container class="javax.swing.JPanel" name="bookDescriptionTileOne1">
+                  <Properties>
+                    <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                      <Color blue="cc" green="cc" red="cc" type="rgb"/>
+                    </Property>
+                  </Properties>
+
+                  <Layout>
+                    <DimensionLayout dim="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" alignment="0" attributes="0">
+                              <EmptySpace min="-2" pref="104" max="-2" attributes="0"/>
+                              <Component id="jLabel6" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="jLabel7" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="32767" attributes="0"/>
+                          </Group>
+                          <Group type="102" alignment="1" attributes="0">
+                              <EmptySpace pref="39" max="32767" attributes="0"/>
+                              <Component id="jLabel5" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace min="-2" pref="25" max="-2" attributes="0"/>
+                          </Group>
+                      </Group>
+                    </DimensionLayout>
+                    <DimensionLayout dim="1">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" alignment="0" attributes="0">
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="jLabel5" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Group type="103" groupAlignment="3" attributes="0">
+                                  <Component id="jLabel6" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="jLabel7" alignment="3" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                          </Group>
+                      </Group>
+                    </DimensionLayout>
+                  </Layout>
+                  <SubComponents>
+                    <Component class="javax.swing.JLabel" name="jLabel5">
+                      <Properties>
+                        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                          <Font name="Nokia Pure Headline Ultra Light" size="18" style="1"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="With Christ in the School of Prayer"/>
+                      </Properties>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="jLabel6">
+                      <Properties>
+                        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                          <Font name="Nokia Pure Headline Ultra Light" size="14" style="0"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="Page Count:"/>
+                      </Properties>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="jLabel7">
+                      <Properties>
+                        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                          <Font name="Nokia Pure Headline Ultra Light" size="14" style="1"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="125"/>
+                      </Properties>
+                    </Component>
+                  </SubComponents>
+                </Container>
+                <Component class="javax.swing.JLabel" name="tileOne2">
+                  <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/bookTiles/1V1SFW1LlyJ9te-cLuOA.jpeg"/>
+                    </Property>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JLabel" name="tileOne3">
+                  <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/bookTiles/1V1SyG12FcdRFF-m2vIY.jpeg"/>
+                    </Property>
+                  </Properties>
+                </Component>
+                <Container class="javax.swing.JPanel" name="bookDescriptionTileOne2">
+                  <Properties>
+                    <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                      <Color blue="cc" green="cc" red="cc" type="rgb"/>
+                    </Property>
+                  </Properties>
+
+                  <Layout>
+                    <DimensionLayout dim="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" attributes="0">
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <EmptySpace min="-2" pref="104" max="-2" attributes="0"/>
+                                      <Component id="jLabel9" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="jLabel10" min="-2" max="-2" attributes="0"/>
+                                  </Group>
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <EmptySpace min="-2" pref="57" max="-2" attributes="0"/>
+                                      <Component id="jLabel8" min="-2" max="-2" attributes="0"/>
+                                  </Group>
+                              </Group>
+                              <EmptySpace pref="72" max="32767" attributes="0"/>
+                          </Group>
+                      </Group>
+                    </DimensionLayout>
+                    <DimensionLayout dim="1">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" alignment="0" attributes="0">
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="jLabel8" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Group type="103" groupAlignment="3" attributes="0">
+                                  <Component id="jLabel9" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="jLabel10" alignment="3" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                          </Group>
+                      </Group>
+                    </DimensionLayout>
+                  </Layout>
+                  <SubComponents>
+                    <Component class="javax.swing.JLabel" name="jLabel8">
+                      <Properties>
+                        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                          <Font name="Nokia Pure Headline Ultra Light" size="18" style="1"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="Good Morning Holy Spirit"/>
+                      </Properties>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="jLabel9">
+                      <Properties>
+                        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                          <Font name="Nokia Pure Headline Ultra Light" size="14" style="0"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="Page Count:"/>
+                      </Properties>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="jLabel10">
+                      <Properties>
+                        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                          <Font name="Nokia Pure Headline Ultra Light" size="14" style="1"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="224"/>
+                      </Properties>
+                    </Component>
+                  </SubComponents>
+                </Container>
+                <Container class="javax.swing.JPanel" name="bookDescriptionTileOne3">
+                  <Properties>
+                    <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                      <Color blue="cc" green="cc" red="cc" type="rgb"/>
+                    </Property>
+                  </Properties>
+
+                  <Layout>
+                    <DimensionLayout dim="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" alignment="0" attributes="0">
+                              <EmptySpace min="-2" pref="104" max="-2" attributes="0"/>
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Component id="jLabel11" min="-2" pref="105" max="-2" attributes="0"/>
+                                  <Group type="102" attributes="0">
+                                      <Component id="jLabel12" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="jLabel13" min="-2" max="-2" attributes="0"/>
+                                  </Group>
+                              </Group>
+                              <EmptySpace pref="92" max="32767" attributes="0"/>
+                          </Group>
+                      </Group>
+                    </DimensionLayout>
+                    <DimensionLayout dim="1">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" alignment="0" attributes="0">
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="jLabel11" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Group type="103" groupAlignment="3" attributes="0">
+                                  <Component id="jLabel12" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="jLabel13" alignment="3" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                          </Group>
+                      </Group>
+                    </DimensionLayout>
+                  </Layout>
+                  <SubComponents>
+                    <Component class="javax.swing.JLabel" name="jLabel11">
+                      <Properties>
+                        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                          <Font name="Nokia Pure Headline Ultra Light" size="18" style="1"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="Crazy Love"/>
+                      </Properties>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="jLabel12">
+                      <Properties>
+                        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                          <Font name="Nokia Pure Headline Ultra Light" size="14" style="0"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="Page Count:"/>
+                      </Properties>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="jLabel13">
+                      <Properties>
+                        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                          <Font name="Nokia Pure Headline Ultra Light" size="14" style="1"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="224"/>
+                      </Properties>
+                    </Component>
+                  </SubComponents>
+                </Container>
+              </SubComponents>
             </Container>
             <Container class="javax.swing.JPanel" name="jPanel9">
               <Constraints>
