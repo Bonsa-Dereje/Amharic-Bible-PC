@@ -543,21 +543,9 @@ private void saveNotes() {
         libraryTab = new javax.swing.JPanel();
         upperBar = new javax.swing.JPanel();
         book1 = new javax.swing.JButton();
-        bookDescriptionTileOne4 = new javax.swing.JPanel();
-        jLabel10 = new javax.swing.JLabel();
-        jLabel13 = new javax.swing.JLabel();
         book2 = new javax.swing.JButton();
-        bookDescriptionTileOne5 = new javax.swing.JPanel();
-        jLabel14 = new javax.swing.JLabel();
-        jLabel15 = new javax.swing.JLabel();
         book3 = new javax.swing.JButton();
-        bookDescriptionTileOne6 = new javax.swing.JPanel();
-        jLabel16 = new javax.swing.JLabel();
-        jLabel17 = new javax.swing.JLabel();
         book4 = new javax.swing.JButton();
-        bookDescriptionTileOne7 = new javax.swing.JPanel();
-        jLabel18 = new javax.swing.JLabel();
-        jLabel19 = new javax.swing.JLabel();
         moreBtn1 = new javax.swing.JButton();
         bottomBar = new javax.swing.JPanel();
         readStatusPanel3 = new javax.swing.JPanel();
@@ -944,6 +932,7 @@ private void saveNotes() {
         aug = new javax.swing.JLabel();
         sep2 = new javax.swing.JLabel();
         topSpacer = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
         inLibraryTabs = new javax.swing.JPanel();
         pdfReader = new javax.swing.JScrollPane();
         jPanel10 = new javax.swing.JPanel();
@@ -1621,63 +1610,8 @@ private void saveNotes() {
             }
         });
 
-        bookDescriptionTileOne4.setBackground(new java.awt.Color(199, 228, 225));
-        bookDescriptionTileOne4.setLayout(new java.awt.GridBagLayout());
-
-        jLabel10.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 18)); // NOI18N
-        jLabel10.setText("Desiring GOD ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(6, 104, 0, 107);
-        bookDescriptionTileOne4.add(jLabel10, gridBagConstraints);
-
-        jLabel13.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        jLabel13.setText("John Piper");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.ipadx = 24;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(6, 118, 0, 0);
-        bookDescriptionTileOne4.add(jLabel13, gridBagConstraints);
-
         book2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/bookTiles/1V1SrF1BZ2uDBV-ndXZj.jpeg"))); // NOI18N
         book2.setBorder(null);
-
-        bookDescriptionTileOne5.setBackground(new java.awt.Color(199, 228, 225));
-
-        jLabel14.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 18)); // NOI18N
-        jLabel14.setText("With Christ in the School of Prayer");
-
-        jLabel15.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        jLabel15.setText("Andrew Murray");
-
-        javax.swing.GroupLayout bookDescriptionTileOne5Layout = new javax.swing.GroupLayout(bookDescriptionTileOne5);
-        bookDescriptionTileOne5.setLayout(bookDescriptionTileOne5Layout);
-        bookDescriptionTileOne5Layout.setHorizontalGroup(
-            bookDescriptionTileOne5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(bookDescriptionTileOne5Layout.createSequentialGroup()
-                .addContainerGap(39, Short.MAX_VALUE)
-                .addGroup(bookDescriptionTileOne5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionTileOne5Layout.createSequentialGroup()
-                        .addComponent(jLabel14)
-                        .addGap(25, 25, 25))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionTileOne5Layout.createSequentialGroup()
-                        .addComponent(jLabel15)
-                        .addGap(116, 116, 116))))
-        );
-        bookDescriptionTileOne5Layout.setVerticalGroup(
-            bookDescriptionTileOne5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(bookDescriptionTileOne5Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel14)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel15)
-                .addGap(0, 0, Short.MAX_VALUE))
-        );
 
         book3.setBackground(new java.awt.Color(204, 204, 204));
         book3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/bookTiles/1V1SyG12FcdRFF-m2vIY.jpeg"))); // NOI18N
@@ -1685,74 +1619,11 @@ private void saveNotes() {
         book3.setBorderPainted(false);
         book3.setContentAreaFilled(false);
 
-        bookDescriptionTileOne6.setBackground(new java.awt.Color(199, 228, 225));
-
-        jLabel16.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 18)); // NOI18N
-        jLabel16.setText("Good Morning Holy Spirit");
-
-        jLabel17.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        jLabel17.setText("Benny Hinn");
-
-        javax.swing.GroupLayout bookDescriptionTileOne6Layout = new javax.swing.GroupLayout(bookDescriptionTileOne6);
-        bookDescriptionTileOne6.setLayout(bookDescriptionTileOne6Layout);
-        bookDescriptionTileOne6Layout.setHorizontalGroup(
-            bookDescriptionTileOne6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(bookDescriptionTileOne6Layout.createSequentialGroup()
-                .addGap(57, 57, 57)
-                .addComponent(jLabel16)
-                .addContainerGap(53, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionTileOne6Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel17)
-                .addGap(118, 118, 118))
-        );
-        bookDescriptionTileOne6Layout.setVerticalGroup(
-            bookDescriptionTileOne6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(bookDescriptionTileOne6Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel16)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel17)
-                .addGap(0, 0, Short.MAX_VALUE))
-        );
-
         book4.setBackground(new java.awt.Color(204, 204, 204));
         book4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/bookTiles/1V1SFW1LlyJ9te-cLuOA.jpeg"))); // NOI18N
         book4.setBorder(null);
         book4.setBorderPainted(false);
         book4.setContentAreaFilled(false);
-
-        bookDescriptionTileOne7.setBackground(new java.awt.Color(199, 228, 225));
-
-        jLabel18.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 18)); // NOI18N
-        jLabel18.setText("Crazy Love");
-
-        jLabel19.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        jLabel19.setText("Francis Chan");
-
-        javax.swing.GroupLayout bookDescriptionTileOne7Layout = new javax.swing.GroupLayout(bookDescriptionTileOne7);
-        bookDescriptionTileOne7.setLayout(bookDescriptionTileOne7Layout);
-        bookDescriptionTileOne7Layout.setHorizontalGroup(
-            bookDescriptionTileOne7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(bookDescriptionTileOne7Layout.createSequentialGroup()
-                .addGroup(bookDescriptionTileOne7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(bookDescriptionTileOne7Layout.createSequentialGroup()
-                        .addGap(110, 110, 110)
-                        .addComponent(jLabel19))
-                    .addGroup(bookDescriptionTileOne7Layout.createSequentialGroup()
-                        .addGap(94, 94, 94)
-                        .addComponent(jLabel18, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(102, Short.MAX_VALUE))
-        );
-        bookDescriptionTileOne7Layout.setVerticalGroup(
-            bookDescriptionTileOne7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(bookDescriptionTileOne7Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel18)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel19)
-                .addGap(0, 9, Short.MAX_VALUE))
-        );
 
         moreBtn1.setBackground(new java.awt.Color(204, 204, 204));
         moreBtn1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrowRight.png"))); // NOI18N
@@ -1769,65 +1640,37 @@ private void saveNotes() {
             upperBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, upperBarLayout.createSequentialGroup()
                 .addGap(771, 771, 771)
-                .addGroup(upperBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(book3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(bookDescriptionTileOne6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGroup(upperBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(upperBarLayout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(bookDescriptionTileOne7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(159, 159, 159))
-                    .addGroup(upperBarLayout.createSequentialGroup()
-                        .addGap(31, 31, 31)
-                        .addComponent(book4, javax.swing.GroupLayout.DEFAULT_SIZE, 321, Short.MAX_VALUE)
-                        .addGap(18, 18, 18)
-                        .addComponent(moreBtn1)
-                        .addGap(27, 27, 27))))
+                .addComponent(book3)
+                .addGap(31, 31, 31)
+                .addComponent(book4, javax.swing.GroupLayout.DEFAULT_SIZE, 321, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addComponent(moreBtn1)
+                .addGap(27, 27, 27))
             .addGroup(upperBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(upperBarLayout.createSequentialGroup()
                     .addGap(44, 44, 44)
-                    .addGroup(upperBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(bookDescriptionTileOne4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(book1))
+                    .addComponent(book1)
                     .addGap(42, 42, 42)
-                    .addGroup(upperBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(book2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                        .addComponent(bookDescriptionTileOne5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(book2, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addContainerGap(846, Short.MAX_VALUE)))
         );
         upperBarLayout.setVerticalGroup(
             upperBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(upperBarLayout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(upperBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(upperBarLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(upperBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(book3, javax.swing.GroupLayout.PREFERRED_SIZE, 449, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(book4, javax.swing.GroupLayout.PREFERRED_SIZE, 449, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(upperBarLayout.createSequentialGroup()
-                        .addGap(127, 127, 127)
-                        .addComponent(moreBtn1, javax.swing.GroupLayout.PREFERRED_SIZE, 188, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(18, 18, 18)
-                .addGroup(upperBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(upperBarLayout.createSequentialGroup()
-                        .addComponent(bookDescriptionTileOne6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(28, 28, 28))
-                    .addGroup(upperBarLayout.createSequentialGroup()
-                        .addComponent(bookDescriptionTileOne7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                    .addComponent(book3, javax.swing.GroupLayout.PREFERRED_SIZE, 449, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(book4, javax.swing.GroupLayout.PREFERRED_SIZE, 449, javax.swing.GroupLayout.PREFERRED_SIZE)))
+            .addGroup(upperBarLayout.createSequentialGroup()
+                .addGap(127, 127, 127)
+                .addComponent(moreBtn1, javax.swing.GroupLayout.PREFERRED_SIZE, 188, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addGroup(upperBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(upperBarLayout.createSequentialGroup()
                     .addGap(8, 8, 8)
-                    .addGroup(upperBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addGroup(upperBarLayout.createSequentialGroup()
-                            .addComponent(book1, javax.swing.GroupLayout.PREFERRED_SIZE, 449, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(18, 18, 18)
-                            .addComponent(bookDescriptionTileOne4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(upperBarLayout.createSequentialGroup()
-                            .addComponent(book2, javax.swing.GroupLayout.PREFERRED_SIZE, 449, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(18, 18, 18)
-                            .addComponent(bookDescriptionTileOne5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addContainerGap(26, Short.MAX_VALUE)))
+                    .addGroup(upperBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(book1, javax.swing.GroupLayout.PREFERRED_SIZE, 449, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(book2, javax.swing.GroupLayout.PREFERRED_SIZE, 449, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
 
         bottomBar.setLayout(null);
@@ -3194,30 +3037,39 @@ private void saveNotes() {
             .addGap(0, 34, Short.MAX_VALUE)
         );
 
+        jLabel1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        jLabel1.setText("Spike your interest");
+
         javax.swing.GroupLayout libraryTabLayout = new javax.swing.GroupLayout(libraryTab);
         libraryTab.setLayout(libraryTabLayout);
         libraryTabLayout.setHorizontalGroup(
             libraryTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(libraryTabLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(topSpacer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, libraryTabLayout.createSequentialGroup()
                 .addGap(0, 0, Short.MAX_VALUE)
                 .addGroup(libraryTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(bottomBar, javax.swing.GroupLayout.PREFERRED_SIZE, 1554, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(upperBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
             .addGroup(libraryTabLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(topSpacer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                .addGap(653, 653, 653)
+                .addComponent(jLabel1)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         libraryTabLayout.setVerticalGroup(
             libraryTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(libraryTabLayout.createSequentialGroup()
-                .addContainerGap(61, Short.MAX_VALUE)
+                .addContainerGap(51, Short.MAX_VALUE)
                 .addComponent(topSpacer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(upperBar, javax.swing.GroupLayout.PREFERRED_SIZE, 455, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(31, 31, 31)
+                .addComponent(bottomBar, javax.swing.GroupLayout.PREFERRED_SIZE, 232, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(upperBar, javax.swing.GroupLayout.PREFERRED_SIZE, 552, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(bottomBar, javax.swing.GroupLayout.PREFERRED_SIZE, 281, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(23, 23, 23))
+                .addComponent(jLabel1)
+                .addGap(134, 134, 134))
         );
 
         tabs.addTab("Boomarks", libraryTab);
@@ -3744,10 +3596,6 @@ private void saveNotes() {
     private javax.swing.JButton book6;
     private javax.swing.JComboBox<String> bookChooser;
     private javax.swing.JComboBox<String> bookChooserDropDown;
-    private javax.swing.JPanel bookDescriptionTileOne4;
-    private javax.swing.JPanel bookDescriptionTileOne5;
-    private javax.swing.JPanel bookDescriptionTileOne6;
-    private javax.swing.JPanel bookDescriptionTileOne7;
     private javax.swing.JPanel bookDescriptionTileOne8;
     private javax.swing.JPanel bookNameDisplay;
     private javax.swing.JButton bookTileClickable;
@@ -3772,15 +3620,8 @@ private void saveNotes() {
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
     private javax.swing.JPanel inLibraryTabs;
-    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel13;
-    private javax.swing.JLabel jLabel14;
-    private javax.swing.JLabel jLabel15;
-    private javax.swing.JLabel jLabel16;
-    private javax.swing.JLabel jLabel17;
-    private javax.swing.JLabel jLabel18;
-    private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel22;

@@ -4,10 +4,12 @@ import com.formdev.flatlaf.FlatLightLaf;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class bookToStack extends JFrame {
@@ -122,11 +124,24 @@ public class bookToStack extends JFrame {
             File destPdf = new File(defaultBookFolder, cleanedPdfName);
             Files.copy(selectedPdfFile.toPath(), destPdf.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-            // Copy Tile
+            // Copy and resize Tile
             String tileRelativePath = null;
             if (selectedTileFile != null) {
+                BufferedImage originalImage = ImageIO.read(selectedTileFile);
+                int width = 320;
+                int height = 455;
+                BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g2d = resizedImage.createGraphics();
+                g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.drawImage(originalImage, 0, 0, width, height, null);
+                g2d.dispose();
+
+                // Save resized image
                 File destTile = new File(defaultTileFolder, selectedTileFile.getName());
-                Files.copy(selectedTileFile.toPath(), destTile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                ImageIO.write(resizedImage, "png", destTile);
+
                 tileRelativePath = "bookTiles/" + selectedTileFile.getName();
             }
 
@@ -191,7 +206,7 @@ public class bookToStack extends JFrame {
                 for (File file : droppedFiles) {
                     if (file.getName().toLowerCase().matches(".*\\.(png|jpg|jpeg|bmp|gif)$")) {
                         selectedTileFile = file;
-                        bookTileLabel.setText(file.getName());
+                        bookTileLabel.setText(selectedTileFile.getName());
                         JOptionPane.showMessageDialog(bookToStack.this, "Tile Selected: " + file.getName());
                         break;
                     }
