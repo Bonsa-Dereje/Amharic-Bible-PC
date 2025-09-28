@@ -24,7 +24,7 @@ public class bookToStack extends JFrame {
 
     public bookToStack() {
         setTitle("Add Book to Stack");
-        setSize(500, 550);
+        setSize(500, 520);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null);
 
@@ -83,9 +83,15 @@ public class bookToStack extends JFrame {
 
         // Save Button
         JButton saveBtn = new JButton("Save Book");
-        saveBtn.setBounds(180, 420, 120, 30);
+        saveBtn.setBounds(100, 420, 120, 30);
         saveBtn.addActionListener(e -> saveBook());
         add(saveBtn);
+
+        // Extract Button
+        JButton extractBtn = new JButton("Extract");
+        extractBtn.setBounds(260, 420, 120, 30);
+        extractBtn.addActionListener(e -> extractFromClipboard());
+        add(extractBtn);
 
         setVisible(true);
     }
@@ -128,32 +134,41 @@ public class bookToStack extends JFrame {
             String tileRelativePath = null;
             if (selectedTileFile != null) {
                 BufferedImage originalImage = ImageIO.read(selectedTileFile);
-                int width = 320;
-                int height = 455;
-                BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+                int canvasWidth = 320;
+                int canvasHeight = 455;
+
+                BufferedImage resizedImage = new BufferedImage(canvasWidth, canvasHeight, BufferedImage.TYPE_INT_ARGB);
                 Graphics2D g2d = resizedImage.createGraphics();
                 g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
                 g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.drawImage(originalImage, 0, 0, width, height, null);
+
+                double scale = Math.min((double) canvasWidth / originalImage.getWidth(),
+                                        (double) canvasHeight / originalImage.getHeight());
+                int newWidth = (int) (originalImage.getWidth() * scale);
+                int newHeight = (int) (originalImage.getHeight() * scale);
+
+                int x = (canvasWidth - newWidth) / 2;
+                int y = (canvasHeight - newHeight) / 2;
+
+                g2d.setColor(new Color(0,0,0,0));
+                g2d.fillRect(0, 0, canvasWidth, canvasHeight);
+
+                g2d.drawImage(originalImage, x, y, newWidth, newHeight, null);
                 g2d.dispose();
 
-                // Save resized image
                 File destTile = new File(defaultTileFolder, selectedTileFile.getName());
                 ImageIO.write(resizedImage, "png", destTile);
-
                 tileRelativePath = "bookTiles/" + selectedTileFile.getName();
             }
 
-            // Relative PDF path
             String pdfRelativePath = "bookStack/" + cleanedPdfName;
 
-            // Generate SQLite INSERT including category
             String insertQuery = String.format(
                     "INSERT INTO bookStack (bookName, tag, path, bookTile, text, author, category) " +
                             "VALUES ('%s', '%s', '%s', %s, %s, '%s', '%s');",
                     bookName,
-                    "Bible", // placeholder tag
+                    "Bible",
                     pdfRelativePath,
                     tileRelativePath != null ? "'" + tileRelativePath + "'" : "NULL",
                     "true",
@@ -161,15 +176,64 @@ public class bookToStack extends JFrame {
                     category
             );
 
-            // Copy query to clipboard
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(
                     new java.awt.datatransfer.StringSelection(insertQuery), null);
 
             JOptionPane.showMessageDialog(this, "Book saved!\nQuery copied to clipboard.");
 
+            // RESET FORM AFTER SAVE
+            authorField.setText("");
+            bookNameField.setText("");
+            categoryField.setText("");
+            selectedPdfFile = null;
+            selectedTileFile = null;
+            bookTileLabel.setText("No Tile Selected");
+            dropPdfLabel.setText("Drag & Drop PDF Here");
+            dropTileLabel.setText("Drag & Drop Tile Here");
+
         } catch (IOException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error saving files: " + ex.getMessage());
+        }
+    }
+
+    private void extractFromClipboard() {
+        try {
+            String clipboardText = (String) Toolkit.getDefaultToolkit()
+                    .getSystemClipboard().getData(DataFlavor.stringFlavor);
+
+            JTextArea textArea = new JTextArea(clipboardText, 15, 40);
+            textArea.setLineWrap(true);
+            textArea.setWrapStyleWord(true);
+            JScrollPane scrollPane = new JScrollPane(textArea);
+
+            int result = JOptionPane.showConfirmDialog(this, scrollPane, 
+                    "Extract Info from Clipboard", JOptionPane.OK_CANCEL_OPTION);
+
+            if (result == JOptionPane.OK_OPTION) {
+                String bookName = "";
+                String author = "";
+                String category = "";
+
+                for (String line : clipboardText.split("\\r?\\n")) {
+                    line = line.trim();
+                    if (line.startsWith("Book 📖")) {
+                        bookName = line.replace("Book 📖", "").trim();
+                    } else if (line.startsWith("Author ✒️")) {
+                        author = line.replace("Author ✒️", "").trim();
+                    } else if (line.startsWith("Category 📚")) {
+                        category = line.replace("Category 📚", "").trim();
+                    }
+                }
+
+                bookNameField.setText(bookName);
+                authorField.setText(author);
+                categoryField.setText(category);
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Failed to read clipboard.");
         }
     }
 
