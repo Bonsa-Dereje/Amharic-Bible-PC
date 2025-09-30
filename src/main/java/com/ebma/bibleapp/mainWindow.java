@@ -933,7 +933,14 @@ private void saveNotes() {
         sep2 = new javax.swing.JLabel();
         topSpacer = new javax.swing.JPanel();
         inLibraryTabs = new javax.swing.JPanel();
-        pdfReader = new javax.swing.JScrollPane();
+        libraryTabContent = new javax.swing.JPanel();
+        jPanel4 = new javax.swing.JPanel();
+        bookDisp1 = new javax.swing.JButton();
+        bookDisp2 = new javax.swing.JButton();
+        bookDisp3 = new javax.swing.JButton();
+        bookDisp4 = new javax.swing.JButton();
+        bookDisp5 = new javax.swing.JButton();
+        bookDisp6 = new javax.swing.JButton();
         jPanel10 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         book5 = new javax.swing.JButton();
@@ -3064,22 +3071,77 @@ private void saveNotes() {
 
         tabs.addTab("Boomarks", libraryTab);
 
-        pdfReader.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel4.setBackground(new java.awt.Color(40, 43, 45));
+
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 361, Short.MAX_VALUE)
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+
+        bookDisp1.setBackground(new java.awt.Color(255, 252, 249));
+
+        bookDisp2.setBackground(new java.awt.Color(255, 252, 249));
+
+        bookDisp3.setBackground(new java.awt.Color(255, 252, 249));
+
+        bookDisp4.setBackground(new java.awt.Color(255, 252, 249));
+
+        bookDisp5.setBackground(new java.awt.Color(255, 252, 249));
+
+        bookDisp6.setBackground(new java.awt.Color(255, 252, 249));
+
+        javax.swing.GroupLayout libraryTabContentLayout = new javax.swing.GroupLayout(libraryTabContent);
+        libraryTabContent.setLayout(libraryTabContentLayout);
+        libraryTabContentLayout.setHorizontalGroup(
+            libraryTabContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, libraryTabContentLayout.createSequentialGroup()
+                .addContainerGap(19, Short.MAX_VALUE)
+                .addComponent(bookDisp1, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(bookDisp2, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(bookDisp3, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(bookDisp4, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(bookDisp5, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(bookDisp6, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+        libraryTabContentLayout.setVerticalGroup(
+            libraryTabContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(libraryTabContentLayout.createSequentialGroup()
+                .addGap(27, 27, 27)
+                .addGroup(libraryTabContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(bookDisp6, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(bookDisp5, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(bookDisp4, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(bookDisp3, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(bookDisp2, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(bookDisp1, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(609, Short.MAX_VALUE))
+        );
 
         javax.swing.GroupLayout inLibraryTabsLayout = new javax.swing.GroupLayout(inLibraryTabs);
         inLibraryTabs.setLayout(inLibraryTabsLayout);
         inLibraryTabsLayout.setHorizontalGroup(
             inLibraryTabsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(inLibraryTabsLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(pdfReader, javax.swing.GroupLayout.DEFAULT_SIZE, 1568, Short.MAX_VALUE)
-                .addContainerGap())
+            .addComponent(libraryTabContent, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         inLibraryTabsLayout.setVerticalGroup(
             inLibraryTabsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(inLibraryTabsLayout.createSequentialGroup()
-                .addGap(57, 57, 57)
-                .addComponent(pdfReader, javax.swing.GroupLayout.DEFAULT_SIZE, 912, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, inLibraryTabsLayout.createSequentialGroup()
+                .addContainerGap(47, Short.MAX_VALUE)
+                .addComponent(libraryTabContent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -3587,6 +3649,12 @@ private void saveNotes() {
     private javax.swing.JComboBox<String> bookChooser;
     private javax.swing.JComboBox<String> bookChooserDropDown;
     private javax.swing.JPanel bookDescriptionTileOne8;
+    private javax.swing.JButton bookDisp1;
+    private javax.swing.JButton bookDisp2;
+    private javax.swing.JButton bookDisp3;
+    private javax.swing.JButton bookDisp4;
+    private javax.swing.JButton bookDisp5;
+    private javax.swing.JButton bookDisp6;
     private javax.swing.JPanel bookNameDisplay;
     private javax.swing.JButton bookTileClickable;
     private javax.swing.JPanel bookTileImage;
@@ -3624,6 +3692,7 @@ private void saveNotes() {
     private javax.swing.JPanel jPanel14;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JLabel jan;
     private javax.swing.JButton journalBtn;
@@ -3632,6 +3701,7 @@ private void saveNotes() {
     private javax.swing.JPanel layeredStitcher;
     private javax.swing.JButton libraryBtn;
     private javax.swing.JPanel libraryTab;
+    private javax.swing.JPanel libraryTabContent;
     private javax.swing.JLayeredPane mainPanel_layered;
     private javax.swing.JTextArea mainTextArea;
     private javax.swing.JScrollPane mainTextScrollPanel;
@@ -3647,7 +3717,6 @@ private void saveNotes() {
     private javax.swing.JPanel notesTabPanel;
     private javax.swing.JLabel nov;
     private javax.swing.JLabel oct;
-    private javax.swing.JScrollPane pdfReader;
     private javax.swing.JPanel readStatusPanel3;
     private javax.swing.JButton readStatusTile1;
     private javax.swing.JButton readStatusTile10;
