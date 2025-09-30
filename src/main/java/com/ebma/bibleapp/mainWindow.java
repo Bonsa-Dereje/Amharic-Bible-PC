@@ -932,10 +932,6 @@ private void saveNotes() {
         aug = new javax.swing.JLabel();
         sep2 = new javax.swing.JLabel();
         topSpacer = new javax.swing.JPanel();
-        bottomPanel = new javax.swing.JPanel();
-        completedBooks = new javax.swing.JLabel();
-        tinyBookTile1 = new javax.swing.JButton();
-        tinyBookTile2 = new javax.swing.JButton();
         inLibraryTabs = new javax.swing.JPanel();
         pdfReader = new javax.swing.JScrollPane();
         jPanel10 = new javax.swing.JPanel();
@@ -3040,42 +3036,6 @@ private void saveNotes() {
             .addGap(0, 34, Short.MAX_VALUE)
         );
 
-        completedBooks.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
-        completedBooks.setText("Completed Books");
-
-        tinyBookTile1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/tinyBookTiles/photo_2025-09-30_19-32-48_tiny.png"))); // NOI18N
-        tinyBookTile1.setContentAreaFilled(false);
-
-        tinyBookTile2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/tinyBookTiles/photo_2025-09-30_19-32-48_tiny.png"))); // NOI18N
-        tinyBookTile2.setContentAreaFilled(false);
-
-        javax.swing.GroupLayout bottomPanelLayout = new javax.swing.GroupLayout(bottomPanel);
-        bottomPanel.setLayout(bottomPanelLayout);
-        bottomPanelLayout.setHorizontalGroup(
-            bottomPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(bottomPanelLayout.createSequentialGroup()
-                .addGroup(bottomPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(bottomPanelLayout.createSequentialGroup()
-                        .addGap(676, 676, 676)
-                        .addComponent(completedBooks, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(bottomPanelLayout.createSequentialGroup()
-                        .addGap(708, 708, 708)
-                        .addComponent(tinyBookTile1, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(tinyBookTile2, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        bottomPanelLayout.setVerticalGroup(
-            bottomPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(bottomPanelLayout.createSequentialGroup()
-                .addComponent(completedBooks, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(bottomPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(tinyBookTile1)
-                    .addComponent(tinyBookTile2))
-                .addContainerGap(25, Short.MAX_VALUE))
-        );
-
         javax.swing.GroupLayout libraryTabLayout = new javax.swing.GroupLayout(libraryTab);
         libraryTab.setLayout(libraryTabLayout);
         libraryTabLayout.setHorizontalGroup(
@@ -3086,23 +3046,20 @@ private void saveNotes() {
                 .addContainerGap())
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, libraryTabLayout.createSequentialGroup()
                 .addGap(0, 0, Short.MAX_VALUE)
-                .addGroup(libraryTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(libraryTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(bottomBar, javax.swing.GroupLayout.PREFERRED_SIZE, 1554, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(upperBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(bottomPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addComponent(upperBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
         libraryTabLayout.setVerticalGroup(
             libraryTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(libraryTabLayout.createSequentialGroup()
-                .addContainerGap(42, Short.MAX_VALUE)
+                .addGap(95, 95, 95)
                 .addComponent(topSpacer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(upperBar, javax.swing.GroupLayout.PREFERRED_SIZE, 455, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(31, 31, 31)
                 .addComponent(bottomBar, javax.swing.GroupLayout.PREFERRED_SIZE, 232, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(bottomPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addContainerGap(122, Short.MAX_VALUE))
         );
 
         tabs.addTab("Boomarks", libraryTab);
@@ -3636,14 +3593,12 @@ private void saveNotes() {
     private javax.swing.JButton bookmarkBtn;
     private javax.swing.JLabel bookmarksBtn;
     private javax.swing.JPanel bottomBar;
-    private javax.swing.JPanel bottomPanel;
     private javax.swing.JComboBox<String> chapterChooser;
     private javax.swing.JButton closeBtn;
     private javax.swing.JButton cmntrsBtn;
     private javax.swing.JLabel cmntrsBtnLabel;
     private javax.swing.JPanel cmtrsTabPanel;
     private javax.swing.JTabbedPane cmtryTabbedPanel;
-    private javax.swing.JLabel completedBooks;
     private javax.swing.JLabel dec;
     private javax.swing.JButton eyeHide;
     private javax.swing.JButton eyeShow;
@@ -4072,8 +4027,6 @@ private void saveNotes() {
     private javax.swing.JTabbedPane tabs;
     private javax.swing.JComboBox<String> testamentChooser;
     private javax.swing.JLabel tileOne4;
-    private javax.swing.JButton tinyBookTile1;
-    private javax.swing.JButton tinyBookTile2;
     private javax.swing.JPanel topBar;
     private javax.swing.JPanel topSpacer;
     private javax.swing.JPanel upperBar;

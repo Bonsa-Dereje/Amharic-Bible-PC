@@ -21,7 +21,6 @@ public class bookToStack extends JFrame {
 
     private final File defaultBookFolder = new File("src/main/resources/bookStack");
     private final File defaultTileFolder = new File("src/main/resources/bookTiles");
-    private final File tinyTileFolder = new File("src/main/resources/tinyBookTiles");
 
     public bookToStack() {
         setTitle("Add Book to Stack");
@@ -135,21 +134,32 @@ public class bookToStack extends JFrame {
             String tileRelativePath = null;
             if (selectedTileFile != null) {
                 BufferedImage originalImage = ImageIO.read(selectedTileFile);
+                int canvasWidth = 320;
+                int canvasHeight = 455;
 
-                // === Save 320x455 version ===
-                BufferedImage resizedImage = resizeImage(originalImage, 320, 455);
+                BufferedImage resizedImage = new BufferedImage(canvasWidth, canvasHeight, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g2d = resizedImage.createGraphics();
+                g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                double scale = Math.min((double) canvasWidth / originalImage.getWidth(),
+                                        (double) canvasHeight / originalImage.getHeight());
+                int newWidth = (int) (originalImage.getWidth() * scale);
+                int newHeight = (int) (originalImage.getHeight() * scale);
+
+                int x = (canvasWidth - newWidth) / 2;
+                int y = (canvasHeight - newHeight) / 2;
+
+                g2d.setColor(new Color(0,0,0,0));
+                g2d.fillRect(0, 0, canvasWidth, canvasHeight);
+
+                g2d.drawImage(originalImage, x, y, newWidth, newHeight, null);
+                g2d.dispose();
+
                 File destTile = new File(defaultTileFolder, selectedTileFile.getName());
                 ImageIO.write(resizedImage, "png", destTile);
                 tileRelativePath = "bookTiles/" + selectedTileFile.getName();
-
-                // === Save 174x120 version in tinyBookTiles folder ===
-                if (!tinyTileFolder.exists()) {
-                    tinyTileFolder.mkdirs();
-                }
-                BufferedImage tinyImage = resizeImage(originalImage, 150, 100);
-                String tinyName = stripExtension(selectedTileFile.getName()) + "_tiny.png";
-                File destTinyTile = new File(tinyTileFolder, tinyName);
-                ImageIO.write(tinyImage, "png", destTinyTile);
             }
 
             String pdfRelativePath = "bookStack/" + cleanedPdfName;
@@ -185,34 +195,6 @@ public class bookToStack extends JFrame {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error saving files: " + ex.getMessage());
         }
-    }
-
-    private BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) {
-        BufferedImage resizedImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = resizedImage.createGraphics();
-        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        double scale = Math.min((double) targetWidth / originalImage.getWidth(),
-                                (double) targetHeight / originalImage.getHeight());
-        int newWidth = (int) (originalImage.getWidth() * scale);
-        int newHeight = (int) (originalImage.getHeight() * scale);
-
-        int x = (targetWidth - newWidth) / 2;
-        int y = (targetHeight - newHeight) / 2;
-
-        g2d.setColor(new Color(0,0,0,0));
-        g2d.fillRect(0, 0, targetWidth, targetHeight);
-        g2d.drawImage(originalImage, x, y, newWidth, newHeight, null);
-        g2d.dispose();
-
-        return resizedImage;
-    }
-
-    private String stripExtension(String fileName) {
-        int i = fileName.lastIndexOf('.');
-        return (i > 0) ? fileName.substring(0, i) : fileName;
     }
 
     private void extractFromClipboard() {
