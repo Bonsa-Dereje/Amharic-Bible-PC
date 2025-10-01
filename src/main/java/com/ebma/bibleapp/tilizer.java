@@ -41,7 +41,7 @@ public class tilizer {
                 }
 
                 BufferedImage tinyImage = resizeImage(originalImage, TINY_WIDTH, TINY_HEIGHT);
-                String tinyName = stripExtension(file.getName()) + "_tiny.png";
+                String tinyName = stripExtension(file.getName()) + ".png";
                 File destFile = new File(tinyTilesFolder, tinyName);
                 ImageIO.write(tinyImage, "png", destFile);
 

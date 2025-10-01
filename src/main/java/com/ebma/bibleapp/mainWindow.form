@@ -3515,7 +3515,7 @@
                     <DimensionLayout dim="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="1" attributes="0">
-                              <EmptySpace pref="103" max="32767" attributes="0"/>
+                              <EmptySpace pref="19" max="32767" attributes="0"/>
                               <Group type="103" groupAlignment="0" attributes="0">
                                   <Group type="102" alignment="1" attributes="0">
                                       <Component id="bookDisp1" min="-2" pref="182" max="-2" attributes="0"/>
@@ -3593,26 +3593,27 @@
                       <Layout>
                         <DimensionLayout dim="0">
                           <Group type="103" groupAlignment="0" attributes="0">
-                              <Group type="102" alignment="1" attributes="0">
-                                  <EmptySpace pref="95" max="32767" attributes="0"/>
+                              <Group type="102" attributes="0">
+                                  <EmptySpace max="-2" attributes="0"/>
                                   <Group type="103" groupAlignment="0" attributes="0">
-                                      <Component id="bookName" min="-2" max="-2" attributes="0"/>
-                                      <Group type="103" groupAlignment="0" attributes="0">
-                                          <Group type="102" alignment="1" attributes="0">
-                                              <Component id="aboutTheBook" min="-2" max="-2" attributes="0"/>
-                                              <EmptySpace min="-2" pref="112" max="-2" attributes="0"/>
-                                          </Group>
-                                          <Group type="102" alignment="1" attributes="0">
-                                              <Component id="aboutTheBookTile" min="-2" pref="182" max="-2" attributes="0"/>
-                                              <EmptySpace min="-2" pref="84" max="-2" attributes="0"/>
+                                      <Group type="102" attributes="0">
+                                          <EmptySpace min="0" pref="89" max="32767" attributes="0"/>
+                                          <Group type="103" groupAlignment="0" attributes="0">
+                                              <Group type="102" alignment="1" attributes="0">
+                                                  <Component id="aboutTheBook" min="-2" max="-2" attributes="0"/>
+                                                  <EmptySpace min="-2" pref="112" max="-2" attributes="0"/>
+                                              </Group>
+                                              <Group type="102" alignment="1" attributes="0">
+                                                  <Component id="aboutTheBookTile" min="-2" pref="182" max="-2" attributes="0"/>
+                                                  <EmptySpace min="-2" pref="84" max="-2" attributes="0"/>
+                                              </Group>
                                           </Group>
                                       </Group>
+                                      <Group type="102" alignment="1" attributes="0">
+                                          <Component id="descFromSQLite" max="32767" attributes="0"/>
+                                          <EmptySpace max="-2" attributes="0"/>
+                                      </Group>
                                   </Group>
-                              </Group>
-                              <Group type="102" alignment="0" attributes="0">
-                                  <EmptySpace min="-2" pref="162" max="-2" attributes="0"/>
-                                  <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                               </Group>
                           </Group>
                         </DimensionLayout>
@@ -3624,9 +3625,7 @@
                                   <EmptySpace type="separate" max="-2" attributes="0"/>
                                   <Component id="aboutTheBookTile" min="-2" pref="286" max="-2" attributes="0"/>
                                   <EmptySpace type="separate" max="-2" attributes="0"/>
-                                  <Component id="bookName" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace max="-2" attributes="0"/>
-                                  <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+                                  <Component id="descFromSQLite" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace max="32767" attributes="0"/>
                               </Group>
                           </Group>
@@ -3654,28 +3653,21 @@
                             </Property>
                           </Properties>
                         </Component>
-                        <Component class="javax.swing.JLabel" name="bookName">
-                          <Properties>
-                            <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                              <Font name="Nokia Pure Headline Ultra Light" size="18" style="1"/>
-                            </Property>
-                            <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                              <Color blue="ff" green="ff" red="ff" type="rgb"/>
-                            </Property>
-                            <Property name="text" type="java.lang.String" value="The Potter&apos;s Freedom"/>
-                          </Properties>
-                        </Component>
-                        <Component class="javax.swing.JLabel" name="jLabel1">
-                          <Properties>
-                            <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                              <Font name="Nokia Pure Headline Ultra Light" size="14" style="0"/>
-                            </Property>
-                            <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                              <Color blue="ff" green="ff" red="ff" type="rgb"/>
-                            </Property>
-                            <Property name="text" type="java.lang.String" value="James R.White"/>
-                          </Properties>
-                        </Component>
+                        <Container class="javax.swing.JPanel" name="descFromSQLite">
+
+                          <Layout>
+                            <DimensionLayout dim="0">
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                              </Group>
+                            </DimensionLayout>
+                            <DimensionLayout dim="1">
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <EmptySpace min="0" pref="278" max="32767" attributes="0"/>
+                              </Group>
+                            </DimensionLayout>
+                          </Layout>
+                        </Container>
                       </SubComponents>
                     </Container>
                     <Component class="javax.swing.JButton" name="bookDisp1">
@@ -3683,18 +3675,18 @@
                         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                           <Color blue="f9" green="fc" red="ff" type="rgb"/>
                         </Property>
-                        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                          <Image iconType="3" name="/tinyBookTiles/photo_2025-09-29_00-09-05_tiny.png"/>
-                        </Property>
                       </Properties>
+                      <Events>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bookDisp1ActionPerformed"/>
+                      </Events>
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="URL iconURL = getClass().getResource(&quot;/tinyBookTiles/photo_2025-09-29_00-09-05_tiny.png&quot;);&#xa;if (iconURL != null) {&#xa;    ImageIcon icon = new ImageIcon(iconURL);&#xa;    bookDisp1.setIcon(icon);&#xa;} else {&#xa;    System.err.println(&quot;Icon not found in resources: /tinyBookTiles/photo_2025-09-29_00-09-05_tiny.png&quot;);&#xa;}"/>
+                      </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisp2">
                       <Properties>
                         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                           <Color blue="f9" green="fc" red="ff" type="rgb"/>
-                        </Property>
-                        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                          <Image iconType="3" name="/tinyBookTiles/photo_2025-09-29_00-15-19_tiny.png"/>
                         </Property>
                       </Properties>
                     </Component>
@@ -3703,18 +3695,12 @@
                         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                           <Color blue="f9" green="fc" red="ff" type="rgb"/>
                         </Property>
-                        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                          <Image iconType="3" name="/tinyBookTiles/photo_2025-09-28_22-48-41_tiny.png"/>
-                        </Property>
                       </Properties>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisp4">
                       <Properties>
                         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                           <Color blue="f9" green="fc" red="ff" type="rgb"/>
-                        </Property>
-                        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                          <Image iconType="3" name="/tinyBookTiles/photo_2025-09-28_23-04-14_tiny.png"/>
                         </Property>
                       </Properties>
                     </Component>
@@ -3723,18 +3709,12 @@
                         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                           <Color blue="f9" green="fc" red="ff" type="rgb"/>
                         </Property>
-                        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                          <Image iconType="3" name="/tinyBookTiles/photo_2025-09-28_23-55-31_tiny.png"/>
-                        </Property>
                       </Properties>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisp6">
                       <Properties>
                         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                           <Color blue="f9" green="fc" red="ff" type="rgb"/>
-                        </Property>
-                        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                          <Image iconType="3" name="/tinyBookTiles/photo_2025-09-29_00-14-26_tiny.png"/>
                         </Property>
                       </Properties>
                     </Component>
@@ -3743,18 +3723,12 @@
                         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                           <Color blue="f9" green="fc" red="ff" type="rgb"/>
                         </Property>
-                        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                          <Image iconType="3" name="/tinyBookTiles/photo_2025-09-29_00-19-14_tiny.png"/>
-                        </Property>
                       </Properties>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisp8">
                       <Properties>
                         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                           <Color blue="f9" green="fc" red="ff" type="rgb"/>
-                        </Property>
-                        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                          <Image iconType="3" name="/tinyBookTiles/photo_2025-09-30_19-32-48_tiny.png"/>
                         </Property>
                       </Properties>
                     </Component>
@@ -3763,18 +3737,12 @@
                         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                           <Color blue="f9" green="fc" red="ff" type="rgb"/>
                         </Property>
-                        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                          <Image iconType="3" name="/tinyBookTiles/1V1S9h1Ey1zGTa-QIn83_tiny.png"/>
-                        </Property>
                       </Properties>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisp10">
                       <Properties>
                         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                           <Color blue="f9" green="fc" red="ff" type="rgb"/>
-                        </Property>
-                        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                          <Image iconType="3" name="/tinyBookTiles/1V1SFW1LlyJ9te-cLuOA_tiny.png"/>
                         </Property>
                       </Properties>
                     </Component>
@@ -3783,18 +3751,12 @@
                         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                           <Color blue="f9" green="fc" red="ff" type="rgb"/>
                         </Property>
-                        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                          <Image iconType="3" name="/tinyBookTiles/1V1SrF1BZ2uDBV-ndXZj_tiny.png"/>
-                        </Property>
                       </Properties>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisp12">
                       <Properties>
                         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                           <Color blue="f9" green="fc" red="ff" type="rgb"/>
-                        </Property>
-                        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                          <Image iconType="3" name="/tinyBookTiles/1V1SyG12FcdRFF-m2vIY_tiny.png"/>
                         </Property>
                       </Properties>
                     </Component>

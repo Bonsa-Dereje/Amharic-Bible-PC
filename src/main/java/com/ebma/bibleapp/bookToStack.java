@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.sql.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
@@ -21,6 +22,7 @@ public class bookToStack extends JFrame {
 
     private final File defaultBookFolder = new File("src/main/resources/bookStack");
     private final File defaultTileFolder = new File("src/main/resources/bookTiles");
+    private final String dbPath = "jdbc:sqlite:src/main/resources/bookStack.db";
 
     public bookToStack() {
         setTitle("Add Book to Stack");
@@ -106,95 +108,129 @@ public class bookToStack extends JFrame {
         }
     }
 
-    private void saveBook() {
-        if (selectedPdfFile == null) {
-            JOptionPane.showMessageDialog(this, "Please drag and drop a PDF file first!");
-            return;
-        }
+private void saveBook() {
+    if (selectedPdfFile == null) {
+        JOptionPane.showMessageDialog(this, "Please drag and drop a PDF file first!");
+        return;
+    }
 
-        String author = authorField.getText().trim();
-        String bookName = bookNameField.getText().trim();
-        String category = categoryField.getText().trim();
+    String author = authorField.getText().trim();
+    String bookName = bookNameField.getText().trim();
+    String category = categoryField.getText().trim();
 
-        if (author.isEmpty() || bookName.isEmpty() || category.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Author, Book Name, and Category cannot be empty!");
-            return;
-        }
+    if (author.isEmpty() || bookName.isEmpty() || category.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Author, Book Name, and Category cannot be empty!");
+        return;
+    }
 
-        try {
-            // Remove "_OceanofPDF.com_" from PDF filename
-            String originalPdfName = selectedPdfFile.getName();
-            String cleanedPdfName = originalPdfName.replace("_OceanofPDF.com_", "");
+    try {
+        // Remove "_OceanofPDF.com_" from PDF filename
+        String originalPdfName = selectedPdfFile.getName();
+        String cleanedPdfName = originalPdfName.replace("_OceanofPDF.com_", "");
 
-            // Copy PDF to default folder with cleaned name
-            File destPdf = new File(defaultBookFolder, cleanedPdfName);
-            Files.copy(selectedPdfFile.toPath(), destPdf.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        // Copy PDF to default folder with cleaned name
+        File destPdf = new File(defaultBookFolder, cleanedPdfName);
+        Files.copy(selectedPdfFile.toPath(), destPdf.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-            // Copy and resize Tile
-            String tileRelativePath = null;
-            if (selectedTileFile != null) {
-                BufferedImage originalImage = ImageIO.read(selectedTileFile);
-                int canvasWidth = 320;
-                int canvasHeight = 455;
-
-                BufferedImage resizedImage = new BufferedImage(canvasWidth, canvasHeight, BufferedImage.TYPE_INT_ARGB);
-                Graphics2D g2d = resizedImage.createGraphics();
-                g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                double scale = Math.min((double) canvasWidth / originalImage.getWidth(),
-                                        (double) canvasHeight / originalImage.getHeight());
-                int newWidth = (int) (originalImage.getWidth() * scale);
-                int newHeight = (int) (originalImage.getHeight() * scale);
-
-                int x = (canvasWidth - newWidth) / 2;
-                int y = (canvasHeight - newHeight) / 2;
-
-                g2d.setColor(new Color(0,0,0,0));
-                g2d.fillRect(0, 0, canvasWidth, canvasHeight);
-
-                g2d.drawImage(originalImage, x, y, newWidth, newHeight, null);
-                g2d.dispose();
-
-                File destTile = new File(defaultTileFolder, selectedTileFile.getName());
-                ImageIO.write(resizedImage, "png", destTile);
-                tileRelativePath = "bookTiles/" + selectedTileFile.getName();
+        // Determine next bookIndex by scanning existing tiles
+        int nextBookIndex = 1;
+        File[] existingTiles = defaultTileFolder.listFiles((dir, name) -> name.matches("\\d+\\.png"));
+        if (existingTiles != null && existingTiles.length > 0) {
+            for (File f : existingTiles) {
+                String nameWithoutExt = f.getName().replace(".png", "");
+                try {
+                    int num = Integer.parseInt(nameWithoutExt);
+                    if (num >= nextBookIndex) nextBookIndex = num + 1;
+                } catch (NumberFormatException ignored) {}
             }
-
-            String pdfRelativePath = "bookStack/" + cleanedPdfName;
-
-            String insertQuery = String.format(
-                    "INSERT INTO bookStack (bookName, tag, path, bookTile, text, author, category) " +
-                            "VALUES ('%s', '%s', '%s', %s, %s, '%s', '%s');",
-                    bookName,
-                    "Book",
-                    pdfRelativePath,
-                    tileRelativePath != null ? "'" + tileRelativePath + "'" : "NULL",
-                    "true",
-                    author,
-                    category
-            );
-
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(
-                    new java.awt.datatransfer.StringSelection(insertQuery), null);
-
-            JOptionPane.showMessageDialog(this, "Book saved!\nQuery copied to clipboard.");
-
-            // RESET FORM AFTER SAVE
-            authorField.setText("");
-            bookNameField.setText("");
-            categoryField.setText("");
-            selectedPdfFile = null;
-            selectedTileFile = null;
-            bookTileLabel.setText("No Tile Selected");
-            dropPdfLabel.setText("Drag & Drop PDF Here");
-            dropTileLabel.setText("Drag & Drop Tile Here");
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error saving files: " + ex.getMessage());
         }
+
+        // Copy and resize Tile with name as nextBookIndex
+        if (selectedTileFile != null) {
+            BufferedImage originalImage = ImageIO.read(selectedTileFile);
+            int canvasWidth = 182;
+            int canvasHeight = 286;
+
+            BufferedImage resizedImage = new BufferedImage(canvasWidth, canvasHeight, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2d = resizedImage.createGraphics();
+            g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            double scale = Math.min((double) canvasWidth / originalImage.getWidth(),
+                                    (double) canvasHeight / originalImage.getHeight());
+            int newWidth = (int) (originalImage.getWidth() * scale);
+            int newHeight = (int) (originalImage.getHeight() * scale);
+
+            int x = (canvasWidth - newWidth) / 2;
+            int y = (canvasHeight - newHeight) / 2;
+
+            g2d.setColor(new Color(0,0,0,0));
+            g2d.fillRect(0, 0, canvasWidth, canvasHeight);
+
+            g2d.drawImage(originalImage, x, y, newWidth, newHeight, null);
+            g2d.dispose();
+
+            File destTile = new File(defaultTileFolder, nextBookIndex + ".png");
+            ImageIO.write(resizedImage, "png", destTile);
+        }
+
+        String pdfRelativePath = "bookStack/" + cleanedPdfName;
+
+        // Build SQL without bookTile column
+        String insertQuery = String.format(
+                "INSERT INTO bookStack (bookName, tag, path, text, author, category) " +
+                        "VALUES ('%s', '%s', '%s', %s, '%s', '%s');",
+                bookName,
+                "Book",
+                pdfRelativePath,
+                "true",
+                author,
+                category
+        );
+
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(
+                new java.awt.datatransfer.StringSelection(insertQuery), null);
+
+        JOptionPane.showMessageDialog(this, "Book saved!\nQuery copied to clipboard.");
+
+        // RESET FORM AFTER SAVE
+        authorField.setText("");
+        bookNameField.setText("");
+        categoryField.setText("");
+        selectedPdfFile = null;
+        selectedTileFile = null;
+        bookTileLabel.setText("No Tile Selected");
+        dropPdfLabel.setText("Drag & Drop PDF Here");
+        dropTileLabel.setText("Drag & Drop Tile Here");
+
+    } catch (IOException ex) {
+        ex.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Error saving files: " + ex.getMessage());
+    }
+}
+
+
+
+    private int insertBookAndGetIndex(String bookName, String author, String category, String pdfPath) throws SQLException {
+        int bookIndex = -1;
+        try (Connection conn = DriverManager.getConnection(dbPath)) {
+            String insertSQL = "INSERT INTO bookStack (bookName, tag, path, text, author, category) VALUES (?, ?, ?, ?, ?, ?)";
+            PreparedStatement stmt = conn.prepareStatement(insertSQL, Statement.RETURN_GENERATED_KEYS);
+            stmt.setString(1, bookName);
+            stmt.setString(2, "Book");
+            stmt.setString(3, pdfPath);
+            stmt.setBoolean(4, true);
+            stmt.setString(5, author);
+            stmt.setString(6, category);
+            stmt.executeUpdate();
+
+            ResultSet rs = stmt.getGeneratedKeys();
+            if (rs.next()) {
+                bookIndex = rs.getInt(1);
+            }
+        }
+        return bookIndex;
     }
 
     private void extractFromClipboard() {
@@ -207,7 +243,7 @@ public class bookToStack extends JFrame {
             textArea.setWrapStyleWord(true);
             JScrollPane scrollPane = new JScrollPane(textArea);
 
-            int result = JOptionPane.showConfirmDialog(this, scrollPane, 
+            int result = JOptionPane.showConfirmDialog(this, scrollPane,
                     "Extract Info from Clipboard", JOptionPane.OK_CANCEL_OPTION);
 
             if (result == JOptionPane.OK_OPTION) {

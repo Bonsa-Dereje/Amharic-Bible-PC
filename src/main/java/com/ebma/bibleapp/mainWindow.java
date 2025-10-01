@@ -73,6 +73,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.Files;
 
+import java.net.URL;
+
+import java.sql.DriverManager;
+import java.util.Random;
+import java.sql.Statement;
+
 
 public class mainWindow extends javax.swing.JFrame {
 
@@ -294,194 +300,240 @@ public class mainWindow extends javax.swing.JFrame {
         
         
         
-private void saveHighlight(String text, Color color) {
-    try (Connection conn = DBManager.getConnection()) {
+        private void saveHighlight(String text, Color color) {
+            try (Connection conn = DBManager.getConnection()) {
 
-        int selectionStart = mainTextArea.getSelectionStart();
-        int selectionEnd = mainTextArea.getSelectionEnd();
+                int selectionStart = mainTextArea.getSelectionStart();
+                int selectionEnd = mainTextArea.getSelectionEnd();
 
-        String insert = """
-                INSERT INTO highlights 
-                (bookIndex, chapterIndex, line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """;
+                String insert = """
+                        INSERT INTO highlights 
+                        (bookIndex, chapterIndex, line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """;
 
-        try (PreparedStatement ps = conn.prepareStatement(insert)) {
+                try (PreparedStatement ps = conn.prepareStatement(insert)) {
 
-            int startLine = mainTextArea.getLineOfOffset(selectionStart);
-            int endLine   = mainTextArea.getLineOfOffset(selectionEnd);
+                    int startLine = mainTextArea.getLineOfOffset(selectionStart);
+                    int endLine   = mainTextArea.getLineOfOffset(selectionEnd);
 
-            for (int line = startLine; line <= endLine; line++) {
-                int lineStartOffset = mainTextArea.getLineStartOffset(line);
-                int lineEndOffset   = mainTextArea.getLineEndOffset(line);
+                    for (int line = startLine; line <= endLine; line++) {
+                        int lineStartOffset = mainTextArea.getLineStartOffset(line);
+                        int lineEndOffset   = mainTextArea.getLineEndOffset(line);
 
-                // Clamp selection to this line
-                int lineSelStart = Math.max(selectionStart, lineStartOffset);
-                int lineSelEnd   = Math.min(selectionEnd, lineEndOffset);
+                        // Clamp selection to this line
+                        int lineSelStart = Math.max(selectionStart, lineStartOffset);
+                        int lineSelEnd   = Math.min(selectionEnd, lineEndOffset);
 
-                // Offset within line
-                int selectionStartInLine = lineSelStart - lineStartOffset;
+                        // Offset within line
+                        int selectionStartInLine = lineSelStart - lineStartOffset;
 
-                // Grab text for this line
-                String lineText = mainTextArea.getText(lineSelStart, lineSelEnd - lineSelStart);
+                        // Grab text for this line
+                        String lineText = mainTextArea.getText(lineSelStart, lineSelEnd - lineSelStart);
 
-                for (int i = 0; i < lineText.length(); i++) {
-                    char c = lineText.charAt(i);
+                        for (int i = 0; i < lineText.length(); i++) {
+                            char c = lineText.charAt(i);
 
-                    // Remove existing character at same position if exists
-                    String delete = """
-                            DELETE FROM highlights 
-                            WHERE bookIndex=? AND chapterIndex=? AND line=? AND wordDistIndex=?
-                            """;
-                    try (PreparedStatement del = conn.prepareStatement(delete)) {
-                        del.setInt(1, currentBookIndex);
-                        del.setInt(2, currentChapterIndex);
-                        del.setInt(3, line);
-                        del.setInt(4, selectionStartInLine + i);
-                        del.executeUpdate();
+                            // Remove existing character at same position if exists
+                            String delete = """
+                                    DELETE FROM highlights 
+                                    WHERE bookIndex=? AND chapterIndex=? AND line=? AND wordDistIndex=?
+                                    """;
+                            try (PreparedStatement del = conn.prepareStatement(delete)) {
+                                del.setInt(1, currentBookIndex);
+                                del.setInt(2, currentChapterIndex);
+                                del.setInt(3, line);
+                                del.setInt(4, selectionStartInLine + i);
+                                del.executeUpdate();
+                            }
+
+                            // Store highlight
+                            ps.setInt(1, currentBookIndex);
+                            ps.setInt(2, currentChapterIndex);
+                            ps.setInt(3, line);
+                            ps.setInt(4, selectionStartInLine + i);
+                            ps.setString(5, String.valueOf(c));
+                            ps.setInt(6, color.getRed());
+                            ps.setInt(7, color.getGreen());
+                            ps.setInt(8, color.getBlue());
+                            ps.setInt(9, 0); // no post-space
+                            ps.addBatch();
+                        }
                     }
 
-                    // Store highlight
+                    ps.executeBatch();
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
+
+
+        private void restoreHighlights() {
+            try (Connection conn = DBManager.getConnection()) {
+
+                // Remove old highlights
+                mainTextArea.getHighlighter().removeAllHighlights();
+
+                // Fetch all highlights for the current book and chapter
+                String query = """
+                    SELECT line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength 
+                    FROM highlights 
+                    WHERE bookIndex=? AND chapterIndex=? 
+                    ORDER BY line, wordDistIndex
+                    """;
+
+                try (PreparedStatement ps = conn.prepareStatement(query)) {
                     ps.setInt(1, currentBookIndex);
                     ps.setInt(2, currentChapterIndex);
-                    ps.setInt(3, line);
-                    ps.setInt(4, selectionStartInLine + i);
-                    ps.setString(5, String.valueOf(c));
-                    ps.setInt(6, color.getRed());
-                    ps.setInt(7, color.getGreen());
-                    ps.setInt(8, color.getBlue());
-                    ps.setInt(9, 0); // no post-space
-                    ps.addBatch();
-                }
-            }
 
-            ps.executeBatch();
-        }
+                    try (ResultSet rs = ps.executeQuery()) {
+                        Map<Integer, List<HighlightWord>> lineMap = new HashMap<>();
 
-    } catch (Exception ex) {
-        ex.printStackTrace();
-    }
-}
+                        // Group highlights by line
+                        while (rs.next()) {
+                            int lineNumber = rs.getInt("line");
+                            int wordDistIndex = rs.getInt("wordDistIndex");
+                            String text = rs.getString("text");
+                            Color color = new Color(
+                                    rs.getInt("colorR"),
+                                    rs.getInt("colorG"),
+                                    rs.getInt("colorB")
+                            );
+                            int postSpaceLength = rs.getInt("postSpaceLength");
 
+                            lineMap.computeIfAbsent(lineNumber, k -> new ArrayList<>())
+                                   .add(new HighlightWord(wordDistIndex, text, color, postSpaceLength));
+                        }
 
+                        // Apply highlights per line
+                        for (Map.Entry<Integer, List<HighlightWord>> entry : lineMap.entrySet()) {
+                            int lineNumber = entry.getKey();
+                            List<HighlightWord> words = entry.getValue();
+                            words.sort(Comparator.comparingInt(w -> w.wordDistIndex));
 
-private void restoreHighlights() {
-    try (Connection conn = DBManager.getConnection()) {
+                            int lineStartOffset = mainTextArea.getLineStartOffset(lineNumber);
 
-        // Remove old highlights
-        mainTextArea.getHighlighter().removeAllHighlights();
+                            for (HighlightWord hw : words) {
+                                // Use saved wordDistIndex directly
+                                int start = lineStartOffset + hw.wordDistIndex;
+                                int end = Math.min(start + hw.text.length(), mainTextArea.getText().length());
 
-        // Fetch all highlights for the current book and chapter
-        String query = """
-            SELECT line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength 
-            FROM highlights 
-            WHERE bookIndex=? AND chapterIndex=? 
-            ORDER BY line, wordDistIndex
-            """;
-
-        try (PreparedStatement ps = conn.prepareStatement(query)) {
-            ps.setInt(1, currentBookIndex);
-            ps.setInt(2, currentChapterIndex);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                Map<Integer, List<HighlightWord>> lineMap = new HashMap<>();
-
-                // Group highlights by line
-                while (rs.next()) {
-                    int lineNumber = rs.getInt("line");
-                    int wordDistIndex = rs.getInt("wordDistIndex");
-                    String text = rs.getString("text");
-                    Color color = new Color(
-                            rs.getInt("colorR"),
-                            rs.getInt("colorG"),
-                            rs.getInt("colorB")
-                    );
-                    int postSpaceLength = rs.getInt("postSpaceLength");
-
-                    lineMap.computeIfAbsent(lineNumber, k -> new ArrayList<>())
-                           .add(new HighlightWord(wordDistIndex, text, color, postSpaceLength));
-                }
-
-                // Apply highlights per line
-                for (Map.Entry<Integer, List<HighlightWord>> entry : lineMap.entrySet()) {
-                    int lineNumber = entry.getKey();
-                    List<HighlightWord> words = entry.getValue();
-                    words.sort(Comparator.comparingInt(w -> w.wordDistIndex));
-
-                    int lineStartOffset = mainTextArea.getLineStartOffset(lineNumber);
-
-                    for (HighlightWord hw : words) {
-                        // Use saved wordDistIndex directly
-                        int start = lineStartOffset + hw.wordDistIndex;
-                        int end = Math.min(start + hw.text.length(), mainTextArea.getText().length());
-
-                        mainTextArea.getHighlighter().addHighlight(
-                            start,
-                            end,
-                            new DefaultHighlighter.DefaultHighlightPainter(hw.color)
-                        );
+                                mainTextArea.getHighlighter().addHighlight(
+                                    start,
+                                    end,
+                                    new DefaultHighlighter.DefaultHighlightPainter(hw.color)
+                                );
+                            }
+                        }
                     }
                 }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         }
 
-    } catch (Exception ex) {
-        ex.printStackTrace();
-    }
-}
 
+        public class HighlightWord {
+            public int wordDistIndex;
+            public String text;
+            public Color color;
+            public int postSpaceLength;
 
-public class HighlightWord {
-    public int wordDistIndex;
-    public String text;
-    public Color color;
-    public int postSpaceLength;
+            public HighlightWord(int wordDistIndex, String text, Color color) {
+                this(wordDistIndex, text, color, 1); // default post-space
+            }
 
-    public HighlightWord(int wordDistIndex, String text, Color color) {
-        this(wordDistIndex, text, color, 1); // default post-space
-    }
-
-    public HighlightWord(int wordDistIndex, String text, Color color, int postSpaceLength) {
-        this.wordDistIndex = wordDistIndex;
-        this.text = text;
-        this.color = color;
-        this.postSpaceLength = postSpaceLength;
-    }
-}
+            public HighlightWord(int wordDistIndex, String text, Color color, int postSpaceLength) {
+                this.wordDistIndex = wordDistIndex;
+                this.text = text;
+                this.color = color;
+                this.postSpaceLength = postSpaceLength;
+            }
+        }
 
 
 
-private void saveNotes() {
-    // get text from JTextArea
-    String text = notesInput.getText();
+        private void saveNotes() {
+            // get text from JTextArea
+            String text = notesInput.getText();
 
-    // build path to Notes folder relative to project directory
-    // (user.dir gives the working directory of the program)
-    String projectDir = System.getProperty("user.dir");
-    String notesDir = projectDir + File.separator + "Notes";
+            // build path to Notes folder relative to project directory
+            // (user.dir gives the working directory of the program)
+            String projectDir = System.getProperty("user.dir");
+            String notesDir = projectDir + File.separator + "Notes";
 
-    // make sure the Notes folder exists
-    File dir = new File(notesDir);
-    if (!dir.exists()) {
-        dir.mkdirs(); // create Notes folder if it doesn’t exist
-    }
+            // make sure the Notes folder exists
+            File dir = new File(notesDir);
+            if (!dir.exists()) {
+                dir.mkdirs(); // create Notes folder if it doesn’t exist
+            }
 
-    // build the filename
-    String filename = "notes" + currentBookIndex + "_" + currentChapterIndex + "notes.txt";
+            // build the filename
+            String filename = "notes" + currentBookIndex + "_" + currentChapterIndex + "notes.txt";
 
-    // full file path
-    File file = new File(dir, filename);
+            // full file path
+            File file = new File(dir, filename);
 
-    try (FileWriter writer = new FileWriter(file)) {
-        writer.write(text);
-        System.out.println("Saved to: " + file.getAbsolutePath());
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
-}
+            try (FileWriter writer = new FileWriter(file)) {
+                writer.write(text);
+                System.out.println("Saved to: " + file.getAbsolutePath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     
 
 
+        
+        public void loadRandomBookTiles() {
+    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:bookStack.db")) {
+        // Get min and max bookIndex
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery("SELECT MIN(bookIndex) AS minIndex, MAX(bookIndex) AS maxIndex FROM bookStack");
+        int minIndex = 0, maxIndex = 0;
+        if (rs.next()) {
+            minIndex = rs.getInt("minIndex");
+            maxIndex = rs.getInt("maxIndex");
+        }
+
+        // Generate 12 unique random bookIndex values
+        Set<Integer> randomIndices = new LinkedHashSet<>();
+        Random rand = new Random();
+        while (randomIndices.size() < 12) {
+            int randomIndex = rand.nextInt(maxIndex - minIndex + 1) + minIndex;
+            randomIndices.add(randomIndex);
+        }
+
+        // Prepare buttons array for looping
+        JButton[] buttons = { bookDisp1, bookDisp2, bookDisp3, bookDisp4, bookDisp5, bookDisp6,
+                              bookDisp7, bookDisp8, bookDisp9, bookDisp10, bookDisp11, bookDisp12 };
+
+        int i = 0;
+        for (int bookIndex : randomIndices) {
+            // File name is just the index with .png
+            String fileName = bookIndex + ".png";
+
+            // Load icon from resources/bookTiles
+            URL iconURL = getClass().getResource("/bookTiles/" + fileName);
+            if (iconURL != null) {
+                ImageIcon icon = new ImageIcon(iconURL);
+                buttons[i].setIcon(icon);
+            } else {
+                System.err.println("Icon not found in resources: /bookTiles/" + fileName);
+            }
+            i++;
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+        
 
 
     @SuppressWarnings("unchecked")
@@ -937,8 +989,7 @@ private void saveNotes() {
         bookDescriptionSideBar = new javax.swing.JPanel();
         aboutTheBook = new javax.swing.JLabel();
         aboutTheBookTile = new javax.swing.JButton();
-        bookName = new javax.swing.JLabel();
-        jLabel1 = new javax.swing.JLabel();
+        descFromSQLite = new javax.swing.JPanel();
         bookDisp1 = new javax.swing.JButton();
         bookDisp2 = new javax.swing.JButton();
         bookDisp3 = new javax.swing.JButton();
@@ -3468,33 +3519,36 @@ private void saveNotes() {
         aboutTheBookTile.setBackground(new java.awt.Color(255, 252, 249));
         aboutTheBookTile.setIcon(new javax.swing.ImageIcon(getClass().getResource("/tinyBookTiles/photo_2025-09-29_00-15-19_tiny.png"))); // NOI18N
 
-        bookName.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 18)); // NOI18N
-        bookName.setForeground(new java.awt.Color(255, 255, 255));
-        bookName.setText("The Potter's Freedom");
-
-        jLabel1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel1.setText("James R.White");
+        javax.swing.GroupLayout descFromSQLiteLayout = new javax.swing.GroupLayout(descFromSQLite);
+        descFromSQLite.setLayout(descFromSQLiteLayout);
+        descFromSQLiteLayout.setHorizontalGroup(
+            descFromSQLiteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        descFromSQLiteLayout.setVerticalGroup(
+            descFromSQLiteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 278, Short.MAX_VALUE)
+        );
 
         javax.swing.GroupLayout bookDescriptionSideBarLayout = new javax.swing.GroupLayout(bookDescriptionSideBar);
         bookDescriptionSideBar.setLayout(bookDescriptionSideBarLayout);
         bookDescriptionSideBarLayout.setHorizontalGroup(
             bookDescriptionSideBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBarLayout.createSequentialGroup()
-                .addContainerGap(95, Short.MAX_VALUE)
-                .addGroup(bookDescriptionSideBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(bookName)
-                    .addGroup(bookDescriptionSideBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBarLayout.createSequentialGroup()
-                            .addComponent(aboutTheBook)
-                            .addGap(112, 112, 112))
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBarLayout.createSequentialGroup()
-                            .addComponent(aboutTheBookTile, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(84, 84, 84)))))
             .addGroup(bookDescriptionSideBarLayout.createSequentialGroup()
-                .addGap(162, 162, 162)
-                .addComponent(jLabel1)
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addContainerGap()
+                .addGroup(bookDescriptionSideBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(bookDescriptionSideBarLayout.createSequentialGroup()
+                        .addGap(0, 89, Short.MAX_VALUE)
+                        .addGroup(bookDescriptionSideBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBarLayout.createSequentialGroup()
+                                .addComponent(aboutTheBook)
+                                .addGap(112, 112, 112))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBarLayout.createSequentialGroup()
+                                .addComponent(aboutTheBookTile, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(84, 84, 84))))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBarLayout.createSequentialGroup()
+                        .addComponent(descFromSQLite, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())))
         );
         bookDescriptionSideBarLayout.setVerticalGroup(
             bookDescriptionSideBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -3504,47 +3558,38 @@ private void saveNotes() {
                 .addGap(18, 18, 18)
                 .addComponent(aboutTheBookTile, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(bookName)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel1)
+                .addComponent(descFromSQLite, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         bookDisp1.setBackground(new java.awt.Color(255, 252, 249));
-        bookDisp1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/tinyBookTiles/photo_2025-09-29_00-09-05_tiny.png"))); // NOI18N
+        bookDisp1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookDisp1ActionPerformed(evt);
+            }
+        });
 
         bookDisp2.setBackground(new java.awt.Color(255, 252, 249));
-        bookDisp2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/tinyBookTiles/photo_2025-09-29_00-15-19_tiny.png"))); // NOI18N
 
         bookDisp3.setBackground(new java.awt.Color(255, 252, 249));
-        bookDisp3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/tinyBookTiles/photo_2025-09-28_22-48-41_tiny.png"))); // NOI18N
 
         bookDisp4.setBackground(new java.awt.Color(255, 252, 249));
-        bookDisp4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/tinyBookTiles/photo_2025-09-28_23-04-14_tiny.png"))); // NOI18N
 
         bookDisp5.setBackground(new java.awt.Color(255, 252, 249));
-        bookDisp5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/tinyBookTiles/photo_2025-09-28_23-55-31_tiny.png"))); // NOI18N
 
         bookDisp6.setBackground(new java.awt.Color(255, 252, 249));
-        bookDisp6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/tinyBookTiles/photo_2025-09-29_00-14-26_tiny.png"))); // NOI18N
 
         bookDisp7.setBackground(new java.awt.Color(255, 252, 249));
-        bookDisp7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/tinyBookTiles/photo_2025-09-29_00-19-14_tiny.png"))); // NOI18N
 
         bookDisp8.setBackground(new java.awt.Color(255, 252, 249));
-        bookDisp8.setIcon(new javax.swing.ImageIcon(getClass().getResource("/tinyBookTiles/photo_2025-09-30_19-32-48_tiny.png"))); // NOI18N
 
         bookDisp9.setBackground(new java.awt.Color(255, 252, 249));
-        bookDisp9.setIcon(new javax.swing.ImageIcon(getClass().getResource("/tinyBookTiles/1V1S9h1Ey1zGTa-QIn83_tiny.png"))); // NOI18N
 
         bookDisp10.setBackground(new java.awt.Color(255, 252, 249));
-        bookDisp10.setIcon(new javax.swing.ImageIcon(getClass().getResource("/tinyBookTiles/1V1SFW1LlyJ9te-cLuOA_tiny.png"))); // NOI18N
 
         bookDisp11.setBackground(new java.awt.Color(255, 252, 249));
-        bookDisp11.setIcon(new javax.swing.ImageIcon(getClass().getResource("/tinyBookTiles/1V1SrF1BZ2uDBV-ndXZj_tiny.png"))); // NOI18N
 
         bookDisp12.setBackground(new java.awt.Color(255, 252, 249));
-        bookDisp12.setIcon(new javax.swing.ImageIcon(getClass().getResource("/tinyBookTiles/1V1SyG12FcdRFF-m2vIY_tiny.png"))); // NOI18N
 
         dayLabel1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 12)); // NOI18N
         dayLabel1.setText("Mon");
@@ -4879,7 +4924,7 @@ private void saveNotes() {
         libraryTabContentLayout.setHorizontalGroup(
             libraryTabContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, libraryTabContentLayout.createSequentialGroup()
-                .addContainerGap(103, Short.MAX_VALUE)
+                .addContainerGap(19, Short.MAX_VALUE)
                 .addGroup(libraryTabContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, libraryTabContentLayout.createSequentialGroup()
                         .addComponent(bookDisp1, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -4936,6 +4981,14 @@ private void saveNotes() {
                 .addContainerGap())
             .addComponent(bookDescriptionSideBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
+
+        URL iconURL = getClass().getResource("/tinyBookTiles/photo_2025-09-29_00-09-05_tiny.png");
+        if (iconURL != null) {
+            ImageIcon icon = new ImageIcon(iconURL);
+            bookDisp1.setIcon(icon);
+        } else {
+            System.err.println("Icon not found in resources: /tinyBookTiles/photo_2025-09-29_00-09-05_tiny.png");
+        }
 
         javax.swing.GroupLayout inLibraryTabsLayout = new javax.swing.GroupLayout(inLibraryTabs);
         inLibraryTabs.setLayout(inLibraryTabsLayout);
@@ -5388,6 +5441,10 @@ private void saveNotes() {
         // TODO add your handling code here:
     }//GEN-LAST:event_exploreMoreBtnActionPerformed
 
+    private void bookDisp1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisp1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_bookDisp1ActionPerformed
+
     
  
     
@@ -5473,7 +5530,6 @@ private void saveNotes() {
     private javax.swing.JButton bookDisp7;
     private javax.swing.JButton bookDisp8;
     private javax.swing.JButton bookDisp9;
-    private javax.swing.JLabel bookName;
     private javax.swing.JPanel bookNameDisplay;
     private javax.swing.JButton bookTileClickable;
     private javax.swing.JPanel bookTileImage;
@@ -5490,6 +5546,7 @@ private void saveNotes() {
     private javax.swing.JLabel dayLabel2;
     private javax.swing.JLabel dayLabel3;
     private javax.swing.JLabel dec;
+    private javax.swing.JPanel descFromSQLite;
     private javax.swing.JButton exploreMoreBtn;
     private javax.swing.JButton eyeHide;
     private javax.swing.JButton eyeShow;
@@ -5501,7 +5558,6 @@ private void saveNotes() {
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
     private javax.swing.JPanel inLibraryTabs;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
