@@ -10,8 +10,8 @@ public class tilizer {
 
     private static final File bookTilesFolder = new File("src/main/resources/bookTiles");
     private static final File tinyTilesFolder = new File("src/main/resources/tinyBookTiles");
-    private static final int TINY_WIDTH = 150;
-    private static final int TINY_HEIGHT = 100;
+    private static final int TINY_WIDTH = 400;
+    private static final int TINY_HEIGHT = 285;
 
     public static void main(String[] args) {
         if (!bookTilesFolder.exists() || !bookTilesFolder.isDirectory()) {
