@@ -919,7 +919,7 @@
                 </Component>
               </SubComponents>
             </Container>
-            <Container class="javax.swing.JPanel" name="inLibraryTabs">
+            <Container class="javax.swing.JPanel" name="libraryTab">
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
                   <JTabbedPaneConstraints tabName="Search">
@@ -1029,24 +1029,15 @@
                         <DimensionLayout dim="0">
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Group type="102" attributes="0">
-                                  <EmptySpace max="-2" attributes="0"/>
+                                  <EmptySpace pref="95" max="32767" attributes="0"/>
                                   <Group type="103" groupAlignment="0" attributes="0">
-                                      <Group type="102" attributes="0">
-                                          <EmptySpace min="0" pref="89" max="32767" attributes="0"/>
-                                          <Group type="103" groupAlignment="0" attributes="0">
-                                              <Group type="102" alignment="1" attributes="0">
-                                                  <Component id="aboutTheBook" min="-2" max="-2" attributes="0"/>
-                                                  <EmptySpace min="-2" pref="112" max="-2" attributes="0"/>
-                                              </Group>
-                                              <Group type="102" alignment="1" attributes="0">
-                                                  <Component id="aboutTheBookTile" min="-2" pref="182" max="-2" attributes="0"/>
-                                                  <EmptySpace min="-2" pref="84" max="-2" attributes="0"/>
-                                              </Group>
-                                          </Group>
+                                      <Group type="102" alignment="1" attributes="0">
+                                          <Component id="aboutTheBook" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace min="-2" pref="112" max="-2" attributes="0"/>
                                       </Group>
                                       <Group type="102" alignment="1" attributes="0">
-                                          <Component id="descFromSQLite" max="32767" attributes="0"/>
-                                          <EmptySpace max="-2" attributes="0"/>
+                                          <Component id="aboutTheBookTile" min="-2" pref="182" max="-2" attributes="0"/>
+                                          <EmptySpace min="-2" pref="84" max="-2" attributes="0"/>
                                       </Group>
                                   </Group>
                               </Group>
@@ -1059,8 +1050,6 @@
                                   <Component id="aboutTheBook" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace type="separate" max="-2" attributes="0"/>
                                   <Component id="aboutTheBookTile" min="-2" pref="286" max="-2" attributes="0"/>
-                                  <EmptySpace type="separate" max="-2" attributes="0"/>
-                                  <Component id="descFromSQLite" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace max="32767" attributes="0"/>
                               </Group>
                           </Group>
@@ -1088,21 +1077,6 @@
                             </Property>
                           </Properties>
                         </Component>
-                        <Container class="javax.swing.JPanel" name="descFromSQLite">
-
-                          <Layout>
-                            <DimensionLayout dim="0">
-                              <Group type="103" groupAlignment="0" attributes="0">
-                                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
-                              </Group>
-                            </DimensionLayout>
-                            <DimensionLayout dim="1">
-                              <Group type="103" groupAlignment="0" attributes="0">
-                                  <EmptySpace min="0" pref="278" max="32767" attributes="0"/>
-                              </Group>
-                            </DimensionLayout>
-                          </Layout>
-                        </Container>
                       </SubComponents>
                     </Container>
                     <Component class="javax.swing.JButton" name="bookDisp1">
@@ -1114,9 +1088,6 @@
                       <Events>
                         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bookDisp1ActionPerformed"/>
                       </Events>
-                      <AuxValues>
-                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="URL iconURL = getClass().getResource(&quot;/tinyBookTiles/photo_2025-09-29_00-09-05_tiny.png&quot;);&#xa;if (iconURL != null) {&#xa;    ImageIcon icon = new ImageIcon(iconURL);&#xa;    bookDisp1.setIcon(icon);&#xa;} else {&#xa;    System.err.println(&quot;Icon not found in resources: /tinyBookTiles/photo_2025-09-29_00-09-05_tiny.png&quot;);&#xa;}"/>
-                      </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisp2">
                       <Properties>

@@ -490,7 +490,10 @@ public class mainWindow extends javax.swing.JFrame {
 
 
         
-        public void loadRandomBookTiles() {
+
+
+  /* 
+ public void loadRandomBookTiles() {
     try (Connection conn = DriverManager.getConnection("jdbc:sqlite:bookStack.db")) {
         // Get min and max bookIndex
         Statement stmt = conn.createStatement();
@@ -533,7 +536,8 @@ public class mainWindow extends javax.swing.JFrame {
         e.printStackTrace();
     }
 }
-
+       */
+        
         
 
 
@@ -592,12 +596,11 @@ public class mainWindow extends javax.swing.JFrame {
         chapterChooser = new javax.swing.JComboBox<>();
         verseChooser = new javax.swing.JComboBox<>();
         testamentChooser = new javax.swing.JComboBox<>();
-        inLibraryTabs = new javax.swing.JPanel();
+        libraryTab = new javax.swing.JPanel();
         libraryTabContent = new javax.swing.JPanel();
         bookDescriptionSideBar = new javax.swing.JPanel();
         aboutTheBook = new javax.swing.JLabel();
         aboutTheBookTile = new javax.swing.JButton();
-        descFromSQLite = new javax.swing.JPanel();
         bookDisp1 = new javax.swing.JButton();
         bookDisp2 = new javax.swing.JButton();
         bookDisp3 = new javax.swing.JButton();
@@ -1007,7 +1010,7 @@ public class mainWindow extends javax.swing.JFrame {
         jPanel13 = new javax.swing.JPanel();
         jPanel14 = new javax.swing.JPanel();
 
-        //tileOne4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/bookTiles/1V1S9h1Ey1zGTa-QIn83.jpeg"))); // NOI18N
+        
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -1662,38 +1665,21 @@ public class mainWindow extends javax.swing.JFrame {
         aboutTheBook.setText("About the book");
 
         aboutTheBookTile.setBackground(new java.awt.Color(255, 252, 249));
-        //aboutTheBookTile.setIcon(new javax.swing.ImageIcon(getClass().getResource("/tinyBookTiles/photo_2025-09-29_00-15-19_tiny.png"))); // NOI18N
-
-        javax.swing.GroupLayout descFromSQLiteLayout = new javax.swing.GroupLayout(descFromSQLite);
-        descFromSQLite.setLayout(descFromSQLiteLayout);
-        descFromSQLiteLayout.setHorizontalGroup(
-            descFromSQLiteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
-        descFromSQLiteLayout.setVerticalGroup(
-            descFromSQLiteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 278, Short.MAX_VALUE)
-        );
+        
 
         javax.swing.GroupLayout bookDescriptionSideBarLayout = new javax.swing.GroupLayout(bookDescriptionSideBar);
         bookDescriptionSideBar.setLayout(bookDescriptionSideBarLayout);
         bookDescriptionSideBarLayout.setHorizontalGroup(
             bookDescriptionSideBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(bookDescriptionSideBarLayout.createSequentialGroup()
-                .addContainerGap()
+                .addContainerGap(95, Short.MAX_VALUE)
                 .addGroup(bookDescriptionSideBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(bookDescriptionSideBarLayout.createSequentialGroup()
-                        .addGap(0, 89, Short.MAX_VALUE)
-                        .addGroup(bookDescriptionSideBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBarLayout.createSequentialGroup()
-                                .addComponent(aboutTheBook)
-                                .addGap(112, 112, 112))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBarLayout.createSequentialGroup()
-                                .addComponent(aboutTheBookTile, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(84, 84, 84))))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBarLayout.createSequentialGroup()
-                        .addComponent(descFromSQLite, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addContainerGap())))
+                        .addComponent(aboutTheBook)
+                        .addGap(112, 112, 112))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBarLayout.createSequentialGroup()
+                        .addComponent(aboutTheBookTile, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(84, 84, 84))))
         );
         bookDescriptionSideBarLayout.setVerticalGroup(
             bookDescriptionSideBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1702,8 +1688,6 @@ public class mainWindow extends javax.swing.JFrame {
                 .addComponent(aboutTheBook)
                 .addGap(18, 18, 18)
                 .addComponent(aboutTheBookTile, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(descFromSQLite, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -3127,30 +3111,22 @@ public class mainWindow extends javax.swing.JFrame {
             .addComponent(bookDescriptionSideBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
-        URL iconURL = getClass().getResource("/tinyBookTiles/photo_2025-09-29_00-09-05_tiny.png");
-        if (iconURL != null) {
-            ImageIcon icon = new ImageIcon(iconURL);
-            bookDisp1.setIcon(icon);
-        } else {
-            System.err.println("Icon not found in resources: /tinyBookTiles/photo_2025-09-29_00-09-05_tiny.png");
-        }
-
-        javax.swing.GroupLayout inLibraryTabsLayout = new javax.swing.GroupLayout(inLibraryTabs);
-        inLibraryTabs.setLayout(inLibraryTabsLayout);
-        inLibraryTabsLayout.setHorizontalGroup(
-            inLibraryTabsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout libraryTabLayout = new javax.swing.GroupLayout(libraryTab);
+        libraryTab.setLayout(libraryTabLayout);
+        libraryTabLayout.setHorizontalGroup(
+            libraryTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(libraryTabContent, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
-        inLibraryTabsLayout.setVerticalGroup(
-            inLibraryTabsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, inLibraryTabsLayout.createSequentialGroup()
+        libraryTabLayout.setVerticalGroup(
+            libraryTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, libraryTabLayout.createSequentialGroup()
                 .addGap(0, 47, Short.MAX_VALUE)
                 .addComponent(libraryTabContent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        tabs.addTab("Search", inLibraryTabs);
+        tabs.addTab("Search", libraryTab);
 
-        //book5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/bookTiles/1V1S9h1Ey1zGTa-QIn83.jpeg"))); // NOI18N
+        
         book5.setBorder(null);
         book5.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -3192,7 +3168,7 @@ public class mainWindow extends javax.swing.JFrame {
         jPanel3.setBackground(new java.awt.Color(255, 255, 255));
         jPanel3.setLayout(new java.awt.GridBagLayout());
 
-        //book6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/bookTiles/1V1S9h1Ey1zGTa-QIn83.jpeg"))); // NOI18N
+        
         book6.setBorder(null);
         book6.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -3221,7 +3197,7 @@ public class mainWindow extends javax.swing.JFrame {
         bookTileImage.setBackground(new java.awt.Color(255, 255, 255));
         bookTileImage.setLayout(new java.awt.GridBagLayout());
 
-        //bookTileClickable.setIcon(new javax.swing.ImageIcon(getClass().getResource("/bookTiles/1V1S9h1Ey1zGTa-QIn83.jpeg"))); // NOI18N
+        
         bookTileClickable.setBorder(null);
         bookTileClickable.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -3675,7 +3651,6 @@ public class mainWindow extends javax.swing.JFrame {
     private javax.swing.JLabel dayLabel1;
     private javax.swing.JLabel dayLabel2;
     private javax.swing.JLabel dayLabel3;
-    private javax.swing.JPanel descFromSQLite;
     private javax.swing.JButton exploreMoreBtn;
     private javax.swing.JButton eyeHide;
     private javax.swing.JButton eyeShow;
@@ -3685,7 +3660,6 @@ public class mainWindow extends javax.swing.JFrame {
     private javax.swing.JLabel homeBtnLabel;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
-    private javax.swing.JPanel inLibraryTabs;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel23;
     private javax.swing.JLayeredPane jLayeredPane1;
@@ -3702,6 +3676,7 @@ public class mainWindow extends javax.swing.JFrame {
     private javax.swing.JButton journalBtn;
     private javax.swing.JPanel layeredStitcher;
     private javax.swing.JButton libraryBtn;
+    private javax.swing.JPanel libraryTab;
     private javax.swing.JPanel libraryTabContent;
     private javax.swing.JLayeredPane mainPanel_layered;
     private javax.swing.JTextArea mainTextArea;
