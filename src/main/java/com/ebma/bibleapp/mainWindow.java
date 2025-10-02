@@ -69,6 +69,8 @@ import java.sql.Statement;
 import java.util.LinkedHashSet;
 
 
+import java.util.stream.Collectors;
+
 public class mainWindow extends javax.swing.JFrame {
 
     private boolean isBoldActive = true;
@@ -100,7 +102,7 @@ public class mainWindow extends javax.swing.JFrame {
     
     public int currentBookIndex;
     public int currentChapterIndex;
-   
+    private List<Integer> randomNums = get12RandomBookNumbers();
 
  
 
@@ -125,6 +127,7 @@ public class mainWindow extends javax.swing.JFrame {
         updateBookChooser();
         updateVerseChooser();
         
+       
        
 
       
@@ -478,7 +481,45 @@ public class mainWindow extends javax.swing.JFrame {
 
 
         
+public List<Integer> get12RandomBookNumbers() {
+    // Folder in your project resources
+    String folderPath = "bookTiles"; // relative to resources
+    URL folderURL = getClass().getClassLoader().getResource(folderPath);
+    if (folderURL == null) {
+        System.err.println("Resource folder not found: " + folderPath);
+        return Collections.nCopies(12, 0);
+    }
 
+    File folder = new File(folderURL.getPath());
+    File[] files = folder.listFiles();
+    if (files == null || files.length == 0) {
+        System.err.println("No files found in: " + folderPath);
+        return Collections.nCopies(12, 0);
+    }
+
+    // Extract numbers from filenames
+    List<Integer> numbers = Arrays.stream(files)
+            .filter(File::isFile)
+            .map(f -> f.getName().replaceAll("\\D", ""))
+            .filter(s -> !s.isEmpty())
+            .map(Integer::parseInt)
+            .sorted()
+            .collect(Collectors.toList());
+
+    int min = numbers.get(0);
+    int max = numbers.get(numbers.size() - 1);
+    System.out.println("Max number in folder: " + max);
+
+    // Generate 12 unique random numbers
+    Random rand = new Random();
+    Set<Integer> randomNumbers = new LinkedHashSet<>();
+    while (randomNumbers.size() < 12) {
+        int r = rand.nextInt(max - min + 1) + min;
+        randomNumbers.add(r);
+    }
+
+    return new ArrayList<>(randomNumbers);
+}
 
   
 
@@ -2949,6 +2990,12 @@ public class mainWindow extends javax.swing.JFrame {
                 .addContainerGap(837, Short.MAX_VALUE))
         );
 
+        bookDisplay1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookDisplay1ActionPerformed(evt);
+            }
+        });
+
         exploreMoreBtn1.setBackground(new java.awt.Color(86, 211, 100));
         exploreMoreBtn1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 12)); // NOI18N
         exploreMoreBtn1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/icons8-arrow-right-15.png"))); // NOI18N
@@ -3025,14 +3072,89 @@ public class mainWindow extends javax.swing.JFrame {
                 .addGap(0, 0, Short.MAX_VALUE))
         );
 
-        // Set icon using absolute path
-        String imagePath = "C:\\Users\\boni\\Desktop\\Files\\Projects\\BibleApp\\src\\main\\resources\\bookTiles\\5.png";
-        java.io.File imgFile = new java.io.File(imagePath);
-
-        if(imgFile.exists()) {
-            bookDisplay1.setIcon(new javax.swing.ImageIcon(imagePath));
+        int num1 = randomNums.get(0);
+        URL iconURL1 = getClass().getResource("/bookTiles/" + num1 + ".png");
+        if(iconURL1 != null) {
+            bookDisplay1.setIcon(new javax.swing.ImageIcon(iconURL1));
         } else {
-            System.err.println("Icon file not found: " + imagePath);
+            System.err.println("Icon not found: /bookTiles/" + num1 + ".png");
+        }
+        int num2 = randomNums.get(1);
+        URL iconURL2 = getClass().getResource("/bookTiles/" + num2 + ".png");
+        if(iconURL2 != null) {
+            bookDisplay2.setIcon(new javax.swing.ImageIcon(iconURL2));
+        } else {
+            System.err.println("Icon not found: /bookTiles/" + num2 + ".png");
+        }
+        int num3 = randomNums.get(2);
+        URL iconURL3 = getClass().getResource("/bookTiles/" + num3 + ".png");
+        if(iconURL3 != null) {
+            bookDisplay3.setIcon(new javax.swing.ImageIcon(iconURL3));
+        } else {
+            System.err.println("Icon not found: /bookTiles/" + num3 + ".png");
+        }
+        int num4 = randomNums.get(3);
+        URL iconURL4 = getClass().getResource("/bookTiles/" + num4 + ".png");
+        if(iconURL4 != null) {
+            bookDisplay4.setIcon(new javax.swing.ImageIcon(iconURL4));
+        } else {
+            System.err.println("Icon not found: /bookTiles/" + num4 + ".png");
+        }
+        int num5 = randomNums.get(4);
+        URL iconURL5 = getClass().getResource("/bookTiles/" + num5 + ".png");
+        if(iconURL5 != null) {
+            bookDisplay5.setIcon(new javax.swing.ImageIcon(iconURL5));
+        } else {
+            System.err.println("Icon not found: /bookTiles/" + num5 + ".png");
+        }
+        int num6 = randomNums.get(5);
+        URL iconURL6 = getClass().getResource("/bookTiles/" + num6 + ".png");
+        if(iconURL6 != null) {
+            bookDisplay6.setIcon(new javax.swing.ImageIcon(iconURL6));
+        } else {
+            System.err.println("Icon not found: /bookTiles/" + num6 + ".png");
+        }
+        int num7 = randomNums.get(6);
+        URL iconURL7 = getClass().getResource("/bookTiles/" + num7 + ".png");
+        if(iconURL7 != null) {
+            bookDisplay7.setIcon(new javax.swing.ImageIcon(iconURL7));
+        } else {
+            System.err.println("Icon not found: /bookTiles/" + num7 + ".png");
+        }
+        int num8 = randomNums.get(7);
+        URL iconURL8 = getClass().getResource("/bookTiles/" + num8 + ".png");
+        if(iconURL8 != null) {
+            bookDisplay8.setIcon(new javax.swing.ImageIcon(iconURL8));
+        } else {
+            System.err.println("Icon not found: /bookTiles/" + num8 + ".png");
+        }
+        int num9 = randomNums.get(8);
+        URL iconURL9 = getClass().getResource("/bookTiles/" + num9 + ".png");
+        if(iconURL9 != null) {
+            bookDisplay9.setIcon(new javax.swing.ImageIcon(iconURL9));
+        } else {
+            System.err.println("Icon not found: /bookTiles/" + num9 + ".png");
+        }
+        int num10 = randomNums.get(9);
+        URL iconURL10 = getClass().getResource("/bookTiles/" + num10 + ".png");
+        if(iconURL10 != null) {
+            bookDisplay10.setIcon(new javax.swing.ImageIcon(iconURL10));
+        } else {
+            System.err.println("Icon not found: /bookTiles/" + num10 + ".png");
+        }
+        int num11 = randomNums.get(10);
+        URL iconURL11 = getClass().getResource("/bookTiles/" + num11 + ".png");
+        if(iconURL11 != null) {
+            bookDisplay11.setIcon(new javax.swing.ImageIcon(iconURL11));
+        } else {
+            System.err.println("Icon not found: /bookTiles/" + num11 + ".png");
+        }
+        int num12 = randomNums.get(11);
+        URL iconURL12 = getClass().getResource("/bookTiles/" + num12 + ".png");
+        if(iconURL12 != null) {
+            bookDisplay12.setIcon(new javax.swing.ImageIcon(iconURL12));
+        } else {
+            System.err.println("Icon not found: /bookTiles/" + num12 + ".png");
         }
 
         javax.swing.GroupLayout libraryRedoLayout = new javax.swing.GroupLayout(libraryRedo);
@@ -3287,6 +3409,10 @@ public class mainWindow extends javax.swing.JFrame {
     private void exploreMoreBtn1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exploreMoreBtn1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_exploreMoreBtn1ActionPerformed
+
+    private void bookDisplay1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_bookDisplay1ActionPerformed
 
     
  

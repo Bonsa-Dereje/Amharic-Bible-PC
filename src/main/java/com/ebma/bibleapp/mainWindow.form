@@ -3339,31 +3339,67 @@
                       </SubComponents>
                     </Container>
                     <Component class="javax.swing.JButton" name="bookDisplay1">
+                      <Events>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bookDisplay1ActionPerformed"/>
+                      </Events>
                       <AuxValues>
-                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="// Set icon using absolute path&#xa;String imagePath = &quot;C:\\Users\\boni\\Desktop\\Files\\Projects\\BibleApp\\src\\main\\resources\\bookTiles\\5.png&quot;;&#xa;java.io.File imgFile = new java.io.File(imagePath);&#xa;&#xa;if(imgFile.exists()) {&#xa;    bookDisplay1.setIcon(new javax.swing.ImageIcon(imagePath));&#xa;} else {&#xa;    System.err.println(&quot;Icon file not found: &quot; + imagePath);&#xa;}"/>
+                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num1 = randomNums.get(0);&#xa;URL iconURL1 = getClass().getResource(&quot;/bookTiles/&quot; + num1 + &quot;.png&quot;);&#xa;if(iconURL1 != null) {&#xa;    bookDisplay1.setIcon(new javax.swing.ImageIcon(iconURL1));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num1 + &quot;.png&quot;);&#xa;}"/>
                       </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay2">
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num2 = randomNums.get(1);&#xa;URL iconURL2 = getClass().getResource(&quot;/bookTiles/&quot; + num2 + &quot;.png&quot;);&#xa;if(iconURL2 != null) {&#xa;    bookDisplay2.setIcon(new javax.swing.ImageIcon(iconURL2));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num2 + &quot;.png&quot;);&#xa;}"/>
+                      </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay3">
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num3 = randomNums.get(2);&#xa;URL iconURL3 = getClass().getResource(&quot;/bookTiles/&quot; + num3 + &quot;.png&quot;);&#xa;if(iconURL3 != null) {&#xa;    bookDisplay3.setIcon(new javax.swing.ImageIcon(iconURL3));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num3 + &quot;.png&quot;);&#xa;}"/>
+                      </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay4">
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num4 = randomNums.get(3);&#xa;URL iconURL4 = getClass().getResource(&quot;/bookTiles/&quot; + num4 + &quot;.png&quot;);&#xa;if(iconURL4 != null) {&#xa;    bookDisplay4.setIcon(new javax.swing.ImageIcon(iconURL4));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num4 + &quot;.png&quot;);&#xa;}"/>
+                      </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay5">
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num5 = randomNums.get(4);&#xa;URL iconURL5 = getClass().getResource(&quot;/bookTiles/&quot; + num5 + &quot;.png&quot;);&#xa;if(iconURL5 != null) {&#xa;    bookDisplay5.setIcon(new javax.swing.ImageIcon(iconURL5));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num5 + &quot;.png&quot;);&#xa;}"/>
+                      </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay6">
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num6 = randomNums.get(5);&#xa;URL iconURL6 = getClass().getResource(&quot;/bookTiles/&quot; + num6 + &quot;.png&quot;);&#xa;if(iconURL6 != null) {&#xa;    bookDisplay6.setIcon(new javax.swing.ImageIcon(iconURL6));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num6 + &quot;.png&quot;);&#xa;}"/>
+                      </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay7">
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num7 = randomNums.get(6);&#xa;URL iconURL7 = getClass().getResource(&quot;/bookTiles/&quot; + num7 + &quot;.png&quot;);&#xa;if(iconURL7 != null) {&#xa;    bookDisplay7.setIcon(new javax.swing.ImageIcon(iconURL7));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num7 + &quot;.png&quot;);&#xa;}"/>
+                      </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay8">
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num8 = randomNums.get(7);&#xa;URL iconURL8 = getClass().getResource(&quot;/bookTiles/&quot; + num8 + &quot;.png&quot;);&#xa;if(iconURL8 != null) {&#xa;    bookDisplay8.setIcon(new javax.swing.ImageIcon(iconURL8));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num8 + &quot;.png&quot;);&#xa;}"/>
+                      </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay9">
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num9 = randomNums.get(8);&#xa;URL iconURL9 = getClass().getResource(&quot;/bookTiles/&quot; + num9 + &quot;.png&quot;);&#xa;if(iconURL9 != null) {&#xa;    bookDisplay9.setIcon(new javax.swing.ImageIcon(iconURL9));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num9 + &quot;.png&quot;);&#xa;}"/>
+                      </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay10">
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num10 = randomNums.get(9);&#xa;URL iconURL10 = getClass().getResource(&quot;/bookTiles/&quot; + num10 + &quot;.png&quot;);&#xa;if(iconURL10 != null) {&#xa;    bookDisplay10.setIcon(new javax.swing.ImageIcon(iconURL10));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num10 + &quot;.png&quot;);&#xa;}"/>
+                      </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay11">
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num11 = randomNums.get(10);&#xa;URL iconURL11 = getClass().getResource(&quot;/bookTiles/&quot; + num11 + &quot;.png&quot;);&#xa;if(iconURL11 != null) {&#xa;    bookDisplay11.setIcon(new javax.swing.ImageIcon(iconURL11));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num11 + &quot;.png&quot;);&#xa;}"/>
+                      </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay12">
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num12 = randomNums.get(11);&#xa;URL iconURL12 = getClass().getResource(&quot;/bookTiles/&quot; + num12 + &quot;.png&quot;);&#xa;if(iconURL12 != null) {&#xa;    bookDisplay12.setIcon(new javax.swing.ImageIcon(iconURL12));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num12 + &quot;.png&quot;);&#xa;}"/>
+                      </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="exploreMoreBtn1">
                       <Properties>
