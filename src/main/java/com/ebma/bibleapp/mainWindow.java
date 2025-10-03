@@ -524,7 +524,34 @@ public List<Integer> get12RandomBookNumbers() {
   
 
 
-       
+private void updateBookTiles() {
+    for (int i = 0; i < 12; i++) {
+        JButton btn = switch(i) {
+            case 0 -> bookDisplay1;
+            case 1 -> bookDisplay2;
+            case 2 -> bookDisplay3;
+            case 3 -> bookDisplay4;
+            case 4 -> bookDisplay5;
+            case 5 -> bookDisplay6;
+            case 6 -> bookDisplay7;
+            case 7 -> bookDisplay8;
+            case 8 -> bookDisplay9;
+            case 9 -> bookDisplay10;
+            case 10 -> bookDisplay11;
+            case 11 -> bookDisplay12;
+            default -> null;
+        };
+
+        int num = randomNums.get(i);
+        URL iconURL = getClass().getResource("/bookTiles/" + num + ".png");
+        if (iconURL != null) {
+            btn.setIcon(new javax.swing.ImageIcon(iconURL));
+        } else {
+            System.err.println("Icon not found: /bookTiles/" + num + ".png");
+        }
+    }
+}
+      
         
         
 
@@ -970,6 +997,7 @@ public List<Integer> get12RandomBookNumbers() {
         statusDay366 = new javax.swing.JButton();
         bookDescriptionSideBar1 = new javax.swing.JPanel();
         aboutTheBook1 = new javax.swing.JLabel();
+        selectedBook = new javax.swing.JButton();
         bookDisplay1 = new javax.swing.JButton();
         bookDisplay2 = new javax.swing.JButton();
         bookDisplay3 = new javax.swing.JButton();
@@ -983,6 +1011,19 @@ public List<Integer> get12RandomBookNumbers() {
         bookDisplay11 = new javax.swing.JButton();
         bookDisplay12 = new javax.swing.JButton();
         exploreMoreBtn1 = new javax.swing.JButton();
+        reRandomizer = new javax.swing.JButton();
+        selectedBookUnderline1 = new javax.swing.JButton();
+        selectedBookUnderline2 = new javax.swing.JButton();
+        selectedBookUnderline3 = new javax.swing.JButton();
+        selectedBookUnderline4 = new javax.swing.JButton();
+        selectedBookUnderline5 = new javax.swing.JButton();
+        selectedBookUnderline6 = new javax.swing.JButton();
+        selectedBookUnderline7 = new javax.swing.JButton();
+        selectedBookUnderline8 = new javax.swing.JButton();
+        selectedBookUnderline9 = new javax.swing.JButton();
+        selectedBookUnderline10 = new javax.swing.JButton();
+        selectedBookUnderline11 = new javax.swing.JButton();
+        selectedBookUnderline12 = new javax.swing.JButton();
         jPanel11 = new javax.swing.JPanel();
         jPanel12 = new javax.swing.JPanel();
         jPanel13 = new javax.swing.JPanel();
@@ -2969,7 +3010,7 @@ public List<Integer> get12RandomBookNumbers() {
 
         bookDescriptionSideBar1.setBackground(new java.awt.Color(40, 43, 45));
 
-        aboutTheBook1.setFont(new java.awt.Font("Nokia Pure Headline", 0, 18)); // NOI18N
+        aboutTheBook1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 18)); // NOI18N
         aboutTheBook1.setForeground(new java.awt.Color(255, 255, 255));
         aboutTheBook1.setText("About the book");
 
@@ -2977,17 +3018,24 @@ public List<Integer> get12RandomBookNumbers() {
         bookDescriptionSideBar1.setLayout(bookDescriptionSideBar1Layout);
         bookDescriptionSideBar1Layout.setHorizontalGroup(
             bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBar1Layout.createSequentialGroup()
-                .addContainerGap(110, Short.MAX_VALUE)
-                .addComponent(aboutTheBook1)
-                .addGap(118, 118, 118))
+            .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
+                .addContainerGap(85, Short.MAX_VALUE)
+                .addGroup(bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBar1Layout.createSequentialGroup()
+                        .addComponent(aboutTheBook1)
+                        .addGap(118, 118, 118))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBar1Layout.createSequentialGroup()
+                        .addComponent(selectedBook, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(84, 84, 84))))
         );
         bookDescriptionSideBar1Layout.setVerticalGroup(
             bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
                 .addGap(63, 63, 63)
                 .addComponent(aboutTheBook1)
-                .addContainerGap(837, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(selectedBook, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(545, Short.MAX_VALUE))
         );
 
         bookDisplay1.addActionListener(new java.awt.event.ActionListener() {
@@ -3006,57 +3054,158 @@ public List<Integer> get12RandomBookNumbers() {
             }
         });
 
+        reRandomizer.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/refresh20.png"))); // NOI18N
+        reRandomizer.setContentAreaFilled(false);
+        reRandomizer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                reRandomizerActionPerformed(evt);
+            }
+        });
+
+        selectedBookUnderline1.setBackground(new java.awt.Color(86, 211, 100));
+
+        selectedBookUnderline2.setBackground(new java.awt.Color(86, 211, 100));
+
+        selectedBookUnderline3.setBackground(new java.awt.Color(86, 211, 100));
+        selectedBookUnderline3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                selectedBookUnderline3ActionPerformed(evt);
+            }
+        });
+
+        selectedBookUnderline4.setBackground(new java.awt.Color(86, 211, 100));
+
+        selectedBookUnderline5.setBackground(new java.awt.Color(86, 211, 100));
+
+        selectedBookUnderline6.setBackground(new java.awt.Color(86, 211, 100));
+
+        selectedBookUnderline7.setBackground(new java.awt.Color(86, 211, 100));
+
+        selectedBookUnderline8.setBackground(new java.awt.Color(86, 211, 100));
+        selectedBookUnderline8.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                selectedBookUnderline8ActionPerformed(evt);
+            }
+        });
+
+        selectedBookUnderline9.setBackground(new java.awt.Color(86, 211, 100));
+        selectedBookUnderline9.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                selectedBookUnderline9ActionPerformed(evt);
+            }
+        });
+
+        selectedBookUnderline10.setBackground(new java.awt.Color(86, 211, 100));
+
+        selectedBookUnderline11.setBackground(new java.awt.Color(86, 211, 100));
+
+        selectedBookUnderline12.setBackground(new java.awt.Color(86, 211, 100));
+
         javax.swing.GroupLayout libraryContentLayout = new javax.swing.GroupLayout(libraryContent);
         libraryContent.setLayout(libraryContentLayout);
         libraryContentLayout.setHorizontalGroup(
             libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(libraryContentLayout.createSequentialGroup()
-                .addContainerGap(18, Short.MAX_VALUE)
                 .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(libraryContentLayout.createSequentialGroup()
-                            .addComponent(bookDisplay1, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(18, 18, 18)
-                            .addComponent(bookDisplay2, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(18, 18, 18)
-                            .addComponent(bookDisplay3, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(18, 18, 18)
-                            .addComponent(bookDisplay4, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(18, 18, 18)
-                            .addComponent(bookDisplay5, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(18, 18, 18)
-                            .addComponent(bookDisplay6, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(libraryContentLayout.createSequentialGroup()
-                            .addComponent(bookDisplay7, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(18, 18, 18)
-                            .addComponent(bookDisplay8, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(18, 18, 18)
-                            .addComponent(bookDisplay9, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(18, 18, 18)
-                            .addComponent(bookDisplay10, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(18, 18, 18)
-                            .addComponent(bookDisplay11, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(18, 18, 18)
-                            .addComponent(bookDisplay12, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addComponent(readStatus1, javax.swing.GroupLayout.PREFERRED_SIZE, 1178, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(exploreMoreBtn1, javax.swing.GroupLayout.PREFERRED_SIZE, 114, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(27, 27, 27)
+                    .addGroup(libraryContentLayout.createSequentialGroup()
+                        .addContainerGap(18, Short.MAX_VALUE)
+                        .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(libraryContentLayout.createSequentialGroup()
+                                .addComponent(bookDisplay7, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(bookDisplay8, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(bookDisplay9, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(bookDisplay10, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(bookDisplay11, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(bookDisplay12, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(libraryContentLayout.createSequentialGroup()
+                                .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(bookDisplay1, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(reRandomizer)
+                                    .addGroup(libraryContentLayout.createSequentialGroup()
+                                        .addGap(31, 31, 31)
+                                        .addComponent(selectedBookUnderline1, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addGroup(libraryContentLayout.createSequentialGroup()
+                                        .addGap(18, 18, 18)
+                                        .addComponent(bookDisplay2, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, libraryContentLayout.createSequentialGroup()
+                                                .addGap(686, 686, 686)
+                                                .addComponent(exploreMoreBtn1, javax.swing.GroupLayout.PREFERRED_SIZE, 114, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                            .addGroup(libraryContentLayout.createSequentialGroup()
+                                                .addGap(18, 18, 18)
+                                                .addComponent(bookDisplay3, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(18, 18, 18)
+                                                .addComponent(bookDisplay4, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(18, 18, 18)
+                                                .addComponent(bookDisplay5, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(18, 18, 18)
+                                                .addComponent(bookDisplay6, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                    .addGroup(libraryContentLayout.createSequentialGroup()
+                                        .addGap(52, 52, 52)
+                                        .addComponent(selectedBookUnderline2, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(79, 79, 79)
+                                        .addComponent(selectedBookUnderline3, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(81, 81, 81)
+                                        .addComponent(selectedBookUnderline4, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(selectedBookUnderline5, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(81, 81, 81)
+                                        .addComponent(selectedBookUnderline6, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(28, 28, 28))))
+                            .addComponent(readStatus1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 1178, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(27, 27, 27))
+                    .addGroup(libraryContentLayout.createSequentialGroup()
+                        .addGap(53, 53, 53)
+                        .addComponent(selectedBookUnderline7, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(78, 78, 78)
+                        .addComponent(selectedBookUnderline8, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(85, 85, 85)
+                        .addComponent(selectedBookUnderline9, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(79, 79, 79)
+                        .addComponent(selectedBookUnderline10, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(78, 78, 78)
+                        .addComponent(selectedBookUnderline11, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(selectedBookUnderline12, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(54, 54, 54)))
                 .addComponent(bookDescriptionSideBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         libraryContentLayout.setVerticalGroup(
             libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(libraryContentLayout.createSequentialGroup()
                 .addGap(22, 22, 22)
-                .addComponent(exploreMoreBtn1)
+                .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(exploreMoreBtn1)
+                    .addComponent(reRandomizer))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(bookDisplay1, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(bookDisplay2, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(bookDisplay3, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(bookDisplay4, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(bookDisplay5, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(bookDisplay6, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                    .addGroup(libraryContentLayout.createSequentialGroup()
+                        .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(bookDisplay1, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(bookDisplay2, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(bookDisplay3, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(bookDisplay4, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(bookDisplay5, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(bookDisplay6, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(libraryContentLayout.createSequentialGroup()
+                                .addGap(3, 3, 3)
+                                .addComponent(selectedBookUnderline1))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, libraryContentLayout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(selectedBookUnderline3, javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(selectedBookUnderline4, javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(selectedBookUnderline5, javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(selectedBookUnderline6, javax.swing.GroupLayout.Alignment.TRAILING)))))
+                    .addComponent(selectedBookUnderline2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(bookDisplay7, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(bookDisplay8, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -3064,9 +3213,18 @@ public List<Integer> get12RandomBookNumbers() {
                     .addComponent(bookDisplay10, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(bookDisplay11, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(bookDisplay12, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(4, 4, 4)
+                .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(selectedBookUnderline7)
+                    .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addComponent(selectedBookUnderline9, javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(selectedBookUnderline10, javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(selectedBookUnderline11, javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(selectedBookUnderline12, javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(selectedBookUnderline8, javax.swing.GroupLayout.Alignment.LEADING)))
                 .addGap(18, 18, 18)
                 .addComponent(readStatus1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(247, 247, 247))
+                .addGap(236, 236, 236))
             .addGroup(libraryContentLayout.createSequentialGroup()
                 .addComponent(bookDescriptionSideBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, Short.MAX_VALUE))
@@ -3414,6 +3572,26 @@ public List<Integer> get12RandomBookNumbers() {
         // TODO add your handling code here:
     }//GEN-LAST:event_bookDisplay1ActionPerformed
 
+    private void reRandomizerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reRandomizerActionPerformed
+        // Re-generate 12 random numbers
+        randomNums = get12RandomBookNumbers();
+
+        // Update all book display buttons
+        updateBookTiles();
+    }//GEN-LAST:event_reRandomizerActionPerformed
+
+    private void selectedBookUnderline3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectedBookUnderline3ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_selectedBookUnderline3ActionPerformed
+
+    private void selectedBookUnderline9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectedBookUnderline9ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_selectedBookUnderline9ActionPerformed
+
+    private void selectedBookUnderline8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectedBookUnderline8ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_selectedBookUnderline8ActionPerformed
+
     
  
     
@@ -3541,12 +3719,26 @@ public List<Integer> get12RandomBookNumbers() {
     private javax.swing.JTextArea notesInput;
     private javax.swing.JLayeredPane notesTabLayers;
     private javax.swing.JPanel notesTabPanel;
+    private javax.swing.JButton reRandomizer;
     private javax.swing.JPanel readStatus1;
     private javax.swing.JButton restoreBtn;
     private javax.swing.JButton saveNote;
     private javax.swing.JButton saveTick;
     private javax.swing.JButton searchBtn;
     private javax.swing.JLabel searchBtnLabel;
+    private javax.swing.JButton selectedBook;
+    private javax.swing.JButton selectedBookUnderline1;
+    private javax.swing.JButton selectedBookUnderline10;
+    private javax.swing.JButton selectedBookUnderline11;
+    private javax.swing.JButton selectedBookUnderline12;
+    private javax.swing.JButton selectedBookUnderline2;
+    private javax.swing.JButton selectedBookUnderline3;
+    private javax.swing.JButton selectedBookUnderline4;
+    private javax.swing.JButton selectedBookUnderline5;
+    private javax.swing.JButton selectedBookUnderline6;
+    private javax.swing.JButton selectedBookUnderline7;
+    private javax.swing.JButton selectedBookUnderline8;
+    private javax.swing.JButton selectedBookUnderline9;
     private javax.swing.JButton settingsBtn;
     private javax.swing.JLabel settingsLabel;
     private javax.swing.JButton statusDay1;
