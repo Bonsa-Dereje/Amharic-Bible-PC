@@ -71,6 +71,9 @@ import java.util.LinkedHashSet;
 
 import java.util.stream.Collectors;
 
+import javax.swing.JEditorPane;
+
+
 public class mainWindow extends javax.swing.JFrame {
 
     private boolean isBoldActive = true;
@@ -105,7 +108,7 @@ public class mainWindow extends javax.swing.JFrame {
     private List<Integer> randomNums = get12RandomBookNumbers();
     
     private int currentSelected;
- 
+    
 
     public mainWindow() {
         
@@ -582,6 +585,49 @@ private void updateSelectedBookIcon() {
 }
 
 
+private void updateBookDetails() {
+    if (currentSelected < 1 || currentSelected > randomNums.size()) {
+        description.setText("<html><div style='text-align:center; color:red;'>Invalid selection.</div></html>");
+        return;
+    }
+
+    int bookIndex = randomNums.get(currentSelected - 1); // get assigned number for this button
+    String dbPath = "bookStack.db";
+    String sql = "SELECT bookName, author, category, description FROM bookStack WHERE CAST(TRIM(bookIndex) AS INTEGER) = ?";
+
+    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+        pstmt.setInt(1, bookIndex);
+
+        try (ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                String bookName = rs.getString("bookName").trim();
+                String author = rs.getString("author").trim();
+                String category = rs.getString("category").trim();
+                String desc = rs.getString("description").trim();
+
+                String htmlText = "<html><div style='text-align:center; font-family:Nokia Pure Headline Ultra Light; font-size:14px; color:white;'>" +
+                                  "<b>Title:</b> " + bookName + "<br>" +
+                                  "<b>Author:</b> " + author + "<br>" +
+                                  "<b>Category:</b> " + category + "<br><br>" +
+                                  "<b>Description:</b><br>" +
+                                  "<span style='font-size:12px;'>" + desc.replace("\n", "<br>") + "</span>" +
+                                  "</div></html>";
+
+                description.setText(htmlText);
+
+            } else {
+                description.setText("<html><div style='text-align:center; color:red;'>Book not found in database.</div></html>");
+            }
+        }
+
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+        description.setText("<html><div style='text-align:center; color:red;'>Database error: " + ex.getMessage() + "</div></html>");
+    }
+}
+
 
 
         
@@ -1030,6 +1076,8 @@ private void updateSelectedBookIcon() {
         bookDescriptionSideBar1 = new javax.swing.JPanel();
         aboutTheBook1 = new javax.swing.JLabel();
         selectedBook = new javax.swing.JButton();
+        readBtn = new javax.swing.JButton();
+        description = new javax.swing.JLabel();
         bookDisplay1 = new javax.swing.JButton();
         bookDisplay2 = new javax.swing.JButton();
         bookDisplay3 = new javax.swing.JButton();
@@ -3046,28 +3094,57 @@ private void updateSelectedBookIcon() {
         aboutTheBook1.setForeground(new java.awt.Color(255, 255, 255));
         aboutTheBook1.setText("About the book");
 
+        selectedBook.setContentAreaFilled(false);
+
+        readBtn.setBackground(new java.awt.Color(86, 211, 100));
+        readBtn.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 24)); // NOI18N
+        readBtn.setForeground(new java.awt.Color(255, 255, 255));
+        readBtn.setText("Read");
+        readBtn.setBorderPainted(false);
+        readBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                readBtnActionPerformed(evt);
+            }
+        });
+
+        description.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
+        description.setForeground(new java.awt.Color(255, 255, 255));
+
         javax.swing.GroupLayout bookDescriptionSideBar1Layout = new javax.swing.GroupLayout(bookDescriptionSideBar1);
         bookDescriptionSideBar1.setLayout(bookDescriptionSideBar1Layout);
         bookDescriptionSideBar1Layout.setHorizontalGroup(
             bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
-                .addContainerGap(85, Short.MAX_VALUE)
+                .addGroup(bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
+                        .addGap(109, 109, 109)
+                        .addComponent(aboutTheBook1))
+                    .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
+                        .addGap(83, 83, 83)
+                        .addComponent(selectedBook, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(0, 0, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBar1Layout.createSequentialGroup()
+                .addContainerGap(26, Short.MAX_VALUE)
                 .addGroup(bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBar1Layout.createSequentialGroup()
-                        .addComponent(aboutTheBook1)
-                        .addGap(118, 118, 118))
+                        .addComponent(readBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(123, 123, 123))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBar1Layout.createSequentialGroup()
-                        .addComponent(selectedBook, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(84, 84, 84))))
+                        .addComponent(description, javax.swing.GroupLayout.PREFERRED_SIZE, 294, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(31, 31, 31))))
         );
         bookDescriptionSideBar1Layout.setVerticalGroup(
             bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
-                .addGap(63, 63, 63)
+                .addGap(102, 102, 102)
                 .addComponent(aboutTheBook1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(selectedBook, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(545, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(description, javax.swing.GroupLayout.PREFERRED_SIZE, 340, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(readBtn)
+                .addContainerGap(140, Short.MAX_VALUE))
         );
 
         // Set the icon to currentSelected.png from resources
@@ -3480,9 +3557,8 @@ private void updateSelectedBookIcon() {
         libraryTabLayout.setVerticalGroup(
             libraryTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, libraryTabLayout.createSequentialGroup()
-                .addContainerGap(52, Short.MAX_VALUE)
-                .addComponent(libraryContent, javax.swing.GroupLayout.PREFERRED_SIZE, 917, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addGap(0, 52, Short.MAX_VALUE)
+                .addComponent(libraryContent, javax.swing.GroupLayout.PREFERRED_SIZE, 923, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         tabs.addTab("Notes", libraryTab);
@@ -3738,6 +3814,7 @@ private void updateSelectedBookIcon() {
         
         currentSelected = 1;
         updateSelectedBookIcon();
+        updateBookDetails();
         
     }//GEN-LAST:event_bookDisplay1ActionPerformed
 
@@ -3793,6 +3870,7 @@ private void updateSelectedBookIcon() {
         
         currentSelected = 2;
         updateSelectedBookIcon();
+        updateBookDetails();
     }//GEN-LAST:event_bookDisplay2ActionPerformed
 
     private void bookDisplay3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay3ActionPerformed
@@ -3811,6 +3889,7 @@ private void updateSelectedBookIcon() {
         
         currentSelected = 3;
         updateSelectedBookIcon();
+        updateBookDetails();
     }//GEN-LAST:event_bookDisplay3ActionPerformed
 
     private void bookDisplay4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay4ActionPerformed
@@ -3829,6 +3908,7 @@ private void updateSelectedBookIcon() {
         
         currentSelected = 4;
         updateSelectedBookIcon();
+        updateBookDetails();
     }//GEN-LAST:event_bookDisplay4ActionPerformed
 
     private void bookDisplay5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay5ActionPerformed
@@ -3847,6 +3927,7 @@ private void updateSelectedBookIcon() {
         
         currentSelected = 5;
         updateSelectedBookIcon();
+        updateBookDetails();
     }//GEN-LAST:event_bookDisplay5ActionPerformed
 
     private void bookDisplay6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay6ActionPerformed
@@ -3865,6 +3946,7 @@ private void updateSelectedBookIcon() {
         
         currentSelected = 6;
         updateSelectedBookIcon();
+        updateBookDetails();
     }//GEN-LAST:event_bookDisplay6ActionPerformed
 
     private void bookDisplay7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay7ActionPerformed
@@ -3883,6 +3965,7 @@ private void updateSelectedBookIcon() {
         
         currentSelected = 7;
         updateSelectedBookIcon();
+        updateBookDetails();
     }//GEN-LAST:event_bookDisplay7ActionPerformed
 
     private void bookDisplay8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay8ActionPerformed
@@ -3901,6 +3984,7 @@ private void updateSelectedBookIcon() {
         
         currentSelected = 8;
         updateSelectedBookIcon();
+        updateBookDetails();
     }//GEN-LAST:event_bookDisplay8ActionPerformed
 
     private void bookDisplay9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay9ActionPerformed
@@ -3919,6 +4003,7 @@ private void updateSelectedBookIcon() {
         
         currentSelected = 9;
         updateSelectedBookIcon();
+        updateBookDetails();
     }//GEN-LAST:event_bookDisplay9ActionPerformed
 
     private void bookDisplay10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay10ActionPerformed
@@ -3937,6 +4022,7 @@ private void updateSelectedBookIcon() {
         
         currentSelected = 10;
         updateSelectedBookIcon();
+        updateBookDetails();
     }//GEN-LAST:event_bookDisplay10ActionPerformed
 
     private void bookDisplay11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay11ActionPerformed
@@ -3955,6 +4041,7 @@ private void updateSelectedBookIcon() {
         
         currentSelected = 11;
         updateSelectedBookIcon();
+        updateBookDetails();
     }//GEN-LAST:event_bookDisplay11ActionPerformed
 
     private void bookDisplay12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay12ActionPerformed
@@ -3973,9 +4060,61 @@ private void updateSelectedBookIcon() {
         
         currentSelected = 12;
         updateSelectedBookIcon();
+        updateBookDetails();
     }//GEN-LAST:event_bookDisplay12ActionPerformed
 
+    private void readBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_readBtnActionPerformed
+    try {
+        // Get the bookIndex from the button's assigned random number
+        int bookIndex = randomNums.get(currentSelected - 1);
+
+        // Database path (project root)
+        String dbPath = "bookStack.db";
+
+        // Use TRIM and CAST to safely handle bookIndex stored as TEXT or with spaces
+        String sql = "SELECT bookName, author, category " +
+                     "FROM bookStack " +
+                     "WHERE CAST(TRIM(bookIndex) AS INTEGER) = ?";
+
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, bookIndex);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    // Trim values from database
+                    String bookName = rs.getString("bookName").trim();
+                    String author = rs.getString("author").trim();
+                    String category = rs.getString("category").trim();
+
+                    // Build HTML for centered, multi-line JLabel
+                    String htmlText = "<html><div style='text-align:center'>" +
+                                      "<b>Book Index:</b> " + bookIndex + "<br>" +
+                                      "<b>Title:</b> " + bookName + "<br>" +
+                                      "<b>Author:</b> " + author + "<br>" +
+                                      "<b>Category:</b> " + category +
+                                      "</div></html>";
+
+                    description.setText(htmlText); // Update JLabel
+
+                } else {
+                    description.setText("<html><div style='text-align:center'>Book not found in database.<br>Book Index attempted: " + bookIndex + "</div></html>");
+                }
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            description.setText("<html><div style='text-align:center'>Database error for Book Index: " + bookIndex + "<br>" + ex.getMessage() + "</div></html>");
+        }
+
+    } catch (IndexOutOfBoundsException ex) {
+        description.setText("<html><div style='text-align:center'>Invalid selection.<br>CurrentSelected = " + currentSelected + "</div></html>");
+    }
+    }//GEN-LAST:event_readBtnActionPerformed
+
     
+   
  
     
     /**
@@ -4061,6 +4200,7 @@ private void updateSelectedBookIcon() {
     private javax.swing.JLabel dayLabel4;
     private javax.swing.JLabel dayLabel5;
     private javax.swing.JLabel dayLabel6;
+    private javax.swing.JLabel description;
     private javax.swing.JButton exploreMoreBtn1;
     private javax.swing.JButton eyeHide;
     private javax.swing.JButton eyeShow;
@@ -4103,6 +4243,7 @@ private void updateSelectedBookIcon() {
     private javax.swing.JLayeredPane notesTabLayers;
     private javax.swing.JPanel notesTabPanel;
     private javax.swing.JButton reRandomizer;
+    private javax.swing.JButton readBtn;
     private javax.swing.JPanel readStatus1;
     private javax.swing.JButton restoreBtn;
     private javax.swing.JButton saveNote;
