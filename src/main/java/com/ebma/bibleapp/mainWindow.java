@@ -103,7 +103,8 @@ public class mainWindow extends javax.swing.JFrame {
     public int currentBookIndex;
     public int currentChapterIndex;
     private List<Integer> randomNums = get12RandomBookNumbers();
-
+    
+    private int currentSelected;
  
 
     public mainWindow() {
@@ -127,8 +128,21 @@ public class mainWindow extends javax.swing.JFrame {
         updateBookChooser();
         updateVerseChooser();
         
-       
-       
+        selectedBookUnderline1.setContentAreaFilled(false);
+        selectedBookUnderline2.setContentAreaFilled(false);
+        selectedBookUnderline3.setContentAreaFilled(false);
+        selectedBookUnderline4.setContentAreaFilled(false);
+        selectedBookUnderline5.setContentAreaFilled(false);
+        selectedBookUnderline6.setContentAreaFilled(false);
+        selectedBookUnderline7.setContentAreaFilled(false);
+        selectedBookUnderline8.setContentAreaFilled(false);
+        selectedBookUnderline9.setContentAreaFilled(false);
+        selectedBookUnderline10.setContentAreaFilled(false);
+        selectedBookUnderline11.setContentAreaFilled(false);
+        selectedBookUnderline12.setContentAreaFilled(false);
+        
+
+
 
       
     }
@@ -552,6 +566,24 @@ private void updateBookTiles() {
     }
 }
       
+
+
+private void updateSelectedBookIcon() {
+    // currentSelected stores which button (1–12) was clicked
+    // so grab its random number from the list
+    int assignedNum = randomNums.get(currentSelected - 1); 
+
+    URL selectedIconURL = getClass().getResource("/bookTiles/" + assignedNum + ".png");
+    if (selectedIconURL != null) {
+        selectedBook.setIcon(new ImageIcon(selectedIconURL));
+    } else {
+        System.err.println("Icon not found: /bookTiles/" + assignedNum + ".png");
+    }
+}
+
+
+
+
         
         
 
@@ -610,7 +642,7 @@ private void updateBookTiles() {
         chapterChooser = new javax.swing.JComboBox<>();
         verseChooser = new javax.swing.JComboBox<>();
         testamentChooser = new javax.swing.JComboBox<>();
-        libraryRedo = new javax.swing.JPanel();
+        libraryTab = new javax.swing.JPanel();
         libraryContent = new javax.swing.JPanel();
         readStatus1 = new javax.swing.JPanel();
         dayLabel4 = new javax.swing.JLabel();
@@ -3038,9 +3070,131 @@ private void updateBookTiles() {
                 .addContainerGap(545, Short.MAX_VALUE))
         );
 
+        // Set the icon to currentSelected.png from resources
+        URL selectedIconURL = getClass().getResource("/bookTiles/"  +currentSelected+ ".png");
+        if (selectedIconURL != null) {
+            bookDisplay1.setIcon(new ImageIcon(selectedIconURL));
+        } else {
+            System.err.println("Icon not found: /bookTiles/" +currentSelected+ ".png");
+        }
+
+        bookDisplay1.setFocusPainted(false);
+        bookDisplay1.setFocusable(false);
+        bookDisplay1.setRequestFocusEnabled(false);
+        bookDisplay1.setRolloverEnabled(false);
         bookDisplay1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 bookDisplay1ActionPerformed(evt);
+            }
+        });
+
+        bookDisplay2.setFocusPainted(false);
+        bookDisplay2.setFocusable(false);
+        bookDisplay2.setRequestFocusEnabled(false);
+        bookDisplay2.setRolloverEnabled(false);
+        bookDisplay2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookDisplay2ActionPerformed(evt);
+            }
+        });
+
+        bookDisplay3.setFocusPainted(false);
+        bookDisplay3.setFocusable(false);
+        bookDisplay3.setRequestFocusEnabled(false);
+        bookDisplay3.setRolloverEnabled(false);
+        bookDisplay3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookDisplay3ActionPerformed(evt);
+            }
+        });
+
+        bookDisplay4.setFocusPainted(false);
+        bookDisplay4.setFocusable(false);
+        bookDisplay4.setRequestFocusEnabled(false);
+        bookDisplay4.setRolloverEnabled(false);
+        bookDisplay4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookDisplay4ActionPerformed(evt);
+            }
+        });
+
+        bookDisplay5.setFocusPainted(false);
+        bookDisplay5.setFocusable(false);
+        bookDisplay5.setRequestFocusEnabled(false);
+        bookDisplay5.setRolloverEnabled(false);
+        bookDisplay5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookDisplay5ActionPerformed(evt);
+            }
+        });
+
+        bookDisplay6.setFocusPainted(false);
+        bookDisplay6.setFocusable(false);
+        bookDisplay6.setRequestFocusEnabled(false);
+        bookDisplay6.setRolloverEnabled(false);
+        bookDisplay6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookDisplay6ActionPerformed(evt);
+            }
+        });
+
+        bookDisplay7.setFocusPainted(false);
+        bookDisplay7.setFocusable(false);
+        bookDisplay7.setRequestFocusEnabled(false);
+        bookDisplay7.setRolloverEnabled(false);
+        bookDisplay7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookDisplay7ActionPerformed(evt);
+            }
+        });
+
+        bookDisplay8.setFocusPainted(false);
+        bookDisplay8.setFocusable(false);
+        bookDisplay8.setRequestFocusEnabled(false);
+        bookDisplay8.setRolloverEnabled(false);
+        bookDisplay8.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookDisplay8ActionPerformed(evt);
+            }
+        });
+
+        bookDisplay9.setFocusPainted(false);
+        bookDisplay9.setFocusable(false);
+        bookDisplay9.setRequestFocusEnabled(false);
+        bookDisplay9.setRolloverEnabled(false);
+        bookDisplay9.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookDisplay9ActionPerformed(evt);
+            }
+        });
+
+        bookDisplay10.setFocusPainted(false);
+        bookDisplay10.setFocusable(false);
+        bookDisplay10.setRequestFocusEnabled(false);
+        bookDisplay10.setRolloverEnabled(false);
+        bookDisplay10.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookDisplay10ActionPerformed(evt);
+            }
+        });
+
+        bookDisplay11.setFocusPainted(false);
+        bookDisplay11.setFocusable(false);
+        bookDisplay11.setRequestFocusEnabled(false);
+        bookDisplay11.setRolloverEnabled(false);
+        bookDisplay11.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookDisplay11ActionPerformed(evt);
+            }
+        });
+
+        bookDisplay12.setFocusPainted(false);
+        bookDisplay12.setFocusable(false);
+        bookDisplay12.setRequestFocusEnabled(false);
+        bookDisplay12.setRolloverEnabled(false);
+        bookDisplay12.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookDisplay12ActionPerformed(evt);
             }
         });
 
@@ -3216,12 +3370,11 @@ private void updateBookTiles() {
                 .addGap(4, 4, 4)
                 .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(selectedBookUnderline7)
-                    .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addComponent(selectedBookUnderline9, javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(selectedBookUnderline10, javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(selectedBookUnderline11, javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(selectedBookUnderline12, javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(selectedBookUnderline8, javax.swing.GroupLayout.Alignment.LEADING)))
+                    .addComponent(selectedBookUnderline9)
+                    .addComponent(selectedBookUnderline10)
+                    .addComponent(selectedBookUnderline11)
+                    .addComponent(selectedBookUnderline12)
+                    .addComponent(selectedBookUnderline8))
                 .addGap(18, 18, 18)
                 .addComponent(readStatus1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(236, 236, 236))
@@ -3315,24 +3468,24 @@ private void updateBookTiles() {
             System.err.println("Icon not found: /bookTiles/" + num12 + ".png");
         }
 
-        javax.swing.GroupLayout libraryRedoLayout = new javax.swing.GroupLayout(libraryRedo);
-        libraryRedo.setLayout(libraryRedoLayout);
-        libraryRedoLayout.setHorizontalGroup(
-            libraryRedoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(libraryRedoLayout.createSequentialGroup()
+        javax.swing.GroupLayout libraryTabLayout = new javax.swing.GroupLayout(libraryTab);
+        libraryTab.setLayout(libraryTabLayout);
+        libraryTabLayout.setHorizontalGroup(
+            libraryTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(libraryTabLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(libraryContent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        libraryRedoLayout.setVerticalGroup(
-            libraryRedoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, libraryRedoLayout.createSequentialGroup()
+        libraryTabLayout.setVerticalGroup(
+            libraryTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, libraryTabLayout.createSequentialGroup()
                 .addContainerGap(52, Short.MAX_VALUE)
                 .addComponent(libraryContent, javax.swing.GroupLayout.PREFERRED_SIZE, 917, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
-        tabs.addTab("Notes", libraryRedo);
+        tabs.addTab("Notes", libraryTab);
 
         javax.swing.GroupLayout jPanel11Layout = new javax.swing.GroupLayout(jPanel11);
         jPanel11.setLayout(jPanel11Layout);
@@ -3569,7 +3722,23 @@ private void updateBookTiles() {
     }//GEN-LAST:event_exploreMoreBtn1ActionPerformed
 
     private void bookDisplay1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay1ActionPerformed
-        // TODO add your handling code here:
+        selectedBookUnderline1.setContentAreaFilled(true);
+        selectedBookUnderline2.setContentAreaFilled(false);
+        selectedBookUnderline3.setContentAreaFilled(false);
+        selectedBookUnderline4.setContentAreaFilled(false);
+        selectedBookUnderline5.setContentAreaFilled(false);
+        selectedBookUnderline6.setContentAreaFilled(false);
+        selectedBookUnderline7.setContentAreaFilled(false);
+        selectedBookUnderline8.setContentAreaFilled(false);
+        selectedBookUnderline9.setContentAreaFilled(false);
+        selectedBookUnderline10.setContentAreaFilled(false);
+        selectedBookUnderline11.setContentAreaFilled(false);
+        selectedBookUnderline12.setContentAreaFilled(false);
+        
+        
+        currentSelected = 1;
+        updateSelectedBookIcon();
+        
     }//GEN-LAST:event_bookDisplay1ActionPerformed
 
     private void reRandomizerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reRandomizerActionPerformed
@@ -3578,6 +3747,22 @@ private void updateBookTiles() {
 
         // Update all book display buttons
         updateBookTiles();
+        
+        selectedBookUnderline1.setContentAreaFilled(false);
+        selectedBookUnderline2.setContentAreaFilled(false);
+        selectedBookUnderline3.setContentAreaFilled(false);
+        selectedBookUnderline4.setContentAreaFilled(false);
+        selectedBookUnderline5.setContentAreaFilled(false);
+        selectedBookUnderline6.setContentAreaFilled(false);
+        selectedBookUnderline7.setContentAreaFilled(false);
+        selectedBookUnderline8.setContentAreaFilled(false);
+        selectedBookUnderline9.setContentAreaFilled(false);
+        selectedBookUnderline10.setContentAreaFilled(false);
+        selectedBookUnderline11.setContentAreaFilled(false);
+        selectedBookUnderline12.setContentAreaFilled(false);
+        
+        
+
     }//GEN-LAST:event_reRandomizerActionPerformed
 
     private void selectedBookUnderline3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectedBookUnderline3ActionPerformed
@@ -3591,6 +3776,204 @@ private void updateBookTiles() {
     private void selectedBookUnderline8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectedBookUnderline8ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_selectedBookUnderline8ActionPerformed
+
+    private void bookDisplay2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay2ActionPerformed
+        selectedBookUnderline1.setContentAreaFilled(false);
+        selectedBookUnderline2.setContentAreaFilled(true);
+        selectedBookUnderline3.setContentAreaFilled(false);
+        selectedBookUnderline4.setContentAreaFilled(false);
+        selectedBookUnderline5.setContentAreaFilled(false);
+        selectedBookUnderline6.setContentAreaFilled(false);
+        selectedBookUnderline7.setContentAreaFilled(false);
+        selectedBookUnderline8.setContentAreaFilled(false);
+        selectedBookUnderline9.setContentAreaFilled(false);
+        selectedBookUnderline10.setContentAreaFilled(false);
+        selectedBookUnderline11.setContentAreaFilled(false);
+        selectedBookUnderline12.setContentAreaFilled(false);
+        
+        currentSelected = 2;
+        updateSelectedBookIcon();
+    }//GEN-LAST:event_bookDisplay2ActionPerformed
+
+    private void bookDisplay3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay3ActionPerformed
+        selectedBookUnderline1.setContentAreaFilled(false);
+        selectedBookUnderline2.setContentAreaFilled(false);
+        selectedBookUnderline3.setContentAreaFilled(true);
+        selectedBookUnderline4.setContentAreaFilled(false);
+        selectedBookUnderline5.setContentAreaFilled(false);
+        selectedBookUnderline6.setContentAreaFilled(false);
+        selectedBookUnderline7.setContentAreaFilled(false);
+        selectedBookUnderline8.setContentAreaFilled(false);
+        selectedBookUnderline9.setContentAreaFilled(false);
+        selectedBookUnderline10.setContentAreaFilled(false);
+        selectedBookUnderline11.setContentAreaFilled(false);
+        selectedBookUnderline12.setContentAreaFilled(false);
+        
+        currentSelected = 3;
+        updateSelectedBookIcon();
+    }//GEN-LAST:event_bookDisplay3ActionPerformed
+
+    private void bookDisplay4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay4ActionPerformed
+        selectedBookUnderline1.setContentAreaFilled(false);
+        selectedBookUnderline2.setContentAreaFilled(false);
+        selectedBookUnderline3.setContentAreaFilled(false);
+        selectedBookUnderline4.setContentAreaFilled(true);
+        selectedBookUnderline5.setContentAreaFilled(false);
+        selectedBookUnderline6.setContentAreaFilled(false);
+        selectedBookUnderline7.setContentAreaFilled(false);
+        selectedBookUnderline8.setContentAreaFilled(false);
+        selectedBookUnderline9.setContentAreaFilled(false);
+        selectedBookUnderline10.setContentAreaFilled(false);
+        selectedBookUnderline11.setContentAreaFilled(false);
+        selectedBookUnderline12.setContentAreaFilled(false);
+        
+        currentSelected = 4;
+        updateSelectedBookIcon();
+    }//GEN-LAST:event_bookDisplay4ActionPerformed
+
+    private void bookDisplay5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay5ActionPerformed
+        selectedBookUnderline1.setContentAreaFilled(false);
+        selectedBookUnderline2.setContentAreaFilled(false);
+        selectedBookUnderline3.setContentAreaFilled(false);
+        selectedBookUnderline4.setContentAreaFilled(false);
+        selectedBookUnderline5.setContentAreaFilled(true);
+        selectedBookUnderline6.setContentAreaFilled(false);
+        selectedBookUnderline7.setContentAreaFilled(false);
+        selectedBookUnderline8.setContentAreaFilled(false);
+        selectedBookUnderline9.setContentAreaFilled(false);
+        selectedBookUnderline10.setContentAreaFilled(false);
+        selectedBookUnderline11.setContentAreaFilled(false);
+        selectedBookUnderline12.setContentAreaFilled(false);
+        
+        currentSelected = 5;
+        updateSelectedBookIcon();
+    }//GEN-LAST:event_bookDisplay5ActionPerformed
+
+    private void bookDisplay6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay6ActionPerformed
+        selectedBookUnderline1.setContentAreaFilled(false);
+        selectedBookUnderline2.setContentAreaFilled(false);
+        selectedBookUnderline3.setContentAreaFilled(false);
+        selectedBookUnderline4.setContentAreaFilled(false);
+        selectedBookUnderline5.setContentAreaFilled(false);
+        selectedBookUnderline6.setContentAreaFilled(true);
+        selectedBookUnderline7.setContentAreaFilled(false);
+        selectedBookUnderline8.setContentAreaFilled(false);
+        selectedBookUnderline9.setContentAreaFilled(false);
+        selectedBookUnderline10.setContentAreaFilled(false);
+        selectedBookUnderline11.setContentAreaFilled(false);
+        selectedBookUnderline12.setContentAreaFilled(false);
+        
+        currentSelected = 6;
+        updateSelectedBookIcon();
+    }//GEN-LAST:event_bookDisplay6ActionPerformed
+
+    private void bookDisplay7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay7ActionPerformed
+        selectedBookUnderline1.setContentAreaFilled(false);
+        selectedBookUnderline2.setContentAreaFilled(false);
+        selectedBookUnderline3.setContentAreaFilled(false);
+        selectedBookUnderline4.setContentAreaFilled(false);
+        selectedBookUnderline5.setContentAreaFilled(false);
+        selectedBookUnderline6.setContentAreaFilled(false);
+        selectedBookUnderline7.setContentAreaFilled(true);
+        selectedBookUnderline8.setContentAreaFilled(false);
+        selectedBookUnderline9.setContentAreaFilled(false);
+        selectedBookUnderline10.setContentAreaFilled(false);
+        selectedBookUnderline11.setContentAreaFilled(false);
+        selectedBookUnderline12.setContentAreaFilled(false);
+        
+        currentSelected = 7;
+        updateSelectedBookIcon();
+    }//GEN-LAST:event_bookDisplay7ActionPerformed
+
+    private void bookDisplay8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay8ActionPerformed
+        selectedBookUnderline1.setContentAreaFilled(false);
+        selectedBookUnderline2.setContentAreaFilled(false);
+        selectedBookUnderline3.setContentAreaFilled(false);
+        selectedBookUnderline4.setContentAreaFilled(false);
+        selectedBookUnderline5.setContentAreaFilled(false);
+        selectedBookUnderline6.setContentAreaFilled(false);
+        selectedBookUnderline7.setContentAreaFilled(false);
+        selectedBookUnderline8.setContentAreaFilled(true);
+        selectedBookUnderline9.setContentAreaFilled(false);
+        selectedBookUnderline10.setContentAreaFilled(false);
+        selectedBookUnderline11.setContentAreaFilled(false);
+        selectedBookUnderline12.setContentAreaFilled(false);
+        
+        currentSelected = 8;
+        updateSelectedBookIcon();
+    }//GEN-LAST:event_bookDisplay8ActionPerformed
+
+    private void bookDisplay9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay9ActionPerformed
+        selectedBookUnderline1.setContentAreaFilled(false);
+        selectedBookUnderline2.setContentAreaFilled(false);
+        selectedBookUnderline3.setContentAreaFilled(false);
+        selectedBookUnderline4.setContentAreaFilled(false);
+        selectedBookUnderline5.setContentAreaFilled(false);
+        selectedBookUnderline6.setContentAreaFilled(false);
+        selectedBookUnderline7.setContentAreaFilled(false);
+        selectedBookUnderline8.setContentAreaFilled(false);
+        selectedBookUnderline9.setContentAreaFilled(true);
+        selectedBookUnderline10.setContentAreaFilled(false);
+        selectedBookUnderline11.setContentAreaFilled(false);
+        selectedBookUnderline12.setContentAreaFilled(false);
+        
+        currentSelected = 9;
+        updateSelectedBookIcon();
+    }//GEN-LAST:event_bookDisplay9ActionPerformed
+
+    private void bookDisplay10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay10ActionPerformed
+        selectedBookUnderline1.setContentAreaFilled(false);
+        selectedBookUnderline2.setContentAreaFilled(false);
+        selectedBookUnderline3.setContentAreaFilled(false);
+        selectedBookUnderline4.setContentAreaFilled(false);
+        selectedBookUnderline5.setContentAreaFilled(false);
+        selectedBookUnderline6.setContentAreaFilled(false);
+        selectedBookUnderline7.setContentAreaFilled(false);
+        selectedBookUnderline8.setContentAreaFilled(false);
+        selectedBookUnderline9.setContentAreaFilled(false);
+        selectedBookUnderline10.setContentAreaFilled(true);
+        selectedBookUnderline11.setContentAreaFilled(false);
+        selectedBookUnderline12.setContentAreaFilled(false);
+        
+        currentSelected = 10;
+        updateSelectedBookIcon();
+    }//GEN-LAST:event_bookDisplay10ActionPerformed
+
+    private void bookDisplay11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay11ActionPerformed
+        selectedBookUnderline1.setContentAreaFilled(false);
+        selectedBookUnderline2.setContentAreaFilled(false);
+        selectedBookUnderline3.setContentAreaFilled(false);
+        selectedBookUnderline4.setContentAreaFilled(false);
+        selectedBookUnderline5.setContentAreaFilled(false);
+        selectedBookUnderline6.setContentAreaFilled(false);
+        selectedBookUnderline7.setContentAreaFilled(false);
+        selectedBookUnderline8.setContentAreaFilled(false);
+        selectedBookUnderline9.setContentAreaFilled(false);
+        selectedBookUnderline10.setContentAreaFilled(false);
+        selectedBookUnderline11.setContentAreaFilled(true);
+        selectedBookUnderline12.setContentAreaFilled(false);
+        
+        currentSelected = 11;
+        updateSelectedBookIcon();
+    }//GEN-LAST:event_bookDisplay11ActionPerformed
+
+    private void bookDisplay12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay12ActionPerformed
+        selectedBookUnderline1.setContentAreaFilled(false);
+        selectedBookUnderline2.setContentAreaFilled(false);
+        selectedBookUnderline3.setContentAreaFilled(false);
+        selectedBookUnderline4.setContentAreaFilled(false);
+        selectedBookUnderline5.setContentAreaFilled(false);
+        selectedBookUnderline6.setContentAreaFilled(false);
+        selectedBookUnderline7.setContentAreaFilled(false);
+        selectedBookUnderline8.setContentAreaFilled(false);
+        selectedBookUnderline9.setContentAreaFilled(false);
+        selectedBookUnderline10.setContentAreaFilled(false);
+        selectedBookUnderline11.setContentAreaFilled(false);
+        selectedBookUnderline12.setContentAreaFilled(true);
+        
+        currentSelected = 12;
+        updateSelectedBookIcon();
+    }//GEN-LAST:event_bookDisplay12ActionPerformed
 
     
  
@@ -3695,7 +4078,7 @@ private void updateBookTiles() {
     private javax.swing.JButton journalBtn;
     private javax.swing.JButton libraryBtn;
     private javax.swing.JPanel libraryContent;
-    private javax.swing.JPanel libraryRedo;
+    private javax.swing.JPanel libraryTab;
     private javax.swing.JLayeredPane mainPanel_layered;
     private javax.swing.JTextArea mainTextArea;
     private javax.swing.JScrollPane mainTextScrollPanel;

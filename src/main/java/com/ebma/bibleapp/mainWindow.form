@@ -910,7 +910,7 @@
                 </Component>
               </SubComponents>
             </Container>
-            <Container class="javax.swing.JPanel" name="libraryRedo">
+            <Container class="javax.swing.JPanel" name="libraryTab">
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
                   <JTabbedPaneConstraints tabName="Notes">
@@ -1081,13 +1081,11 @@
                               <EmptySpace min="-2" pref="4" max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" attributes="0">
                                   <Component id="selectedBookUnderline7" min="-2" max="-2" attributes="0"/>
-                                  <Group type="103" groupAlignment="1" attributes="0">
-                                      <Component id="selectedBookUnderline9" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="selectedBookUnderline10" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="selectedBookUnderline11" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="selectedBookUnderline12" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="selectedBookUnderline8" alignment="0" min="-2" max="-2" attributes="0"/>
-                                  </Group>
+                                  <Component id="selectedBookUnderline9" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  <Component id="selectedBookUnderline10" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  <Component id="selectedBookUnderline11" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  <Component id="selectedBookUnderline12" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  <Component id="selectedBookUnderline8" alignment="0" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <EmptySpace type="separate" max="-2" attributes="0"/>
                               <Component id="readStatus1" max="32767" attributes="0"/>
@@ -3429,10 +3427,19 @@
                           </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="selectedBook">
+                          <AuxValues>
+                            <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="// Set the icon to currentSelected.png from resources&#xa;URL selectedIconURL = getClass().getResource(&quot;/bookTiles/&quot;  +currentSelected+ &quot;.png&quot;);&#xa;if (selectedIconURL != null) {&#xa;    bookDisplay1.setIcon(new ImageIcon(selectedIconURL));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; +currentSelected+ &quot;.png&quot;);&#xa;}"/>
+                          </AuxValues>
                         </Component>
                       </SubComponents>
                     </Container>
                     <Component class="javax.swing.JButton" name="bookDisplay1">
+                      <Properties>
+                        <Property name="focusPainted" type="boolean" value="false"/>
+                        <Property name="focusable" type="boolean" value="false"/>
+                        <Property name="requestFocusEnabled" type="boolean" value="false"/>
+                        <Property name="rolloverEnabled" type="boolean" value="false"/>
+                      </Properties>
                       <Events>
                         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bookDisplay1ActionPerformed"/>
                       </Events>
@@ -3441,56 +3448,155 @@
                       </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay2">
+                      <Properties>
+                        <Property name="focusPainted" type="boolean" value="false"/>
+                        <Property name="focusable" type="boolean" value="false"/>
+                        <Property name="requestFocusEnabled" type="boolean" value="false"/>
+                        <Property name="rolloverEnabled" type="boolean" value="false"/>
+                      </Properties>
+                      <Events>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bookDisplay2ActionPerformed"/>
+                      </Events>
                       <AuxValues>
                         <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num2 = randomNums.get(1);&#xa;URL iconURL2 = getClass().getResource(&quot;/bookTiles/&quot; + num2 + &quot;.png&quot;);&#xa;if(iconURL2 != null) {&#xa;    bookDisplay2.setIcon(new javax.swing.ImageIcon(iconURL2));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num2 + &quot;.png&quot;);&#xa;}"/>
                       </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay3">
+                      <Properties>
+                        <Property name="focusPainted" type="boolean" value="false"/>
+                        <Property name="focusable" type="boolean" value="false"/>
+                        <Property name="requestFocusEnabled" type="boolean" value="false"/>
+                        <Property name="rolloverEnabled" type="boolean" value="false"/>
+                      </Properties>
+                      <Events>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bookDisplay3ActionPerformed"/>
+                      </Events>
                       <AuxValues>
                         <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num3 = randomNums.get(2);&#xa;URL iconURL3 = getClass().getResource(&quot;/bookTiles/&quot; + num3 + &quot;.png&quot;);&#xa;if(iconURL3 != null) {&#xa;    bookDisplay3.setIcon(new javax.swing.ImageIcon(iconURL3));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num3 + &quot;.png&quot;);&#xa;}"/>
                       </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay4">
+                      <Properties>
+                        <Property name="focusPainted" type="boolean" value="false"/>
+                        <Property name="focusable" type="boolean" value="false"/>
+                        <Property name="requestFocusEnabled" type="boolean" value="false"/>
+                        <Property name="rolloverEnabled" type="boolean" value="false"/>
+                      </Properties>
+                      <Events>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bookDisplay4ActionPerformed"/>
+                      </Events>
                       <AuxValues>
                         <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num4 = randomNums.get(3);&#xa;URL iconURL4 = getClass().getResource(&quot;/bookTiles/&quot; + num4 + &quot;.png&quot;);&#xa;if(iconURL4 != null) {&#xa;    bookDisplay4.setIcon(new javax.swing.ImageIcon(iconURL4));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num4 + &quot;.png&quot;);&#xa;}"/>
                       </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay5">
+                      <Properties>
+                        <Property name="focusPainted" type="boolean" value="false"/>
+                        <Property name="focusable" type="boolean" value="false"/>
+                        <Property name="requestFocusEnabled" type="boolean" value="false"/>
+                        <Property name="rolloverEnabled" type="boolean" value="false"/>
+                      </Properties>
+                      <Events>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bookDisplay5ActionPerformed"/>
+                      </Events>
                       <AuxValues>
                         <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num5 = randomNums.get(4);&#xa;URL iconURL5 = getClass().getResource(&quot;/bookTiles/&quot; + num5 + &quot;.png&quot;);&#xa;if(iconURL5 != null) {&#xa;    bookDisplay5.setIcon(new javax.swing.ImageIcon(iconURL5));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num5 + &quot;.png&quot;);&#xa;}"/>
                       </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay6">
+                      <Properties>
+                        <Property name="focusPainted" type="boolean" value="false"/>
+                        <Property name="focusable" type="boolean" value="false"/>
+                        <Property name="requestFocusEnabled" type="boolean" value="false"/>
+                        <Property name="rolloverEnabled" type="boolean" value="false"/>
+                      </Properties>
+                      <Events>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bookDisplay6ActionPerformed"/>
+                      </Events>
                       <AuxValues>
                         <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num6 = randomNums.get(5);&#xa;URL iconURL6 = getClass().getResource(&quot;/bookTiles/&quot; + num6 + &quot;.png&quot;);&#xa;if(iconURL6 != null) {&#xa;    bookDisplay6.setIcon(new javax.swing.ImageIcon(iconURL6));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num6 + &quot;.png&quot;);&#xa;}"/>
                       </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay7">
+                      <Properties>
+                        <Property name="focusPainted" type="boolean" value="false"/>
+                        <Property name="focusable" type="boolean" value="false"/>
+                        <Property name="requestFocusEnabled" type="boolean" value="false"/>
+                        <Property name="rolloverEnabled" type="boolean" value="false"/>
+                      </Properties>
+                      <Events>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bookDisplay7ActionPerformed"/>
+                      </Events>
                       <AuxValues>
                         <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num7 = randomNums.get(6);&#xa;URL iconURL7 = getClass().getResource(&quot;/bookTiles/&quot; + num7 + &quot;.png&quot;);&#xa;if(iconURL7 != null) {&#xa;    bookDisplay7.setIcon(new javax.swing.ImageIcon(iconURL7));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num7 + &quot;.png&quot;);&#xa;}"/>
                       </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay8">
+                      <Properties>
+                        <Property name="focusPainted" type="boolean" value="false"/>
+                        <Property name="focusable" type="boolean" value="false"/>
+                        <Property name="requestFocusEnabled" type="boolean" value="false"/>
+                        <Property name="rolloverEnabled" type="boolean" value="false"/>
+                      </Properties>
+                      <Events>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bookDisplay8ActionPerformed"/>
+                      </Events>
                       <AuxValues>
                         <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num8 = randomNums.get(7);&#xa;URL iconURL8 = getClass().getResource(&quot;/bookTiles/&quot; + num8 + &quot;.png&quot;);&#xa;if(iconURL8 != null) {&#xa;    bookDisplay8.setIcon(new javax.swing.ImageIcon(iconURL8));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num8 + &quot;.png&quot;);&#xa;}"/>
                       </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay9">
+                      <Properties>
+                        <Property name="focusPainted" type="boolean" value="false"/>
+                        <Property name="focusable" type="boolean" value="false"/>
+                        <Property name="requestFocusEnabled" type="boolean" value="false"/>
+                        <Property name="rolloverEnabled" type="boolean" value="false"/>
+                      </Properties>
+                      <Events>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bookDisplay9ActionPerformed"/>
+                      </Events>
                       <AuxValues>
                         <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num9 = randomNums.get(8);&#xa;URL iconURL9 = getClass().getResource(&quot;/bookTiles/&quot; + num9 + &quot;.png&quot;);&#xa;if(iconURL9 != null) {&#xa;    bookDisplay9.setIcon(new javax.swing.ImageIcon(iconURL9));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num9 + &quot;.png&quot;);&#xa;}"/>
                       </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay10">
+                      <Properties>
+                        <Property name="focusPainted" type="boolean" value="false"/>
+                        <Property name="focusable" type="boolean" value="false"/>
+                        <Property name="requestFocusEnabled" type="boolean" value="false"/>
+                        <Property name="rolloverEnabled" type="boolean" value="false"/>
+                      </Properties>
+                      <Events>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bookDisplay10ActionPerformed"/>
+                      </Events>
                       <AuxValues>
                         <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num10 = randomNums.get(9);&#xa;URL iconURL10 = getClass().getResource(&quot;/bookTiles/&quot; + num10 + &quot;.png&quot;);&#xa;if(iconURL10 != null) {&#xa;    bookDisplay10.setIcon(new javax.swing.ImageIcon(iconURL10));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num10 + &quot;.png&quot;);&#xa;}"/>
                       </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay11">
+                      <Properties>
+                        <Property name="focusPainted" type="boolean" value="false"/>
+                        <Property name="focusable" type="boolean" value="false"/>
+                        <Property name="requestFocusEnabled" type="boolean" value="false"/>
+                        <Property name="rolloverEnabled" type="boolean" value="false"/>
+                      </Properties>
+                      <Events>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bookDisplay11ActionPerformed"/>
+                      </Events>
                       <AuxValues>
                         <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num11 = randomNums.get(10);&#xa;URL iconURL11 = getClass().getResource(&quot;/bookTiles/&quot; + num11 + &quot;.png&quot;);&#xa;if(iconURL11 != null) {&#xa;    bookDisplay11.setIcon(new javax.swing.ImageIcon(iconURL11));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num11 + &quot;.png&quot;);&#xa;}"/>
                       </AuxValues>
                     </Component>
                     <Component class="javax.swing.JButton" name="bookDisplay12">
+                      <Properties>
+                        <Property name="focusPainted" type="boolean" value="false"/>
+                        <Property name="focusable" type="boolean" value="false"/>
+                        <Property name="requestFocusEnabled" type="boolean" value="false"/>
+                        <Property name="rolloverEnabled" type="boolean" value="false"/>
+                      </Properties>
+                      <Events>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bookDisplay12ActionPerformed"/>
+                      </Events>
                       <AuxValues>
                         <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="int num12 = randomNums.get(11);&#xa;URL iconURL12 = getClass().getResource(&quot;/bookTiles/&quot; + num12 + &quot;.png&quot;);&#xa;if(iconURL12 != null) {&#xa;    bookDisplay12.setIcon(new javax.swing.ImageIcon(iconURL12));&#xa;} else {&#xa;    System.err.println(&quot;Icon not found: /bookTiles/&quot; + num12 + &quot;.png&quot;);&#xa;}"/>
                       </AuxValues>
