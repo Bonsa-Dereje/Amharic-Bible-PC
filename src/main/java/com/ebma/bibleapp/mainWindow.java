@@ -645,8 +645,6 @@ private void updateBookDetails() {
 
         mainPanel_layered = new javax.swing.JLayeredPane();
         topBar = new javax.swing.JPanel();
-        bookChooserDropDown = new javax.swing.JComboBox<>();
-        jTextField1 = new javax.swing.JTextField();
         closeBtn = new javax.swing.JButton();
         appTitle = new javax.swing.JLabel();
         restoreBtn = new javax.swing.JButton();
@@ -693,6 +691,7 @@ private void updateBookDetails() {
         chapterChooser = new javax.swing.JComboBox<>();
         verseChooser = new javax.swing.JComboBox<>();
         testamentChooser = new javax.swing.JComboBox<>();
+        bookChooserDropDown = new javax.swing.JComboBox<>();
         libraryTab = new javax.swing.JPanel();
         libraryContent = new javax.swing.JPanel();
         readStatus1 = new javax.swing.JPanel();
@@ -1111,9 +1110,21 @@ private void updateBookDetails() {
         selectedBookUnderline12 = new javax.swing.JButton();
         bookReaderSubTab = new javax.swing.JPanel();
         bookReaderContent = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
+        subTabLayered = new javax.swing.JLayeredPane();
+        bookScroll = new javax.swing.JScrollPane();
         pdfDisplay = new javax.swing.JTextArea();
-        jPanel12 = new javax.swing.JPanel();
+        themer = new javax.swing.JLabel();
+        toolBox = new javax.swing.JPanel();
+        bookmark = new javax.swing.JButton();
+        cafeTheme = new javax.swing.JButton();
+        treeTheme = new javax.swing.JButton();
+        rainAmbience = new javax.swing.JButton();
+        fontPlus = new javax.swing.JButton();
+        fontDisplay = new javax.swing.JTextField();
+        fontMinus = new javax.swing.JButton();
+        darkMode = new javax.swing.JButton();
+        rainAmbience4 = new javax.swing.JButton();
+        rainAmbience5 = new javax.swing.JButton();
         jPanel13 = new javax.swing.JPanel();
         jPanel14 = new javax.swing.JPanel();
 
@@ -1123,16 +1134,6 @@ private void updateBookDetails() {
 
         topBar.setBackground(new java.awt.Color(255, 255, 255));
         topBar.setPreferredSize(new java.awt.Dimension(1427, 10));
-
-        bookChooserDropDown.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 12)); // NOI18N
-        bookChooserDropDown.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "አማርኛ", "English", "Afaan Oromoo", " " }));
-        bookChooserDropDown.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                bookChooserDropDownActionPerformed(evt);
-            }
-        });
-
-        jTextField1.setText("Search");
 
         closeBtn.setFont(new java.awt.Font("Segoe UI Light", 0, 14)); // NOI18N
         closeBtn.setText("X");
@@ -1168,11 +1169,7 @@ private void updateBookDetails() {
             .addGroup(topBarLayout.createSequentialGroup()
                 .addGap(6, 6, 6)
                 .addComponent(appTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 1058, Short.MAX_VALUE)
-                .addComponent(bookChooserDropDown, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(12, 12, 12)
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(40, 40, 40)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 1360, Short.MAX_VALUE)
                 .addComponent(minimizeBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(8, 8, 8)
                 .addComponent(restoreBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1190,9 +1187,7 @@ private void updateBookDetails() {
                         .addGroup(topBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(minimizeBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(restoreBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(closeBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(bookChooserDropDown, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(closeBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -1760,6 +1755,15 @@ private void updateBookDetails() {
         testamentChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
         testamentChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ብሉይ ኪዳን", "አዲስ ኪዳን" }));
         bibleTab.add(testamentChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(17, 67, 105, -1));
+
+        bookChooserDropDown.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 12)); // NOI18N
+        bookChooserDropDown.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "አማርኛ", "English", "Afaan Oromoo", " " }));
+        bookChooserDropDown.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookChooserDropDownActionPerformed(evt);
+            }
+        });
+        bibleTab.add(bookChooserDropDown, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 70, 89, -1));
 
         tabs.addTab("Home", bibleTab);
 
@@ -3123,14 +3127,12 @@ private void updateBookDetails() {
         bookDescriptionSideBar1Layout.setHorizontalGroup(
             bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBar1Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
-                        .addContainerGap(125, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBar1Layout.createSequentialGroup()
                         .addComponent(readBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(17, 17, 17))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBar1Layout.createSequentialGroup()
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(aboutTheBook1)))
+                    .addComponent(aboutTheBook1, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addGap(115, 115, 115))
             .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
                 .addGroup(bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -3140,7 +3142,7 @@ private void updateBookDetails() {
                     .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
                         .addGap(26, 26, 26)
                         .addComponent(description, javax.swing.GroupLayout.PREFERRED_SIZE, 294, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(31, Short.MAX_VALUE))
         );
         bookDescriptionSideBar1Layout.setVerticalGroup(
             bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -3572,25 +3574,129 @@ private void updateBookDetails() {
 
         tabs.addTab("Notes", libraryTab);
 
+        subTabLayered.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        bookScroll.setBackground(new java.awt.Color(255, 246, 236));
+
+        pdfDisplay.setBackground(new java.awt.Color(255, 251, 247));
         pdfDisplay.setColumns(20);
         pdfDisplay.setRows(5);
-        jScrollPane1.setViewportView(pdfDisplay);
+        bookScroll.setViewportView(pdfDisplay);
+        bookScroll.setViewportView(pdfDisplay);
+
+        subTabLayered.add(bookScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(343, 46, 920, 929));
+        subTabLayered.add(themer, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 45, -1, 930));
+
+        toolBox.setBackground(new java.awt.Color(40, 43, 45));
+
+        bookmark.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/bookmark30W.png"))); // NOI18N
+        bookmark.setContentAreaFilled(false);
+
+        cafeTheme.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/cafe30.png"))); // NOI18N
+        cafeTheme.setContentAreaFilled(false);
+
+        treeTheme.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/trees30.png"))); // NOI18N
+        treeTheme.setContentAreaFilled(false);
+
+        rainAmbience.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/rain30.png"))); // NOI18N
+        rainAmbience.setContentAreaFilled(false);
+
+        fontPlus.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/plus30.png"))); // NOI18N
+        fontPlus.setContentAreaFilled(false);
+
+        fontMinus.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/minus30.png"))); // NOI18N
+        fontMinus.setContentAreaFilled(false);
+        fontMinus.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fontMinusActionPerformed(evt);
+            }
+        });
+
+        darkMode.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/darkMode30E.png"))); // NOI18N
+        darkMode.setContentAreaFilled(false);
+        darkMode.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                darkModeActionPerformed(evt);
+            }
+        });
+
+        rainAmbience4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/music30.png"))); // NOI18N
+        rainAmbience4.setContentAreaFilled(false);
+        rainAmbience4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rainAmbience4ActionPerformed(evt);
+            }
+        });
+
+        rainAmbience5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/share30.png"))); // NOI18N
+        rainAmbience5.setContentAreaFilled(false);
+        rainAmbience5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rainAmbience5ActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout toolBoxLayout = new javax.swing.GroupLayout(toolBox);
+        toolBox.setLayout(toolBoxLayout);
+        toolBoxLayout.setHorizontalGroup(
+            toolBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, toolBoxLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(toolBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(toolBoxLayout.createSequentialGroup()
+                        .addGroup(toolBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(cafeTheme, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(treeTheme, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(rainAmbience, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(fontPlus, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(fontDisplay, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(fontMinus, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(darkMode, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(rainAmbience5, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, toolBoxLayout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(rainAmbience4, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+            .addComponent(bookmark, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        toolBoxLayout.setVerticalGroup(
+            toolBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(toolBoxLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(bookmark, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cafeTheme, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(treeTheme, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(rainAmbience, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(fontPlus, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(fontDisplay, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(fontMinus, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(darkMode, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(rainAmbience4, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(rainAmbience5, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        subTabLayered.add(toolBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(1540, 290, 40, 370));
 
         javax.swing.GroupLayout bookReaderContentLayout = new javax.swing.GroupLayout(bookReaderContent);
         bookReaderContent.setLayout(bookReaderContentLayout);
         bookReaderContentLayout.setHorizontalGroup(
             bookReaderContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(bookReaderContentLayout.createSequentialGroup()
-                .addGap(323, 323, 323)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 913, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(344, Short.MAX_VALUE))
+            .addComponent(subTabLayered)
         );
         bookReaderContentLayout.setVerticalGroup(
             bookReaderContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(bookReaderContentLayout.createSequentialGroup()
-                .addGap(52, 52, 52)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 917, Short.MAX_VALUE)
-                .addContainerGap())
+            .addComponent(subTabLayered, javax.swing.GroupLayout.Alignment.TRAILING)
         );
 
         javax.swing.GroupLayout bookReaderSubTabLayout = new javax.swing.GroupLayout(bookReaderSubTab);
@@ -3604,20 +3710,7 @@ private void updateBookDetails() {
             .addComponent(bookReaderContent, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
-        tabs.addTab("AudioBooks", bookReaderSubTab);
-
-        javax.swing.GroupLayout jPanel12Layout = new javax.swing.GroupLayout(jPanel12);
-        jPanel12.setLayout(jPanel12Layout);
-        jPanel12Layout.setHorizontalGroup(
-            jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1580, Short.MAX_VALUE)
-        );
-        jPanel12Layout.setVerticalGroup(
-            jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 975, Short.MAX_VALUE)
-        );
-
-        tabs.addTab("Commentaries", jPanel12);
+        tabs.addTab("Commentaries", bookReaderSubTab);
 
         javax.swing.GroupLayout jPanel13Layout = new javax.swing.GroupLayout(jPanel13);
         jPanel13.setLayout(jPanel13Layout);
@@ -4132,7 +4225,8 @@ private void updateBookDetails() {
                 tabs.setSelectedIndex(2);
 
                 // Convert plain text to HTML with centered alignment and larger font
-                String htmlText = "<html><body style='font-family:Serif; font-size:20pt; text-align:center; background-color:white;'>"
+                String htmlText = "<html><body style='font-family:Serif; font-size:20pt; "
+                        + "text-align:center; background-color:rgb(255,251,247) '>"
                         + text.replace("\n", "<br>")
                         + "</body></html>";
 
@@ -4141,11 +4235,18 @@ private void updateBookDetails() {
                 pdfPane.setContentType("text/html");
                 pdfPane.setText(htmlText);
                 pdfPane.setEditable(false);
-                pdfPane.setBackground(Color.WHITE); // ensure background is white
+                pdfPane.setBackground(new Color(255, 251, 247));
 
                 // Add to scroll pane
-                jScrollPane1.setViewportView(pdfPane);
-                jScrollPane1.getVerticalScrollBar().setValue(0); // start at top
+                bookScroll.setViewportView(pdfPane);
+                bookScroll.getVerticalScrollBar().setValue(0); // start at top
+
+                // ✅ Ensure focus + redraw when switching to this tab (important for JLayeredPane in NetBeans)
+                SwingUtilities.invokeLater(() -> {
+                    bookScroll.requestFocusInWindow(); 
+                    bookScroll.revalidate();           
+                    bookScroll.repaint();              
+                });
             }
 
         } catch (SQLException | IOException e) {
@@ -4154,6 +4255,22 @@ private void updateBookDetails() {
         }
     });
     }//GEN-LAST:event_readBtnActionPerformed
+
+    private void fontMinusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fontMinusActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_fontMinusActionPerformed
+
+    private void darkModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_darkModeActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_darkModeActionPerformed
+
+    private void rainAmbience4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rainAmbience4ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_rainAmbience4ActionPerformed
+
+    private void rainAmbience5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rainAmbience5ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_rainAmbience5ActionPerformed
 
     
    
@@ -4233,14 +4350,18 @@ private void updateBookDetails() {
     private javax.swing.JButton bookDisplay9;
     private javax.swing.JPanel bookReaderContent;
     private javax.swing.JPanel bookReaderSubTab;
+    private javax.swing.JScrollPane bookScroll;
+    private javax.swing.JButton bookmark;
     private javax.swing.JButton bookmarkBtn;
     private javax.swing.JLabel bookmarksBtn;
+    private javax.swing.JButton cafeTheme;
     private javax.swing.JComboBox<String> chapterChooser;
     private javax.swing.JButton closeBtn;
     private javax.swing.JButton cmntrsBtn;
     private javax.swing.JLabel cmntrsBtnLabel;
     private javax.swing.JPanel cmtrsTabPanel;
     private javax.swing.JTabbedPane cmtryTabbedPanel;
+    private javax.swing.JButton darkMode;
     private javax.swing.JLabel dayLabel4;
     private javax.swing.JLabel dayLabel5;
     private javax.swing.JLabel dayLabel6;
@@ -4248,17 +4369,17 @@ private void updateBookDetails() {
     private javax.swing.JButton exploreMoreBtn1;
     private javax.swing.JButton eyeHide;
     private javax.swing.JButton eyeShow;
+    private javax.swing.JTextField fontDisplay;
+    private javax.swing.JButton fontMinus;
+    private javax.swing.JButton fontPlus;
     private javax.swing.JSlider fontSizeSlider;
     private javax.swing.JButton highlightBtn;
     private javax.swing.JButton homeBtn;
     private javax.swing.JLabel homeBtnLabel;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
-    private javax.swing.JPanel jPanel12;
     private javax.swing.JPanel jPanel13;
     private javax.swing.JPanel jPanel14;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JButton journalBtn;
     private javax.swing.JButton libraryBtn;
     private javax.swing.JPanel libraryContent;
@@ -4287,6 +4408,9 @@ private void updateBookDetails() {
     private javax.swing.JLayeredPane notesTabLayers;
     private javax.swing.JPanel notesTabPanel;
     private javax.swing.JTextArea pdfDisplay;
+    private javax.swing.JButton rainAmbience;
+    private javax.swing.JButton rainAmbience4;
+    private javax.swing.JButton rainAmbience5;
     private javax.swing.JButton reRandomizer;
     private javax.swing.JButton readBtn;
     private javax.swing.JPanel readStatus1;
@@ -4676,9 +4800,13 @@ private void updateBookDetails() {
     private javax.swing.JButton statusDay97;
     private javax.swing.JButton statusDay98;
     private javax.swing.JButton statusDay99;
+    private javax.swing.JLayeredPane subTabLayered;
     private javax.swing.JTabbedPane tabs;
     private javax.swing.JComboBox<String> testamentChooser;
+    private javax.swing.JLabel themer;
+    private javax.swing.JPanel toolBox;
     private javax.swing.JPanel topBar;
+    private javax.swing.JButton treeTheme;
     private javax.swing.JComboBox<String> verseChooser;
     // End of variables declaration//GEN-END:variables
 }
