@@ -74,6 +74,11 @@ import java.util.stream.Collectors;
 import javax.swing.JEditorPane;
 
 
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
+import java.awt.image.BufferedImage;
+
 public class mainWindow extends javax.swing.JFrame {
 
     private boolean isBoldActive = true;
@@ -1104,7 +1109,10 @@ private void updateBookDetails() {
         selectedBookUnderline10 = new javax.swing.JButton();
         selectedBookUnderline11 = new javax.swing.JButton();
         selectedBookUnderline12 = new javax.swing.JButton();
-        jPanel11 = new javax.swing.JPanel();
+        bookReaderSubTab = new javax.swing.JPanel();
+        bookReaderContent = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        pdfDisplay = new javax.swing.JTextArea();
         jPanel12 = new javax.swing.JPanel();
         jPanel13 = new javax.swing.JPanel();
         jPanel14 = new javax.swing.JPanel();
@@ -3114,24 +3122,25 @@ private void updateBookDetails() {
         bookDescriptionSideBar1.setLayout(bookDescriptionSideBar1Layout);
         bookDescriptionSideBar1Layout.setHorizontalGroup(
             bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBar1Layout.createSequentialGroup()
+                .addGroup(bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
+                        .addContainerGap(125, Short.MAX_VALUE)
+                        .addComponent(readBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(17, 17, 17))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBar1Layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(aboutTheBook1)))
+                .addGap(115, 115, 115))
             .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
                 .addGroup(bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
-                        .addGap(109, 109, 109)
-                        .addComponent(aboutTheBook1))
+                        .addGap(84, 84, 84)
+                        .addComponent(selectedBook, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
-                        .addGap(83, 83, 83)
-                        .addComponent(selectedBook, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(0, 0, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBar1Layout.createSequentialGroup()
-                .addContainerGap(26, Short.MAX_VALUE)
-                .addGroup(bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBar1Layout.createSequentialGroup()
-                        .addComponent(readBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(123, 123, 123))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBar1Layout.createSequentialGroup()
-                        .addComponent(description, javax.swing.GroupLayout.PREFERRED_SIZE, 294, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(31, 31, 31))))
+                        .addGap(26, 26, 26)
+                        .addComponent(description, javax.swing.GroupLayout.PREFERRED_SIZE, 294, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         bookDescriptionSideBar1Layout.setVerticalGroup(
             bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -3364,12 +3373,12 @@ private void updateBookDetails() {
                                     .addGroup(libraryContentLayout.createSequentialGroup()
                                         .addGap(18, 18, 18)
                                         .addComponent(bookDisplay2, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(18, 18, 18)
                                         .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, libraryContentLayout.createSequentialGroup()
-                                                .addGap(686, 686, 686)
+                                                .addGap(115, 115, 115)
                                                 .addComponent(exploreMoreBtn1, javax.swing.GroupLayout.PREFERRED_SIZE, 114, javax.swing.GroupLayout.PREFERRED_SIZE))
                                             .addGroup(libraryContentLayout.createSequentialGroup()
-                                                .addGap(18, 18, 18)
                                                 .addComponent(bookDisplay3, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
                                                 .addGap(18, 18, 18)
                                                 .addComponent(bookDisplay4, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -3412,8 +3421,8 @@ private void updateBookDetails() {
             .addGroup(libraryContentLayout.createSequentialGroup()
                 .addGap(22, 22, 22)
                 .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(exploreMoreBtn1)
-                    .addComponent(reRandomizer))
+                    .addComponent(reRandomizer)
+                    .addComponent(exploreMoreBtn1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(libraryContentLayout.createSequentialGroup()
@@ -3563,18 +3572,39 @@ private void updateBookDetails() {
 
         tabs.addTab("Notes", libraryTab);
 
-        javax.swing.GroupLayout jPanel11Layout = new javax.swing.GroupLayout(jPanel11);
-        jPanel11.setLayout(jPanel11Layout);
-        jPanel11Layout.setHorizontalGroup(
-            jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1580, Short.MAX_VALUE)
+        pdfDisplay.setColumns(20);
+        pdfDisplay.setRows(5);
+        jScrollPane1.setViewportView(pdfDisplay);
+
+        javax.swing.GroupLayout bookReaderContentLayout = new javax.swing.GroupLayout(bookReaderContent);
+        bookReaderContent.setLayout(bookReaderContentLayout);
+        bookReaderContentLayout.setHorizontalGroup(
+            bookReaderContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(bookReaderContentLayout.createSequentialGroup()
+                .addGap(323, 323, 323)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 913, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(344, Short.MAX_VALUE))
         );
-        jPanel11Layout.setVerticalGroup(
-            jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 975, Short.MAX_VALUE)
+        bookReaderContentLayout.setVerticalGroup(
+            bookReaderContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(bookReaderContentLayout.createSequentialGroup()
+                .addGap(52, 52, 52)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 917, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
-        tabs.addTab("AudioBooks", jPanel11);
+        javax.swing.GroupLayout bookReaderSubTabLayout = new javax.swing.GroupLayout(bookReaderSubTab);
+        bookReaderSubTab.setLayout(bookReaderSubTabLayout);
+        bookReaderSubTabLayout.setHorizontalGroup(
+            bookReaderSubTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(bookReaderContent, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        bookReaderSubTabLayout.setVerticalGroup(
+            bookReaderSubTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(bookReaderContent, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+
+        tabs.addTab("AudioBooks", bookReaderSubTab);
 
         javax.swing.GroupLayout jPanel12Layout = new javax.swing.GroupLayout(jPanel12);
         jPanel12.setLayout(jPanel12Layout);
@@ -4064,53 +4094,65 @@ private void updateBookDetails() {
     }//GEN-LAST:event_bookDisplay12ActionPerformed
 
     private void readBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_readBtnActionPerformed
-    try {
-        // Get the bookIndex from the button's assigned random number
-        int bookIndex = randomNums.get(currentSelected - 1);
+    SwingUtilities.invokeLater(() -> {
+        try {
+            // Get the bookIndex from the clicked button
+            int assignedNum = randomNums.get(currentSelected - 1);
 
-        // Database path (project root)
-        String dbPath = "bookStack.db";
-
-        // Use TRIM and CAST to safely handle bookIndex stored as TEXT or with spaces
-        String sql = "SELECT bookName, author, category " +
-                     "FROM bookStack " +
-                     "WHERE CAST(TRIM(bookIndex) AS INTEGER) = ?";
-
-        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setInt(1, bookIndex);
-
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    // Trim values from database
-                    String bookName = rs.getString("bookName").trim();
-                    String author = rs.getString("author").trim();
-                    String category = rs.getString("category").trim();
-
-                    // Build HTML for centered, multi-line JLabel
-                    String htmlText = "<html><div style='text-align:center'>" +
-                                      "<b>Book Index:</b> " + bookIndex + "<br>" +
-                                      "<b>Title:</b> " + bookName + "<br>" +
-                                      "<b>Author:</b> " + author + "<br>" +
-                                      "<b>Category:</b> " + category +
-                                      "</div></html>";
-
-                    description.setText(htmlText); // Update JLabel
-
-                } else {
-                    description.setText("<html><div style='text-align:center'>Book not found in database.<br>Book Index attempted: " + bookIndex + "</div></html>");
+            // Query the database for the fileName
+            String fileName = null;
+            try (Connection conn = DriverManager.getConnection("jdbc:sqlite:bookStack.db")) {
+                String query = "SELECT fileName FROM bookStack WHERE bookIndex=?";
+                try (PreparedStatement ps = conn.prepareStatement(query)) {
+                    ps.setInt(1, assignedNum);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            fileName = rs.getString("fileName");
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Book not found in database!");
+                            return;
+                        }
+                    }
                 }
             }
 
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-            description.setText("<html><div style='text-align:center'>Database error for Book Index: " + bookIndex + "<br>" + ex.getMessage() + "</div></html>");
-        }
+            // Load the PDF from your resources folder
+            File pdfFile = new File("src/main/resources/bookStack/" + fileName);
+            if (!pdfFile.exists()) {
+                JOptionPane.showMessageDialog(null, "PDF file not found: " + pdfFile.getAbsolutePath());
+                return;
+            }
 
-    } catch (IndexOutOfBoundsException ex) {
-        description.setText("<html><div style='text-align:center'>Invalid selection.<br>CurrentSelected = " + currentSelected + "</div></html>");
-    }
+            // Read PDF text using PDFBox
+            try (PDDocument document = PDDocument.load(pdfFile)) {
+                PDFTextStripper stripper = new PDFTextStripper();
+                String text = stripper.getText(document);
+
+                // Switch to tab index 2
+                tabs.setSelectedIndex(2);
+
+                // Convert plain text to HTML with centered alignment and larger font
+                String htmlText = "<html><body style='font-family:Serif; font-size:20pt; text-align:center; background-color:white;'>"
+                        + text.replace("\n", "<br>")
+                        + "</body></html>";
+
+                // Use JTextPane for HTML rendering
+                JTextPane pdfPane = new JTextPane();
+                pdfPane.setContentType("text/html");
+                pdfPane.setText(htmlText);
+                pdfPane.setEditable(false);
+                pdfPane.setBackground(Color.WHITE); // ensure background is white
+
+                // Add to scroll pane
+                jScrollPane1.setViewportView(pdfPane);
+                jScrollPane1.getVerticalScrollBar().setValue(0); // start at top
+            }
+
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error loading book: " + e.getMessage());
+        }
+    });
     }//GEN-LAST:event_readBtnActionPerformed
 
     
@@ -4189,6 +4231,8 @@ private void updateBookDetails() {
     private javax.swing.JButton bookDisplay7;
     private javax.swing.JButton bookDisplay8;
     private javax.swing.JButton bookDisplay9;
+    private javax.swing.JPanel bookReaderContent;
+    private javax.swing.JPanel bookReaderSubTab;
     private javax.swing.JButton bookmarkBtn;
     private javax.swing.JLabel bookmarksBtn;
     private javax.swing.JComboBox<String> chapterChooser;
@@ -4210,10 +4254,10 @@ private void updateBookDetails() {
     private javax.swing.JLabel homeBtnLabel;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
-    private javax.swing.JPanel jPanel11;
     private javax.swing.JPanel jPanel12;
     private javax.swing.JPanel jPanel13;
     private javax.swing.JPanel jPanel14;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JButton journalBtn;
     private javax.swing.JButton libraryBtn;
@@ -4242,6 +4286,7 @@ private void updateBookDetails() {
     private javax.swing.JTextArea notesInput;
     private javax.swing.JLayeredPane notesTabLayers;
     private javax.swing.JPanel notesTabPanel;
+    private javax.swing.JTextArea pdfDisplay;
     private javax.swing.JButton reRandomizer;
     private javax.swing.JButton readBtn;
     private javax.swing.JPanel readStatus1;
