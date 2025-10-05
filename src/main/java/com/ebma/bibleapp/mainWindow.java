@@ -127,7 +127,7 @@ public class mainWindow extends javax.swing.JFrame {
     private int currentScrollState = 0;
     
     private int overhead;
- 
+    private boolean firstScrollWrite = true;
 
     public mainWindow() {
         
@@ -660,22 +660,23 @@ private void startScrollLogger(JScrollPane scrollPane) {
         String dbPath = "bookStack.db";
         overhead = 0; // current value from DB
 
-        // First, read the current value from DB
         try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
 
-            // Get existing scroll index
-            String selectSQL = "SELECT currentScrollIndex FROM scrollStatus WHERE bookIndex = ?";
-            try (PreparedStatement pstmt = conn.prepareStatement(selectSQL)) {
-                pstmt.setInt(1, loadedBook);
-                try (ResultSet rs = pstmt.executeQuery()) {
-                    if (rs.next()) {
-                        overhead = rs.getInt("currentScrollIndex");
+            if (!firstScrollWrite) {
+                // Read existing scroll index only if it's not the first write
+                String selectSQL = "SELECT currentScrollIndex FROM scrollStatus WHERE bookIndex = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(selectSQL)) {
+                    pstmt.setInt(1, loadedBook);
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        if (rs.next()) {
+                            overhead = rs.getInt("currentScrollIndex");
+                        }
                     }
                 }
             }
 
-            // If current scroll is higher, update DB
-            if (currentScrollState > overhead) {
+            // Insert or update DB
+            if (firstScrollWrite || currentScrollState > overhead) {
                 String updateSQL = "INSERT INTO scrollStatus (bookIndex, currentScrollIndex) " +
                                    "VALUES (?, ?) " +
                                    "ON CONFLICT(bookIndex) DO UPDATE SET currentScrollIndex = excluded.currentScrollIndex";
@@ -684,8 +685,10 @@ private void startScrollLogger(JScrollPane scrollPane) {
                     pstmtUpdate.setInt(1, loadedBook);
                     pstmtUpdate.setInt(2, currentScrollState);
                     pstmtUpdate.executeUpdate();
-                    System.out.println("Updated DB with new scroll index: " + currentScrollState);
+                    System.out.println("Updated DB with scroll index: " + currentScrollState);
                 }
+
+                firstScrollWrite = false; // reset flag after first write
             } else {
                 System.out.println("No update needed. DB scroll index is higher or equal: " + overhead);
             }
@@ -698,10 +701,11 @@ private void startScrollLogger(JScrollPane scrollPane) {
         System.out.println("Current Scroll Index: " + currentScrollState);
         System.out.println("Current Book Index: " + loadedBook);
         System.out.println("DB Overhead: " + overhead);
-        System.out.println("Current Extract: " + currentScrollState);
 
     }).start();
 }
+
+
 
 
 
@@ -1176,6 +1180,10 @@ private void startScrollLogger(JScrollPane scrollPane) {
         selectedBookUnderline10 = new javax.swing.JButton();
         selectedBookUnderline11 = new javax.swing.JButton();
         selectedBookUnderline12 = new javax.swing.JButton();
+        loadingScreen = new javax.swing.JPanel();
+        loadingPrevis = new javax.swing.JPanel();
+        loadingLoop = new javax.swing.JLabel();
+        loadingBook = new javax.swing.JLabel();
         bookReaderSubTab = new javax.swing.JPanel();
         bookReaderContent = new javax.swing.JPanel();
         subTabLayered = new javax.swing.JLayeredPane();
@@ -1197,10 +1205,9 @@ private void startScrollLogger(JScrollPane scrollPane) {
         jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         bookmarksDisp = new javax.swing.JTextArea();
-        dbChecker = new javax.swing.JButton();
         bookmarkSaved = new javax.swing.JLabel();
-        jPanel13 = new javax.swing.JPanel();
         jPanel14 = new javax.swing.JPanel();
+        jPanel2 = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -3648,6 +3655,56 @@ private void startScrollLogger(JScrollPane scrollPane) {
 
         tabs.addTab("Notes", libraryTab);
 
+        loadingPrevis.setBackground(new java.awt.Color(255, 255, 255));
+
+        loadingLoop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/animatedIcons/loadingScreen.gif"))); // NOI18N
+
+        loadingBook.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        loadingBook.setText("loading your book");
+
+        javax.swing.GroupLayout loadingPrevisLayout = new javax.swing.GroupLayout(loadingPrevis);
+        loadingPrevis.setLayout(loadingPrevisLayout);
+        loadingPrevisLayout.setHorizontalGroup(
+            loadingPrevisLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(loadingPrevisLayout.createSequentialGroup()
+                .addGroup(loadingPrevisLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(loadingPrevisLayout.createSequentialGroup()
+                        .addGap(170, 170, 170)
+                        .addComponent(loadingLoop))
+                    .addGroup(loadingPrevisLayout.createSequentialGroup()
+                        .addGap(161, 161, 161)
+                        .addComponent(loadingBook, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(180, Short.MAX_VALUE))
+        );
+        loadingPrevisLayout.setVerticalGroup(
+            loadingPrevisLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(loadingPrevisLayout.createSequentialGroup()
+                .addGap(54, 54, 54)
+                .addComponent(loadingBook)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(loadingLoop, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(68, Short.MAX_VALUE))
+        );
+
+        javax.swing.GroupLayout loadingScreenLayout = new javax.swing.GroupLayout(loadingScreen);
+        loadingScreen.setLayout(loadingScreenLayout);
+        loadingScreenLayout.setHorizontalGroup(
+            loadingScreenLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(loadingScreenLayout.createSequentialGroup()
+                .addGap(555, 555, 555)
+                .addComponent(loadingPrevis, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(567, Short.MAX_VALUE))
+        );
+        loadingScreenLayout.setVerticalGroup(
+            loadingScreenLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(loadingScreenLayout.createSequentialGroup()
+                .addGap(351, 351, 351)
+                .addComponent(loadingPrevis, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(369, Short.MAX_VALUE))
+        );
+
+        tabs.addTab("HostJoin", loadingScreen);
+
         subTabLayered.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         toolBox.setBackground(new java.awt.Color(40, 43, 45));
@@ -3767,9 +3824,15 @@ private void startScrollLogger(JScrollPane scrollPane) {
         pdfDisplay.setColumns(20);
         pdfDisplay.setRows(5);
         bookScroll.setViewportView(pdfDisplay);
+        new javax.swing.Timer(1000, e -> {
+            SwingUtilities.invokeLater(() ->
+                bookScroll.getVerticalScrollBar().setValue(overhead)
+            );
+        }).start();
+
         startScrollLogger(bookScroll);
 
-        subTabLayered.add(bookScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(333, 46, 930, 929));
+        subTabLayered.add(bookScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(333, 45, 930, 930));
         subTabLayered.add(themer, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 45, -1, 930));
 
         jLabel1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
@@ -3784,21 +3847,12 @@ private void startScrollLogger(JScrollPane scrollPane) {
         bookmarksDisp.setBorder(null);
         jScrollPane1.setViewportView(bookmarksDisp);
 
-        dbChecker.setText("jButton1");
-        dbChecker.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dbCheckerActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(85, 85, 85)
-                .addComponent(dbChecker)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(166, 166, 166)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE))
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(97, 97, 97)
@@ -3810,14 +3864,8 @@ private void startScrollLogger(JScrollPane scrollPane) {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(17, 17, 17)
                 .addComponent(jLabel1)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 872, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(221, 221, 221)
-                        .addComponent(dbChecker)
-                        .addGap(0, 0, Short.MAX_VALUE))))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 872, Short.MAX_VALUE))
         );
 
         subTabLayered.add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 50, 330, 920));
@@ -3850,19 +3898,6 @@ private void startScrollLogger(JScrollPane scrollPane) {
 
         tabs.addTab("Commentaries", bookReaderSubTab);
 
-        javax.swing.GroupLayout jPanel13Layout = new javax.swing.GroupLayout(jPanel13);
-        jPanel13.setLayout(jPanel13Layout);
-        jPanel13Layout.setHorizontalGroup(
-            jPanel13Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1580, Short.MAX_VALUE)
-        );
-        jPanel13Layout.setVerticalGroup(
-            jPanel13Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 975, Short.MAX_VALUE)
-        );
-
-        tabs.addTab("HostJoin", jPanel13);
-
         javax.swing.GroupLayout jPanel14Layout = new javax.swing.GroupLayout(jPanel14);
         jPanel14.setLayout(jPanel14Layout);
         jPanel14Layout.setHorizontalGroup(
@@ -3875,6 +3910,19 @@ private void startScrollLogger(JScrollPane scrollPane) {
         );
 
         tabs.addTab("Settings", jPanel14);
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 1580, Short.MAX_VALUE)
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 975, Short.MAX_VALUE)
+        );
+
+        tabs.addTab("tab6", jPanel2);
 
         mainPanel_layered.add(tabs, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, -50, 1580, 1010));
 
@@ -4325,13 +4373,20 @@ private void startScrollLogger(JScrollPane scrollPane) {
     }//GEN-LAST:event_bookDisplay12ActionPerformed
 
     private void readBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_readBtnActionPerformed
-    SwingUtilities.invokeLater(() -> {
-        try {
-            // Get the bookIndex from the clicked button
-            int assignedNum = randomNums.get(currentSelected - 1);
+    // Immediately switch to loading tab
+    tabs.setSelectedIndex(2);
 
-            // Query the database for the fileName
+    // Get the bookIndex early
+    int assignedNum = randomNums.get(currentSelected - 1);
+    loadedBook = assignedNum;
+
+    // Background worker to load the PDF
+    SwingWorker<JTextPane, Void> worker = new SwingWorker<>() {
+        @Override
+        protected JTextPane doInBackground() throws Exception {
             String fileName = null;
+
+            // Query the database
             try (Connection conn = DriverManager.getConnection("jdbc:sqlite:bookStack.db")) {
                 String query = "SELECT fileName FROM bookStack WHERE bookIndex=?";
                 try (PreparedStatement ps = conn.prepareStatement(query)) {
@@ -4340,60 +4395,70 @@ private void startScrollLogger(JScrollPane scrollPane) {
                         if (rs.next()) {
                             fileName = rs.getString("fileName");
                         } else {
-                            JOptionPane.showMessageDialog(null, "Book not found in database!");
-                            return;
+                            SwingUtilities.invokeLater(() -> 
+                                JOptionPane.showMessageDialog(null, "Book not found in database!")
+                            );
+                            return null;
                         }
                     }
                 }
             }
 
-            // Load the PDF from your resources folder
+            // Load PDF file
             File pdfFile = new File("src/main/resources/bookStack/" + fileName);
             if (!pdfFile.exists()) {
-                JOptionPane.showMessageDialog(null, "PDF file not found: " + pdfFile.getAbsolutePath());
-                return;
+                SwingUtilities.invokeLater(() -> 
+                    JOptionPane.showMessageDialog(null, "PDF file not found: " + pdfFile.getAbsolutePath())
+                );
+                return null;
             }
 
-            // Read PDF text using PDFBox
+            // Extract text
+            String text;
             try (PDDocument document = PDDocument.load(pdfFile)) {
                 PDFTextStripper stripper = new PDFTextStripper();
-                String text = stripper.getText(document);
-
-                // Switch to tab index 2
-                tabs.setSelectedIndex(2);
-
-                // Convert plain text to HTML with centered alignment and larger font
-                String htmlText = "<html><body style='font-family:Serif; font-size:20pt; "
-                        + "text-align:center; background-color:rgb(255,251,247) '>"
-                        + text.replace("\n", "<br>")
-                        + "</body></html>";
-
-                // Use JTextPane for HTML rendering
-                JTextPane pdfPane = new JTextPane();
-                pdfPane.setContentType("text/html");
-                pdfPane.setText(htmlText);
-                pdfPane.setEditable(false);
-                pdfPane.setBackground(new Color(255, 251, 247));
-
-                // Add to scroll pane
-                bookScroll.setViewportView(pdfPane);
-                bookScroll.getVerticalScrollBar().setValue(0); // start at top
-
-                // ✅ Ensure focus + redraw when switching to this tab (important for JLayeredPane in NetBeans)
-                SwingUtilities.invokeLater(() -> {
-                    bookScroll.requestFocusInWindow(); 
-                    bookScroll.revalidate();           
-                    bookScroll.repaint();              
-                });
+                text = stripper.getText(document);
             }
 
-        } catch (SQLException | IOException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Error loading book: " + e.getMessage());
+            // Convert to HTML
+            String htmlText = "<html><body style='font-family:Serif; font-size:20pt; "
+                    + "text-align:center; background-color:rgb(255,251,247)'>"
+                    + text.replace("\n", "<br>")
+                    + "</body></html>";
+
+            // Prepare JTextPane
+            JTextPane pdfPane = new JTextPane();
+            pdfPane.setContentType("text/html");
+            pdfPane.setText(htmlText);
+            pdfPane.setEditable(false);
+            pdfPane.setBackground(new Color(255, 251, 247));
+            return pdfPane;
         }
-    });
-    
-    loadedBook = randomNums.get(currentSelected - 1);
+
+        @Override
+        protected void done() {
+            try {
+                JTextPane pdfPane = get();
+                if (pdfPane != null) {
+                    bookScroll.setViewportView(pdfPane);
+                    //bookScroll.getVerticalScrollBar().setValue(currentScrollState);
+
+                    // Switch to the book display tab
+                    tabs.setSelectedIndex(3);
+
+                    // Refresh
+                    bookScroll.requestFocusInWindow(); 
+                    bookScroll.revalidate();           
+                    bookScroll.repaint();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Error loading book: " + e.getMessage());
+            }
+        }
+    };
+
+    worker.execute(); // start background loading
 
     }//GEN-LAST:event_readBtnActionPerformed
 
@@ -4421,10 +4486,6 @@ private void startScrollLogger(JScrollPane scrollPane) {
         themer.setIcon(new javax.swing.ImageIcon(getClass().getResource("/themes/cafe1.png")));
  
     }//GEN-LAST:event_cafeThemeActionPerformed
-
-    private void dbCheckerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbCheckerActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_dbCheckerActionPerformed
 
     
    
@@ -4521,7 +4582,6 @@ private void startScrollLogger(JScrollPane scrollPane) {
     private javax.swing.JLabel dayLabel4;
     private javax.swing.JLabel dayLabel5;
     private javax.swing.JLabel dayLabel6;
-    private javax.swing.JButton dbChecker;
     private javax.swing.JLabel description;
     private javax.swing.JButton exploreMoreBtn1;
     private javax.swing.JButton eyeHide;
@@ -4537,13 +4597,17 @@ private void startScrollLogger(JScrollPane scrollPane) {
     private javax.swing.JLabel hostJoinBtnLabel;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel13;
     private javax.swing.JPanel jPanel14;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JButton journalBtn;
     private javax.swing.JButton libraryBtn;
     private javax.swing.JPanel libraryContent;
     private javax.swing.JPanel libraryTab;
+    private javax.swing.JLabel loadingBook;
+    private javax.swing.JLabel loadingLoop;
+    private javax.swing.JPanel loadingPrevis;
+    private javax.swing.JPanel loadingScreen;
     private javax.swing.JLayeredPane mainPanel_layered;
     private javax.swing.JTextArea mainTextArea;
     private javax.swing.JScrollPane mainTextScrollPanel;
