@@ -79,6 +79,12 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import java.awt.image.BufferedImage;
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+
+
+
 public class mainWindow extends javax.swing.JFrame {
 
     private boolean isBoldActive = true;
@@ -114,6 +120,14 @@ public class mainWindow extends javax.swing.JFrame {
     
     private int currentSelected;
     
+    
+    private int loadedBook;
+    
+    
+    private int currentScrollState = 0;
+    
+    private int overhead;
+ 
 
     public mainWindow() {
         
@@ -149,7 +163,7 @@ public class mainWindow extends javax.swing.JFrame {
         selectedBookUnderline11.setContentAreaFilled(false);
         selectedBookUnderline12.setContentAreaFilled(false);
         
-
+        bookmarkSaved.setVisible(false);
 
 
       
@@ -636,7 +650,61 @@ private void updateBookDetails() {
 
 
         
-        
+private void startScrollLogger(JScrollPane scrollPane) {
+
+    new javax.swing.Timer(6000, e -> {
+        // Get current scroll position
+        JScrollBar verticalBar = scrollPane.getVerticalScrollBar();
+        int currentScrollState = verticalBar.getValue();
+
+        String dbPath = "bookStack.db";
+        overhead = 0; // current value from DB
+
+        // First, read the current value from DB
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
+
+            // Get existing scroll index
+            String selectSQL = "SELECT currentScrollIndex FROM scrollStatus WHERE bookIndex = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(selectSQL)) {
+                pstmt.setInt(1, loadedBook);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        overhead = rs.getInt("currentScrollIndex");
+                    }
+                }
+            }
+
+            // If current scroll is higher, update DB
+            if (currentScrollState > overhead) {
+                String updateSQL = "INSERT INTO scrollStatus (bookIndex, currentScrollIndex) " +
+                                   "VALUES (?, ?) " +
+                                   "ON CONFLICT(bookIndex) DO UPDATE SET currentScrollIndex = excluded.currentScrollIndex";
+
+                try (PreparedStatement pstmtUpdate = conn.prepareStatement(updateSQL)) {
+                    pstmtUpdate.setInt(1, loadedBook);
+                    pstmtUpdate.setInt(2, currentScrollState);
+                    pstmtUpdate.executeUpdate();
+                    System.out.println("Updated DB with new scroll index: " + currentScrollState);
+                }
+            } else {
+                System.out.println("No update needed. DB scroll index is higher or equal: " + overhead);
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        // Debug prints
+        System.out.println("Current Scroll Index: " + currentScrollState);
+        System.out.println("Current Book Index: " + loadedBook);
+        System.out.println("DB Overhead: " + overhead);
+        System.out.println("Current Extract: " + currentScrollState);
+
+    }).start();
+}
+
+
+
 
 
     @SuppressWarnings("unchecked")
@@ -1111,9 +1179,6 @@ private void updateBookDetails() {
         bookReaderSubTab = new javax.swing.JPanel();
         bookReaderContent = new javax.swing.JPanel();
         subTabLayered = new javax.swing.JLayeredPane();
-        bookScroll = new javax.swing.JScrollPane();
-        pdfDisplay = new javax.swing.JTextArea();
-        themer = new javax.swing.JLabel();
         toolBox = new javax.swing.JPanel();
         bookmark = new javax.swing.JButton();
         cafeTheme = new javax.swing.JButton();
@@ -1125,6 +1190,15 @@ private void updateBookDetails() {
         darkMode = new javax.swing.JButton();
         rainAmbience4 = new javax.swing.JButton();
         rainAmbience5 = new javax.swing.JButton();
+        bookScroll = new javax.swing.JScrollPane();
+        pdfDisplay = new javax.swing.JTextArea();
+        themer = new javax.swing.JLabel();
+        jPanel1 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        bookmarksDisp = new javax.swing.JTextArea();
+        dbChecker = new javax.swing.JButton();
+        bookmarkSaved = new javax.swing.JLabel();
         jPanel13 = new javax.swing.JPanel();
         jPanel14 = new javax.swing.JPanel();
 
@@ -3576,24 +3650,23 @@ private void updateBookDetails() {
 
         subTabLayered.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        bookScroll.setBackground(new java.awt.Color(255, 246, 236));
-
-        pdfDisplay.setBackground(new java.awt.Color(255, 251, 247));
-        pdfDisplay.setColumns(20);
-        pdfDisplay.setRows(5);
-        bookScroll.setViewportView(pdfDisplay);
-        bookScroll.setViewportView(pdfDisplay);
-
-        subTabLayered.add(bookScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(343, 46, 920, 929));
-        subTabLayered.add(themer, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 45, -1, 930));
-
         toolBox.setBackground(new java.awt.Color(40, 43, 45));
 
         bookmark.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/bookmark30W.png"))); // NOI18N
         bookmark.setContentAreaFilled(false);
+        bookmark.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookmarkActionPerformed(evt);
+            }
+        });
 
         cafeTheme.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/cafe30.png"))); // NOI18N
         cafeTheme.setContentAreaFilled(false);
+        cafeTheme.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cafeThemeActionPerformed(evt);
+            }
+        });
 
         treeTheme.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/trees30.png"))); // NOI18N
         treeTheme.setContentAreaFilled(false);
@@ -3687,6 +3760,71 @@ private void updateBookDetails() {
         );
 
         subTabLayered.add(toolBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(1540, 290, 40, 370));
+
+        bookScroll.setBackground(new java.awt.Color(255, 246, 236));
+
+        pdfDisplay.setBackground(new java.awt.Color(255, 251, 247));
+        pdfDisplay.setColumns(20);
+        pdfDisplay.setRows(5);
+        bookScroll.setViewportView(pdfDisplay);
+        startScrollLogger(bookScroll);
+
+        subTabLayered.add(bookScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(333, 46, 930, 929));
+        subTabLayered.add(themer, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 45, -1, 930));
+
+        jLabel1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/bookmark20.png"))); // NOI18N
+        jLabel1.setText("Bookmarks");
+
+        jScrollPane1.setBorder(null);
+
+        bookmarksDisp.setBackground(new java.awt.Color(242, 242, 242));
+        bookmarksDisp.setColumns(20);
+        bookmarksDisp.setRows(5);
+        bookmarksDisp.setBorder(null);
+        jScrollPane1.setViewportView(bookmarksDisp);
+
+        dbChecker.setText("jButton1");
+        dbChecker.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbCheckerActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(85, 85, 85)
+                .addComponent(dbChecker)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE))
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(97, 97, 97)
+                .addComponent(jLabel1)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(17, 17, 17)
+                .addComponent(jLabel1)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 872, Short.MAX_VALUE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(221, 221, 221)
+                        .addComponent(dbChecker)
+                        .addGap(0, 0, Short.MAX_VALUE))))
+        );
+
+        subTabLayered.add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 50, 330, 920));
+
+        bookmarkSaved.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 12)); // NOI18N
+        bookmarkSaved.setText("Bookmark Saved");
+        subTabLayered.add(bookmarkSaved, new org.netbeans.lib.awtextra.AbsoluteConstraints(1450, 290, -1, 40));
 
         javax.swing.GroupLayout bookReaderContentLayout = new javax.swing.GroupLayout(bookReaderContent);
         bookReaderContent.setLayout(bookReaderContentLayout);
@@ -4254,6 +4392,9 @@ private void updateBookDetails() {
             JOptionPane.showMessageDialog(null, "Error loading book: " + e.getMessage());
         }
     });
+    
+    loadedBook = randomNums.get(currentSelected - 1);
+
     }//GEN-LAST:event_readBtnActionPerformed
 
     private void fontMinusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fontMinusActionPerformed
@@ -4271,6 +4412,19 @@ private void updateBookDetails() {
     private void rainAmbience5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rainAmbience5ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_rainAmbience5ActionPerformed
+
+    private void bookmarkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookmarkActionPerformed
+
+    }//GEN-LAST:event_bookmarkActionPerformed
+
+    private void cafeThemeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cafeThemeActionPerformed
+        themer.setIcon(new javax.swing.ImageIcon(getClass().getResource("/themes/cafe1.png")));
+ 
+    }//GEN-LAST:event_cafeThemeActionPerformed
+
+    private void dbCheckerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbCheckerActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_dbCheckerActionPerformed
 
     
    
@@ -4353,7 +4507,9 @@ private void updateBookDetails() {
     private javax.swing.JScrollPane bookScroll;
     private javax.swing.JButton bookmark;
     private javax.swing.JButton bookmarkBtn;
+    private javax.swing.JLabel bookmarkSaved;
     private javax.swing.JLabel bookmarksBtn;
+    private javax.swing.JTextArea bookmarksDisp;
     private javax.swing.JButton cafeTheme;
     private javax.swing.JComboBox<String> chapterChooser;
     private javax.swing.JButton closeBtn;
@@ -4365,6 +4521,7 @@ private void updateBookDetails() {
     private javax.swing.JLabel dayLabel4;
     private javax.swing.JLabel dayLabel5;
     private javax.swing.JLabel dayLabel6;
+    private javax.swing.JButton dbChecker;
     private javax.swing.JLabel description;
     private javax.swing.JButton exploreMoreBtn1;
     private javax.swing.JButton eyeHide;
@@ -4378,8 +4535,11 @@ private void updateBookDetails() {
     private javax.swing.JLabel homeBtnLabel;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel13;
     private javax.swing.JPanel jPanel14;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JButton journalBtn;
     private javax.swing.JButton libraryBtn;
     private javax.swing.JPanel libraryContent;
