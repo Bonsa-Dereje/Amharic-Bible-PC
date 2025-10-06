@@ -82,6 +82,10 @@ import java.awt.image.BufferedImage;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+
 
 
 
@@ -131,8 +135,9 @@ public class mainWindow extends javax.swing.JFrame {
     
     // Declare this at the top of your class (outside the method)
     private int itr = 1;
-    
-
+    private Clip cafeClip;
+    private Clip treeClip;
+    private Clip rainClip;
     
     
     public mainWindow() {
@@ -3877,7 +3882,6 @@ private void startScrollLogger(JScrollPane scrollPane) {
         jScrollPane1.setBorder(null);
 
         bookmarksDisp.setEditable(false);
-        bookmarksDisp.setBackground(new java.awt.Color(242, 242, 242));
         bookmarksDisp.setColumns(20);
         bookmarksDisp.setRows(5);
         bookmarksDisp.setBorder(null);
@@ -4555,42 +4559,88 @@ private void startScrollLogger(JScrollPane scrollPane) {
         //mute.setVisible(false);
         //unmute.setVisible(false);
         
-        java.net.URL imgURL = getClass().getResource("/themes/cafe" + itr + ".jpg");
-        if (imgURL != null) {
-            themer.setIcon(new javax.swing.ImageIcon(imgURL));
-            themer.repaint();
-            
+    if (cafeClip != null && cafeClip.isRunning()) {
+        cafeClip.stop();
+        cafeClip.close();
+    }
+
+    // Load background image
+    java.net.URL imgURL = getClass().getResource("/themes/cafe" + itr + ".jpg");
+    if (imgURL != null) {
+        themer.setIcon(new javax.swing.ImageIcon(imgURL));
+        themer.repaint();
+    } else {
+        System.err.println("⚠️ Image not found");
+    }
+
+    // Load and loop the matching .wav file
+    try {
+        java.net.URL soundURL = getClass().getResource("/ambienceSfx/cafe" + itr + ".wav");
+        if (soundURL != null) {
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundURL);
+            cafeClip = AudioSystem.getClip();
+            cafeClip.open(audioIn);
+            cafeClip.loop(Clip.LOOP_CONTINUOUSLY); // instant seamless loop
         } else {
-            System.err.println("⚠️ Image not found");
+            System.err.println("⚠️ Sound not found: cafe" + itr + ".wav");
         }
-        itr++;
-        if(itr == 4){
-            itr = 1;
-        }
-        System.out.println(itr);
-        if(!unmute.isVisible()){
-            mute.setVisible(true);
-        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    itr++;
+    if (itr == 4) {
+        itr = 1;
+    }
+
+    System.out.println("Theme #" + itr + " activated");
+
+    if (!unmute.isVisible()) {
+        mute.setVisible(true);
+    }
     }//GEN-LAST:event_cafeThemeActionPerformed
 
     private void treeThemeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_treeThemeActionPerformed
         //mute.setVisible(false);
         //unmute.setVisible(false);
+        if (treeClip != null && treeClip.isRunning()) {
+            treeClip.stop();
+            treeClip.close();
+        }
+
+        // Load background image
         java.net.URL imgURL = getClass().getResource("/themes/trees" + itr + ".jpg");
         if (imgURL != null) {
             themer.setIcon(new javax.swing.ImageIcon(imgURL));
             themer.repaint();
-            
         } else {
-            System.err.println("⚠️ Image not found");
+            System.err.println("⚠️ Image not found: trees" + itr + ".jpg");
         }
+
+        // Load and loop matching .wav file
+        try {
+            java.net.URL soundURL = getClass().getResource("/ambienceSfx/tree" + itr + ".wav");
+            if (soundURL != null) {
+                AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundURL);
+                treeClip = AudioSystem.getClip();
+                treeClip.open(audioIn);
+                treeClip.loop(Clip.LOOP_CONTINUOUSLY); // instant loop
+            } else {
+                System.err.println("⚠️ Sound not found: tree" + itr + ".wav");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Cycle images/sounds
         itr++;
-        if(itr == 4){
+        if (itr == 4) {
             itr = 1;
         }
-        System.out.println(itr);
-        
-        if(!unmute.isVisible()){
+
+        System.out.println("Tree theme #" + itr + " activated");
+
+        if (!unmute.isVisible()) {
             mute.setVisible(true);
         }
     }//GEN-LAST:event_treeThemeActionPerformed
@@ -4598,21 +4648,44 @@ private void startScrollLogger(JScrollPane scrollPane) {
     private void rainAmbienceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rainAmbienceActionPerformed
         //mute.setVisible(false);
         //unmute.setVisible(false);        
+        if (rainClip != null && rainClip.isRunning()) {
+            rainClip.stop();
+            rainClip.close();
+        }
+
+        // Load background image
         java.net.URL imgURL = getClass().getResource("/themes/rain" + itr + ".jpg");
         if (imgURL != null) {
             themer.setIcon(new javax.swing.ImageIcon(imgURL));
             themer.repaint();
-            
         } else {
-            System.err.println("⚠️ Image not found");
+            System.err.println("⚠️ Image not found: rain" + itr + ".jpg");
         }
+
+        // Load and play matching sound (loop continuously)
+        try {
+            java.net.URL soundURL = getClass().getResource("/ambienceSfx/rain" + itr + ".wav");
+            if (soundURL != null) {
+                AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundURL);
+                rainClip = AudioSystem.getClip();
+                rainClip.open(audioIn);
+                rainClip.loop(Clip.LOOP_CONTINUOUSLY);
+            } else {
+                System.err.println("⚠️ Sound not found: rain" + itr + ".wav");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Cycle through images/sounds
         itr++;
-        if(itr == 4){
+        if (itr == 4) {
             itr = 1;
         }
-        System.out.println(itr);
-        
-        if(!unmute.isVisible()){
+
+        System.out.println("Rain ambience #" + itr + " activated");
+
+        if (!unmute.isVisible()) {
             mute.setVisible(true);
         }
     }//GEN-LAST:event_rainAmbienceActionPerformed
