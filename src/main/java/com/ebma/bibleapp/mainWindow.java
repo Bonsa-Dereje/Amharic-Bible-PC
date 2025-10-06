@@ -131,8 +131,10 @@ public class mainWindow extends javax.swing.JFrame {
     
     // Declare this at the top of your class (outside the method)
     private int itr = 1;
+    
 
-
+    
+    
     public mainWindow() {
         
         setUndecorated(true);  
@@ -169,6 +171,10 @@ public class mainWindow extends javax.swing.JFrame {
         
         bookmarkSaved.setVisible(false);
 
+        mute.setVisible(false);
+        unmute.setVisible(false);
+        
+    
 
       
     }
@@ -1190,6 +1196,8 @@ private void startScrollLogger(JScrollPane scrollPane) {
         bookReaderSubTab = new javax.swing.JPanel();
         bookReaderContent = new javax.swing.JPanel();
         subTabLayered = new javax.swing.JLayeredPane();
+        unmute = new javax.swing.JButton();
+        mute = new javax.swing.JButton();
         toolBox = new javax.swing.JPanel();
         bookmark = new javax.swing.JButton();
         cafeTheme = new javax.swing.JButton();
@@ -3663,7 +3671,7 @@ private void startScrollLogger(JScrollPane scrollPane) {
         loadingLoop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/animatedIcons/loadingScreen.gif"))); // NOI18N
 
         loadingBook.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        loadingBook.setText("loading your book");
+        loadingBook.setText("loading your book...");
 
         javax.swing.GroupLayout loadingPrevisLayout = new javax.swing.GroupLayout(loadingPrevis);
         loadingPrevis.setLayout(loadingPrevisLayout);
@@ -3709,6 +3717,26 @@ private void startScrollLogger(JScrollPane scrollPane) {
         tabs.addTab("HostJoin", loadingScreen);
 
         subTabLayered.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        unmute.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/sound30.png"))); // NOI18N
+        unmute.setBorderPainted(false);
+        unmute.setContentAreaFilled(false);
+        unmute.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                unmuteActionPerformed(evt);
+            }
+        });
+        subTabLayered.add(unmute, new org.netbeans.lib.awtextra.AbsoluteConstraints(1540, 930, -1, -1));
+
+        mute.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/mute30.png"))); // NOI18N
+        mute.setBorderPainted(false);
+        mute.setContentAreaFilled(false);
+        mute.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                muteActionPerformed(evt);
+            }
+        });
+        subTabLayered.add(mute, new org.netbeans.lib.awtextra.AbsoluteConstraints(1540, 930, -1, -1));
 
         toolBox.setBackground(new java.awt.Color(40, 43, 45));
 
@@ -4524,7 +4552,9 @@ private void startScrollLogger(JScrollPane scrollPane) {
     }//GEN-LAST:event_bookmarkActionPerformed
 
     private void cafeThemeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cafeThemeActionPerformed
-    
+        //mute.setVisible(false);
+        //unmute.setVisible(false);
+        
         java.net.URL imgURL = getClass().getResource("/themes/cafe" + itr + ".jpg");
         if (imgURL != null) {
             themer.setIcon(new javax.swing.ImageIcon(imgURL));
@@ -4538,9 +4568,14 @@ private void startScrollLogger(JScrollPane scrollPane) {
             itr = 1;
         }
         System.out.println(itr);
+        if(!unmute.isVisible()){
+            mute.setVisible(true);
+        }
     }//GEN-LAST:event_cafeThemeActionPerformed
 
     private void treeThemeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_treeThemeActionPerformed
+        //mute.setVisible(false);
+        //unmute.setVisible(false);
         java.net.URL imgURL = getClass().getResource("/themes/trees" + itr + ".jpg");
         if (imgURL != null) {
             themer.setIcon(new javax.swing.ImageIcon(imgURL));
@@ -4554,9 +4589,15 @@ private void startScrollLogger(JScrollPane scrollPane) {
             itr = 1;
         }
         System.out.println(itr);
+        
+        if(!unmute.isVisible()){
+            mute.setVisible(true);
+        }
     }//GEN-LAST:event_treeThemeActionPerformed
 
     private void rainAmbienceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rainAmbienceActionPerformed
+        //mute.setVisible(false);
+        //unmute.setVisible(false);        
         java.net.URL imgURL = getClass().getResource("/themes/rain" + itr + ".jpg");
         if (imgURL != null) {
             themer.setIcon(new javax.swing.ImageIcon(imgURL));
@@ -4570,7 +4611,24 @@ private void startScrollLogger(JScrollPane scrollPane) {
             itr = 1;
         }
         System.out.println(itr);
+        
+        if(!unmute.isVisible()){
+            mute.setVisible(true);
+        }
     }//GEN-LAST:event_rainAmbienceActionPerformed
+
+    private void unmuteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_unmuteActionPerformed
+       unmute.setVisible(false);
+       mute.setVisible(true);
+       
+       
+    }//GEN-LAST:event_unmuteActionPerformed
+
+    private void muteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_muteActionPerformed
+        mute.setVisible(false);
+        unmute.setVisible(true);
+                
+    }//GEN-LAST:event_muteActionPerformed
 
     
    
@@ -4711,6 +4769,7 @@ private void startScrollLogger(JScrollPane scrollPane) {
     private javax.swing.JLabel month24;
     private javax.swing.JLabel month25;
     private javax.swing.JLabel month26;
+    private javax.swing.JButton mute;
     private javax.swing.JPanel navBar;
     private javax.swing.JPanel nodesTabPanel;
     private javax.swing.JLabel notesBtnLabel;
@@ -5117,6 +5176,7 @@ private void startScrollLogger(JScrollPane scrollPane) {
     private javax.swing.JPanel toolBox;
     private javax.swing.JPanel topBar;
     private javax.swing.JButton treeTheme;
+    private javax.swing.JButton unmute;
     private javax.swing.JComboBox<String> verseChooser;
     // End of variables declaration//GEN-END:variables
 }
