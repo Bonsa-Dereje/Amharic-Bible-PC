@@ -710,7 +710,6 @@ private void startScrollLogger(JScrollPane scrollPane) {
 
 
 
-
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -1206,6 +1205,7 @@ private void startScrollLogger(JScrollPane scrollPane) {
         jScrollPane1 = new javax.swing.JScrollPane();
         bookmarksDisp = new javax.swing.JTextArea();
         bookmarkSaved = new javax.swing.JLabel();
+        pickup = new javax.swing.JButton();
         jPanel14 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
 
@@ -3824,15 +3824,9 @@ private void startScrollLogger(JScrollPane scrollPane) {
         pdfDisplay.setColumns(20);
         pdfDisplay.setRows(5);
         bookScroll.setViewportView(pdfDisplay);
-        new javax.swing.Timer(1000, e -> {
-            SwingUtilities.invokeLater(() ->
-                bookScroll.getVerticalScrollBar().setValue(overhead)
-            );
-        }).start();
-
         startScrollLogger(bookScroll);
 
-        subTabLayered.add(bookScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(333, 45, 930, 930));
+        subTabLayered.add(bookScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(333, 55, 930, 920));
         subTabLayered.add(themer, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 45, -1, 930));
 
         jLabel1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
@@ -3841,10 +3835,12 @@ private void startScrollLogger(JScrollPane scrollPane) {
 
         jScrollPane1.setBorder(null);
 
+        bookmarksDisp.setEditable(false);
         bookmarksDisp.setBackground(new java.awt.Color(242, 242, 242));
         bookmarksDisp.setColumns(20);
         bookmarksDisp.setRows(5);
         bookmarksDisp.setBorder(null);
+        bookmarksDisp.setFocusable(false);
         jScrollPane1.setViewportView(bookmarksDisp);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -3852,12 +3848,10 @@ private void startScrollLogger(JScrollPane scrollPane) {
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(166, 166, 166)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE))
-            .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(97, 97, 97)
                 .addComponent(jLabel1)
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addGap(0, 128, Short.MAX_VALUE))
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -3873,6 +3867,20 @@ private void startScrollLogger(JScrollPane scrollPane) {
         bookmarkSaved.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 12)); // NOI18N
         bookmarkSaved.setText("Bookmark Saved");
         subTabLayered.add(bookmarkSaved, new org.netbeans.lib.awtextra.AbsoluteConstraints(1450, 290, -1, 40));
+
+        pickup.setForeground(new java.awt.Color(255, 255, 255));
+        pickup.setText("pickup");
+        pickup.setBorderPainted(false);
+        pickup.setFocusPainted(false);
+        pickup.setFocusable(false);
+        pickup.setRequestFocusEnabled(false);
+        pickup.setRolloverEnabled(false);
+        pickup.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pickupActionPerformed(evt);
+            }
+        });
+        subTabLayered.add(pickup, new org.netbeans.lib.awtextra.AbsoluteConstraints(1510, 950, -1, -1));
 
         javax.swing.GroupLayout bookReaderContentLayout = new javax.swing.GroupLayout(bookReaderContent);
         bookReaderContent.setLayout(bookReaderContentLayout);
@@ -3897,6 +3905,40 @@ private void startScrollLogger(JScrollPane scrollPane) {
         );
 
         tabs.addTab("Commentaries", bookReaderSubTab);
+        tabs.addChangeListener(e -> {
+            if (tabs.getSelectedIndex() == 3) { // Commentaries tab
+                // Delay 1 second before restoring scroll
+                new javax.swing.Timer(100, ev -> {
+                    ((javax.swing.Timer) ev.getSource()).stop(); // run once
+
+                    JScrollBar verticalBar = bookScroll.getVerticalScrollBar();
+                    String dbPath = "bookStack.db";
+                    int savedScroll = 0;
+
+                    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
+                        String selectSQL = "SELECT currentScrollIndex FROM scrollStatus WHERE bookIndex = ?";
+                        try (PreparedStatement pstmt = conn.prepareStatement(selectSQL)) {
+                            pstmt.setInt(1, loadedBook);
+                            try (ResultSet rs = pstmt.executeQuery()) {
+                                if (rs.next()) {
+                                    savedScroll = rs.getInt("currentScrollIndex");
+                                }
+                            }
+                        }
+                    } catch (SQLException ex) {
+                        ex.printStackTrace();
+                    }
+
+                    final int scrollToSet = savedScroll;
+                    SwingUtilities.invokeLater(() -> {
+                        verticalBar.setValue(scrollToSet);
+                        int caretPos = Math.min(pdfDisplay.getDocument().getLength(), scrollToSet);
+                        pdfDisplay.setCaretPosition(caretPos);
+                    });
+
+                }).start();
+            }
+        });
 
         javax.swing.GroupLayout jPanel14Layout = new javax.swing.GroupLayout(jPanel14);
         jPanel14.setLayout(jPanel14Layout);
@@ -4487,6 +4529,13 @@ private void startScrollLogger(JScrollPane scrollPane) {
  
     }//GEN-LAST:event_cafeThemeActionPerformed
 
+    private void pickupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pickupActionPerformed
+    bookScroll.getVerticalScrollBar().setValue(overhead);
+
+
+
+    }//GEN-LAST:event_pickupActionPerformed
+
     
    
  
@@ -4534,6 +4583,7 @@ private void startScrollLogger(JScrollPane scrollPane) {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new mainWindow().setVisible(true);
+                
             }
         });
     }
@@ -4632,6 +4682,7 @@ private void startScrollLogger(JScrollPane scrollPane) {
     private javax.swing.JLayeredPane notesTabLayers;
     private javax.swing.JPanel notesTabPanel;
     private javax.swing.JTextArea pdfDisplay;
+    private javax.swing.JButton pickup;
     private javax.swing.JButton rainAmbience;
     private javax.swing.JButton rainAmbience4;
     private javax.swing.JButton rainAmbience5;

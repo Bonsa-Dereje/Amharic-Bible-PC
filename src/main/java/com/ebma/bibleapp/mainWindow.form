@@ -3853,6 +3853,9 @@
               </SubComponents>
             </Container>
             <Container class="javax.swing.JPanel" name="bookReaderSubTab">
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="tabs.addChangeListener(e -&gt; {&#xa;    if (tabs.getSelectedIndex() == 3) { // Commentaries tab&#xa;        // Delay 1 second before restoring scroll&#xa;        new javax.swing.Timer(100, ev -&gt; {&#xa;            ((javax.swing.Timer) ev.getSource()).stop(); // run once&#xa;&#xa;            JScrollBar verticalBar = bookScroll.getVerticalScrollBar();&#xa;            String dbPath = &quot;bookStack.db&quot;;&#xa;            int savedScroll = 0;&#xa;&#xa;            try (Connection conn = DriverManager.getConnection(&quot;jdbc:sqlite:&quot; + dbPath)) {&#xa;                String selectSQL = &quot;SELECT currentScrollIndex FROM scrollStatus WHERE bookIndex = ?&quot;;&#xa;                try (PreparedStatement pstmt = conn.prepareStatement(selectSQL)) {&#xa;                    pstmt.setInt(1, loadedBook);&#xa;                    try (ResultSet rs = pstmt.executeQuery()) {&#xa;                        if (rs.next()) {&#xa;                            savedScroll = rs.getInt(&quot;currentScrollIndex&quot;);&#xa;                        }&#xa;                    }&#xa;                }&#xa;            } catch (SQLException ex) {&#xa;                ex.printStackTrace();&#xa;            }&#xa;&#xa;            final int scrollToSet = savedScroll;&#xa;            SwingUtilities.invokeLater(() -&gt; {&#xa;                verticalBar.setValue(scrollToSet);&#xa;                int caretPos = Math.min(pdfDisplay.getDocument().getLength(), scrollToSet);&#xa;                pdfDisplay.setCaretPosition(caretPos);&#xa;            });&#xa;&#xa;        }).start();&#xa;    }&#xa;});"/>
+              </AuxValues>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
                   <JTabbedPaneConstraints tabName="Commentaries">
@@ -4070,7 +4073,7 @@
                           </AuxValues>
                           <Constraints>
                             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-                              <AbsoluteConstraints x="333" y="45" width="930" height="930"/>
+                              <AbsoluteConstraints x="333" y="55" width="930" height="920"/>
                             </Constraint>
                           </Constraints>
 
@@ -4085,7 +4088,7 @@
                                 <Property name="rows" type="int" value="5"/>
                               </Properties>
                               <AuxValues>
-                                <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="new javax.swing.Timer(1000, e -&gt; {&#xa;    SwingUtilities.invokeLater(() -&gt; &#xa;        bookScroll.getVerticalScrollBar().setValue(overhead)&#xa;    );&#xa;}).start();&#xa;&#xa;startScrollLogger(bookScroll);"/>
+                                <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="startScrollLogger(bookScroll);"/>
                               </AuxValues>
                             </Component>
                           </SubComponents>
@@ -4108,14 +4111,11 @@
                             <DimensionLayout dim="0">
                               <Group type="103" groupAlignment="0" attributes="0">
                                   <Group type="102" alignment="0" attributes="0">
-                                      <EmptySpace min="-2" pref="166" max="-2" attributes="0"/>
-                                      <Component id="jScrollPane1" pref="164" max="32767" attributes="0"/>
-                                  </Group>
-                                  <Group type="102" alignment="0" attributes="0">
                                       <EmptySpace min="-2" pref="97" max="-2" attributes="0"/>
                                       <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
-                                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                                      <EmptySpace min="0" pref="128" max="32767" attributes="0"/>
                                   </Group>
+                                  <Component id="jScrollPane1" alignment="1" max="32767" attributes="0"/>
                               </Group>
                             </DimensionLayout>
                             <DimensionLayout dim="1">
@@ -4155,6 +4155,7 @@
                               <SubComponents>
                                 <Component class="javax.swing.JTextArea" name="bookmarksDisp">
                                   <Properties>
+                                    <Property name="editable" type="boolean" value="false"/>
                                     <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                                       <Color blue="f2" green="f2" red="f2" type="rgb"/>
                                     </Property>
@@ -4163,6 +4164,7 @@
                                     <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                                       <Border info="null"/>
                                     </Property>
+                                    <Property name="focusable" type="boolean" value="false"/>
                                   </Properties>
                                 </Component>
                               </SubComponents>
@@ -4179,6 +4181,27 @@
                           <Constraints>
                             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
                               <AbsoluteConstraints x="1450" y="290" width="-1" height="40"/>
+                            </Constraint>
+                          </Constraints>
+                        </Component>
+                        <Component class="javax.swing.JButton" name="pickup">
+                          <Properties>
+                            <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                              <Color blue="ff" green="ff" red="ff" type="rgb"/>
+                            </Property>
+                            <Property name="text" type="java.lang.String" value="pickup"/>
+                            <Property name="borderPainted" type="boolean" value="false"/>
+                            <Property name="focusPainted" type="boolean" value="false"/>
+                            <Property name="focusable" type="boolean" value="false"/>
+                            <Property name="requestFocusEnabled" type="boolean" value="false"/>
+                            <Property name="rolloverEnabled" type="boolean" value="false"/>
+                          </Properties>
+                          <Events>
+                            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="pickupActionPerformed"/>
+                          </Events>
+                          <Constraints>
+                            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
+                              <AbsoluteConstraints x="1510" y="950" width="-1" height="-1"/>
                             </Constraint>
                           </Constraints>
                         </Component>
