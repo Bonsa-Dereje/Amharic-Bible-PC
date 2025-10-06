@@ -138,6 +138,9 @@ public class mainWindow extends javax.swing.JFrame {
     private Clip cafeClip;
     private Clip treeClip;
     private Clip rainClip;
+    private Clip lastPlayedClip = null; // remembers the last active ambience
+    private long lastClipPosition = 0;  // remembers frame position for resume
+    private String lastTheme = "";  
     
     
     public mainWindow() {
@@ -176,8 +179,8 @@ public class mainWindow extends javax.swing.JFrame {
         
         bookmarkSaved.setVisible(false);
 
-        mute.setVisible(false);
         unmute.setVisible(false);
+        mute.setVisible(false);
         
     
 
@@ -1201,8 +1204,8 @@ private void startScrollLogger(JScrollPane scrollPane) {
         bookReaderSubTab = new javax.swing.JPanel();
         bookReaderContent = new javax.swing.JPanel();
         subTabLayered = new javax.swing.JLayeredPane();
-        unmute = new javax.swing.JButton();
         mute = new javax.swing.JButton();
+        unmute = new javax.swing.JButton();
         toolBox = new javax.swing.JPanel();
         bookmark = new javax.swing.JButton();
         cafeTheme = new javax.swing.JButton();
@@ -3723,16 +3726,6 @@ private void startScrollLogger(JScrollPane scrollPane) {
 
         subTabLayered.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        unmute.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/sound30.png"))); // NOI18N
-        unmute.setBorderPainted(false);
-        unmute.setContentAreaFilled(false);
-        unmute.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                unmuteActionPerformed(evt);
-            }
-        });
-        subTabLayered.add(unmute, new org.netbeans.lib.awtextra.AbsoluteConstraints(1540, 930, -1, -1));
-
         mute.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/mute30.png"))); // NOI18N
         mute.setBorderPainted(false);
         mute.setContentAreaFilled(false);
@@ -3742,6 +3735,16 @@ private void startScrollLogger(JScrollPane scrollPane) {
             }
         });
         subTabLayered.add(mute, new org.netbeans.lib.awtextra.AbsoluteConstraints(1540, 930, -1, -1));
+
+        unmute.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/sound30.png"))); // NOI18N
+        unmute.setBorderPainted(false);
+        unmute.setContentAreaFilled(false);
+        unmute.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                unmuteActionPerformed(evt);
+            }
+        });
+        subTabLayered.add(unmute, new org.netbeans.lib.awtextra.AbsoluteConstraints(1540, 930, -1, -1));
 
         toolBox.setBackground(new java.awt.Color(40, 43, 45));
 
@@ -4558,51 +4561,77 @@ private void startScrollLogger(JScrollPane scrollPane) {
     private void cafeThemeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cafeThemeActionPerformed
         //mute.setVisible(false);
         //unmute.setVisible(false);
-        
-    if (cafeClip != null && cafeClip.isRunning()) {
-        cafeClip.stop();
-        cafeClip.close();
-    }
-
-    // Load background image
-    java.net.URL imgURL = getClass().getResource("/themes/cafe" + itr + ".jpg");
-    if (imgURL != null) {
-        themer.setIcon(new javax.swing.ImageIcon(imgURL));
-        themer.repaint();
-    } else {
-        System.err.println("⚠️ Image not found");
-    }
-
-    // Load and loop the matching .wav file
-    try {
-        java.net.URL soundURL = getClass().getResource("/ambienceSfx/cafe" + itr + ".wav");
-        if (soundURL != null) {
-            AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundURL);
-            cafeClip = AudioSystem.getClip();
-            cafeClip.open(audioIn);
-            cafeClip.loop(Clip.LOOP_CONTINUOUSLY); // instant seamless loop
-        } else {
-            System.err.println("⚠️ Sound not found: cafe" + itr + ".wav");
+        if(mute.isVisible()){
+            mute.setVisible(false);
+            unmute.setVisible(true);
         }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
+        if (treeClip != null && treeClip.isRunning()) {
+            treeClip.stop();
+            treeClip.close();
+        }
+        if (rainClip != null && rainClip.isRunning()) {
+            rainClip.stop();
+            rainClip.close();
+        }
 
-    itr++;
-    if (itr == 4) {
-        itr = 1;
-    }
+        // Stop previous cafe clip
+        if (cafeClip != null && cafeClip.isRunning()) {
+            cafeClip.stop();
+            cafeClip.close();
+        }
 
-    System.out.println("Theme #" + itr + " activated");
+        // Load background image
+        java.net.URL imgURL = getClass().getResource("/themes/cafe" + itr + ".jpg");
+        if (imgURL != null) {
+            themer.setIcon(new javax.swing.ImageIcon(imgURL));
+            themer.repaint();
+        } else {
+            System.err.println("⚠️ Image not found: cafe" + itr + ".jpg");
+        }
 
-    if (!unmute.isVisible()) {
-        mute.setVisible(true);
-    }
+        // Load and loop the matching cafe .wav file
+        try {
+            java.net.URL soundURL = getClass().getResource("/ambienceSfx/cafe" + itr + ".wav");
+            if (soundURL != null) {
+                AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundURL);
+                cafeClip = AudioSystem.getClip();
+                cafeClip.open(audioIn);
+                cafeClip.loop(Clip.LOOP_CONTINUOUSLY); // instant seamless loop
+            } else {
+                System.err.println("⚠️ Sound not found: cafe" + itr + ".wav");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Cycle images/sounds
+        itr++;
+        if (itr == 4) itr = 1;
+
+        System.out.println("Cafe theme #" + itr + " activated");
+
+        if (!mute.isVisible()) {
+            unmute.setVisible(true);
+        }
     }//GEN-LAST:event_cafeThemeActionPerformed
 
     private void treeThemeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_treeThemeActionPerformed
         //mute.setVisible(false);
         //unmute.setVisible(false);
+        if(mute.isVisible()){
+            mute.setVisible(false);
+            unmute.setVisible(true);
+        }
+        
+        if (rainClip != null && rainClip.isRunning()) {
+            rainClip.stop();
+            rainClip.close();
+        }
+        if (cafeClip != null && cafeClip.isRunning()) {
+            cafeClip.stop();
+            cafeClip.close();
+        }
+        // Stop previous tree clip
         if (treeClip != null && treeClip.isRunning()) {
             treeClip.stop();
             treeClip.close();
@@ -4617,16 +4646,16 @@ private void startScrollLogger(JScrollPane scrollPane) {
             System.err.println("⚠️ Image not found: trees" + itr + ".jpg");
         }
 
-        // Load and loop matching .wav file
+        // Load and loop matching tree sound
         try {
-            java.net.URL soundURL = getClass().getResource("/ambienceSfx/tree" + itr + ".wav");
+            java.net.URL soundURL = getClass().getResource("/ambienceSfx/trees" + itr + ".wav");
             if (soundURL != null) {
                 AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundURL);
                 treeClip = AudioSystem.getClip();
                 treeClip.open(audioIn);
-                treeClip.loop(Clip.LOOP_CONTINUOUSLY); // instant loop
+                treeClip.loop(Clip.LOOP_CONTINUOUSLY);
             } else {
-                System.err.println("⚠️ Sound not found: tree" + itr + ".wav");
+                System.err.println("⚠️ Sound not found: trees" + itr + ".wav");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -4634,20 +4663,35 @@ private void startScrollLogger(JScrollPane scrollPane) {
 
         // Cycle images/sounds
         itr++;
-        if (itr == 4) {
-            itr = 1;
-        }
+        if (itr == 4) itr = 1;
 
         System.out.println("Tree theme #" + itr + " activated");
 
-        if (!unmute.isVisible()) {
-            mute.setVisible(true);
+        if (!mute.isVisible()) {
+            unmute.setVisible(true);
         }
     }//GEN-LAST:event_treeThemeActionPerformed
 
     private void rainAmbienceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rainAmbienceActionPerformed
         //mute.setVisible(false);
-        //unmute.setVisible(false);        
+        //unmute.setVisible(false);  
+        if(mute.isVisible()){
+            mute.setVisible(false);
+            unmute.setVisible(true);
+        }
+        
+        if (cafeClip != null && cafeClip.isRunning()) {
+            cafeClip.stop();
+            cafeClip.close();
+        }
+
+        // Stop tree sound for previous itr
+        if (treeClip != null && treeClip.isRunning()) {
+            treeClip.stop();
+            treeClip.close();
+        }
+
+        // Stop current rainClip if already running
         if (rainClip != null && rainClip.isRunning()) {
             rainClip.stop();
             rainClip.close();
@@ -4662,7 +4706,7 @@ private void startScrollLogger(JScrollPane scrollPane) {
             System.err.println("⚠️ Image not found: rain" + itr + ".jpg");
         }
 
-        // Load and play matching sound (loop continuously)
+        // Load and play rain ambience (loop continuously)
         try {
             java.net.URL soundURL = getClass().getResource("/ambienceSfx/rain" + itr + ".wav");
             if (soundURL != null) {
@@ -4685,23 +4729,54 @@ private void startScrollLogger(JScrollPane scrollPane) {
 
         System.out.println("Rain ambience #" + itr + " activated");
 
-        if (!unmute.isVisible()) {
-            mute.setVisible(true);
+        if (!mute.isVisible()) {
+            unmute.setVisible(true);
         }
     }//GEN-LAST:event_rainAmbienceActionPerformed
 
-    private void unmuteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_unmuteActionPerformed
-       unmute.setVisible(false);
-       mute.setVisible(true);
-       
-       
-    }//GEN-LAST:event_unmuteActionPerformed
-
     private void muteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_muteActionPerformed
-        mute.setVisible(false);
-        unmute.setVisible(true);
-                
+       mute.setVisible(false);
+       unmute.setVisible(true);
+       
+        if (lastPlayedClip != null) {
+            try {
+                // Resume the clip from where it left
+                lastPlayedClip.setMicrosecondPosition(lastClipPosition);
+                lastPlayedClip.loop(Clip.LOOP_CONTINUOUSLY);
+                lastPlayedClip.start();
+                System.out.println("🔊 Resuming last ambience");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }       
     }//GEN-LAST:event_muteActionPerformed
+
+    private void unmuteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_unmuteActionPerformed
+        unmute.setVisible(false);
+        mute.setVisible(true);
+           
+        if (cafeClip != null && cafeClip.isRunning()) {
+            lastPlayedClip = cafeClip;
+            lastClipPosition = cafeClip.getMicrosecondPosition();
+            cafeClip.stop();
+        } else if (treeClip != null && treeClip.isRunning()) {
+            lastPlayedClip = treeClip;
+            lastClipPosition = treeClip.getMicrosecondPosition();
+            treeClip.stop();
+        } else if (rainClip != null && rainClip.isRunning()) {
+            lastPlayedClip = rainClip;
+            lastClipPosition = rainClip.getMicrosecondPosition();
+            rainClip.stop();
+        } else {
+            lastPlayedClip = null;
+            lastClipPosition = 0;
+        }
+
+        unmute.setVisible(false);
+        mute.setVisible(true);
+
+        System.out.println("🔇 All ambience muted");        
+    }//GEN-LAST:event_unmuteActionPerformed
 
     
    
