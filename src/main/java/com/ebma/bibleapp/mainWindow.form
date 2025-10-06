@@ -3997,6 +3997,9 @@
                                 </Property>
                                 <Property name="contentAreaFilled" type="boolean" value="false"/>
                               </Properties>
+                              <Events>
+                                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="treeThemeActionPerformed"/>
+                              </Events>
                             </Component>
                             <Component class="javax.swing.JButton" name="rainAmbience">
                               <Properties>
@@ -4005,6 +4008,9 @@
                                 </Property>
                                 <Property name="contentAreaFilled" type="boolean" value="false"/>
                               </Properties>
+                              <Events>
+                                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="rainAmbienceActionPerformed"/>
+                              </Events>
                             </Component>
                             <Component class="javax.swing.JButton" name="fontPlus">
                               <Properties>
@@ -4096,7 +4102,7 @@
                         <Component class="javax.swing.JLabel" name="themer">
                           <Constraints>
                             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-                              <AbsoluteConstraints x="0" y="45" width="-1" height="930"/>
+                              <AbsoluteConstraints x="0" y="55" width="1580" height="930"/>
                             </Constraint>
                           </Constraints>
                         </Component>
@@ -4181,27 +4187,6 @@
                           <Constraints>
                             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
                               <AbsoluteConstraints x="1450" y="290" width="-1" height="40"/>
-                            </Constraint>
-                          </Constraints>
-                        </Component>
-                        <Component class="javax.swing.JButton" name="pickup">
-                          <Properties>
-                            <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                              <Color blue="ff" green="ff" red="ff" type="rgb"/>
-                            </Property>
-                            <Property name="text" type="java.lang.String" value="pickup"/>
-                            <Property name="borderPainted" type="boolean" value="false"/>
-                            <Property name="focusPainted" type="boolean" value="false"/>
-                            <Property name="focusable" type="boolean" value="false"/>
-                            <Property name="requestFocusEnabled" type="boolean" value="false"/>
-                            <Property name="rolloverEnabled" type="boolean" value="false"/>
-                          </Properties>
-                          <Events>
-                            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="pickupActionPerformed"/>
-                          </Events>
-                          <Constraints>
-                            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-                              <AbsoluteConstraints x="1510" y="950" width="-1" height="-1"/>
                             </Constraint>
                           </Constraints>
                         </Component>

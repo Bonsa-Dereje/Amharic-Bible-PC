@@ -128,6 +128,10 @@ public class mainWindow extends javax.swing.JFrame {
     
     private int overhead;
     private boolean firstScrollWrite = true;
+    
+    // Declare this at the top of your class (outside the method)
+    private int itr = 1;
+
 
     public mainWindow() {
         
@@ -1205,7 +1209,6 @@ private void startScrollLogger(JScrollPane scrollPane) {
         jScrollPane1 = new javax.swing.JScrollPane();
         bookmarksDisp = new javax.swing.JTextArea();
         bookmarkSaved = new javax.swing.JLabel();
-        pickup = new javax.swing.JButton();
         jPanel14 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
 
@@ -3727,9 +3730,19 @@ private void startScrollLogger(JScrollPane scrollPane) {
 
         treeTheme.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/trees30.png"))); // NOI18N
         treeTheme.setContentAreaFilled(false);
+        treeTheme.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                treeThemeActionPerformed(evt);
+            }
+        });
 
         rainAmbience.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/rain30.png"))); // NOI18N
         rainAmbience.setContentAreaFilled(false);
+        rainAmbience.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rainAmbienceActionPerformed(evt);
+            }
+        });
 
         fontPlus.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/plus30.png"))); // NOI18N
         fontPlus.setContentAreaFilled(false);
@@ -3827,7 +3840,7 @@ private void startScrollLogger(JScrollPane scrollPane) {
         startScrollLogger(bookScroll);
 
         subTabLayered.add(bookScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(333, 55, 930, 920));
-        subTabLayered.add(themer, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 45, -1, 930));
+        subTabLayered.add(themer, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 55, 1580, 930));
 
         jLabel1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/bookmark20.png"))); // NOI18N
@@ -3867,20 +3880,6 @@ private void startScrollLogger(JScrollPane scrollPane) {
         bookmarkSaved.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 12)); // NOI18N
         bookmarkSaved.setText("Bookmark Saved");
         subTabLayered.add(bookmarkSaved, new org.netbeans.lib.awtextra.AbsoluteConstraints(1450, 290, -1, 40));
-
-        pickup.setForeground(new java.awt.Color(255, 255, 255));
-        pickup.setText("pickup");
-        pickup.setBorderPainted(false);
-        pickup.setFocusPainted(false);
-        pickup.setFocusable(false);
-        pickup.setRequestFocusEnabled(false);
-        pickup.setRolloverEnabled(false);
-        pickup.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                pickupActionPerformed(evt);
-            }
-        });
-        subTabLayered.add(pickup, new org.netbeans.lib.awtextra.AbsoluteConstraints(1510, 950, -1, -1));
 
         javax.swing.GroupLayout bookReaderContentLayout = new javax.swing.GroupLayout(bookReaderContent);
         bookReaderContent.setLayout(bookReaderContentLayout);
@@ -4525,16 +4524,53 @@ private void startScrollLogger(JScrollPane scrollPane) {
     }//GEN-LAST:event_bookmarkActionPerformed
 
     private void cafeThemeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cafeThemeActionPerformed
-        themer.setIcon(new javax.swing.ImageIcon(getClass().getResource("/themes/cafe1.png")));
- 
+    
+        java.net.URL imgURL = getClass().getResource("/themes/cafe" + itr + ".jpg");
+        if (imgURL != null) {
+            themer.setIcon(new javax.swing.ImageIcon(imgURL));
+            themer.repaint();
+            
+        } else {
+            System.err.println("⚠️ Image not found");
+        }
+        itr++;
+        if(itr == 4){
+            itr = 1;
+        }
+        System.out.println(itr);
     }//GEN-LAST:event_cafeThemeActionPerformed
 
-    private void pickupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pickupActionPerformed
-    bookScroll.getVerticalScrollBar().setValue(overhead);
+    private void treeThemeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_treeThemeActionPerformed
+        java.net.URL imgURL = getClass().getResource("/themes/trees" + itr + ".jpg");
+        if (imgURL != null) {
+            themer.setIcon(new javax.swing.ImageIcon(imgURL));
+            themer.repaint();
+            
+        } else {
+            System.err.println("⚠️ Image not found");
+        }
+        itr++;
+        if(itr == 4){
+            itr = 1;
+        }
+        System.out.println(itr);
+    }//GEN-LAST:event_treeThemeActionPerformed
 
-
-
-    }//GEN-LAST:event_pickupActionPerformed
+    private void rainAmbienceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rainAmbienceActionPerformed
+        java.net.URL imgURL = getClass().getResource("/themes/rain" + itr + ".jpg");
+        if (imgURL != null) {
+            themer.setIcon(new javax.swing.ImageIcon(imgURL));
+            themer.repaint();
+            
+        } else {
+            System.err.println("⚠️ Image not found");
+        }
+        itr++;
+        if(itr == 4){
+            itr = 1;
+        }
+        System.out.println(itr);
+    }//GEN-LAST:event_rainAmbienceActionPerformed
 
     
    
@@ -4682,7 +4718,6 @@ private void startScrollLogger(JScrollPane scrollPane) {
     private javax.swing.JLayeredPane notesTabLayers;
     private javax.swing.JPanel notesTabPanel;
     private javax.swing.JTextArea pdfDisplay;
-    private javax.swing.JButton pickup;
     private javax.swing.JButton rainAmbience;
     private javax.swing.JButton rainAmbience4;
     private javax.swing.JButton rainAmbience5;
