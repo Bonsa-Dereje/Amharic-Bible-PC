@@ -146,6 +146,8 @@ public class mainWindow extends javax.swing.JFrame {
     private String lastTheme = "";  
     //private int baseFontSize = 20;
     //private float volumePercent = 50; 
+    private boolean isDarkMode = false;
+
     
     public mainWindow() {
         
@@ -753,6 +755,8 @@ private void updateVolumeDisplay() {
 
 
 
+
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -1240,9 +1244,6 @@ private void updateVolumeDisplay() {
         volPLus = new javax.swing.JButton();
         volDisp = new javax.swing.JTextField();
         volMinus = new javax.swing.JButton();
-        darkMode = new javax.swing.JButton();
-        rainAmbience4 = new javax.swing.JButton();
-        rainAmbience5 = new javax.swing.JButton();
         bookScroll = new javax.swing.JScrollPane();
         pdfDisplay = new javax.swing.JTextArea();
         themer = new javax.swing.JLabel();
@@ -3771,7 +3772,7 @@ private void updateVolumeDisplay() {
         bookmarkSavedNotif.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 12)); // NOI18N
         bookmarkSavedNotif.setForeground(new java.awt.Color(255, 255, 255));
         bookmarkSavedNotif.setText("Bookmark Saved");
-        subTabLayered.add(bookmarkSavedNotif, new org.netbeans.lib.awtextra.AbsoluteConstraints(1450, 290, -1, 40));
+        subTabLayered.add(bookmarkSavedNotif, new org.netbeans.lib.awtextra.AbsoluteConstraints(1450, 340, -1, 40));
 
         toolBox.setBackground(new java.awt.Color(40, 43, 45));
 
@@ -3825,30 +3826,6 @@ private void updateVolumeDisplay() {
             }
         });
 
-        darkMode.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/darkMode30E.png"))); // NOI18N
-        darkMode.setContentAreaFilled(false);
-        darkMode.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                darkModeActionPerformed(evt);
-            }
-        });
-
-        rainAmbience4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/music30.png"))); // NOI18N
-        rainAmbience4.setContentAreaFilled(false);
-        rainAmbience4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                rainAmbience4ActionPerformed(evt);
-            }
-        });
-
-        rainAmbience5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/share30.png"))); // NOI18N
-        rainAmbience5.setContentAreaFilled(false);
-        rainAmbience5.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                rainAmbience5ActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout toolBoxLayout = new javax.swing.GroupLayout(toolBox);
         toolBox.setLayout(toolBoxLayout);
         toolBoxLayout.setHorizontalGroup(
@@ -3856,21 +3833,13 @@ private void updateVolumeDisplay() {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, toolBoxLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(toolBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(toolBoxLayout.createSequentialGroup()
-                        .addGroup(toolBoxLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(cafeTheme, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(treeTheme, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(rainAmbience, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(volPLus, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(volDisp, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(volMinus, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(darkMode, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(rainAmbience5, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, toolBoxLayout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(rainAmbience4, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap())
+                    .addComponent(cafeTheme, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(treeTheme, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(rainAmbience, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(volPLus, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(volDisp, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(volMinus, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addComponent(bookmark, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         toolBoxLayout.setVerticalGroup(
@@ -3890,16 +3859,10 @@ private void updateVolumeDisplay() {
                 .addComponent(volDisp, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(volMinus, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(darkMode, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(rainAmbience4, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(rainAmbience5, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(10, Short.MAX_VALUE))
         );
 
-        subTabLayered.add(toolBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(1540, 290, 40, 370));
+        subTabLayered.add(toolBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(1540, 340, 40, 250));
 
         bookScroll.setBackground(new java.awt.Color(255, 246, 236));
 
@@ -4583,18 +4546,6 @@ private void updateVolumeDisplay() {
         }
     }//GEN-LAST:event_volMinusActionPerformed
 
-    private void darkModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_darkModeActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_darkModeActionPerformed
-
-    private void rainAmbience4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rainAmbience4ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_rainAmbience4ActionPerformed
-
-    private void rainAmbience5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rainAmbience5ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_rainAmbience5ActionPerformed
-
     private void bookmarkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookmarkActionPerformed
         int bookIndex = loadedBook; // assuming this field exists
         int scrollIndex = bookScroll.getVerticalScrollBar().getValue();
@@ -4636,6 +4587,7 @@ private void updateVolumeDisplay() {
             mute.setVisible(false);
             unmute.setVisible(true);
         }
+        volDisp.setText("100");
         if (treeClip != null && treeClip.isRunning()) {
             treeClip.stop();
             treeClip.close();
@@ -4694,7 +4646,7 @@ private void updateVolumeDisplay() {
             mute.setVisible(false);
             unmute.setVisible(true);
         }
-        
+        volDisp.setText("100");
         if (rainClip != null && rainClip.isRunning()) {
             rainClip.stop();
             rainClip.close();
@@ -4752,6 +4704,7 @@ private void updateVolumeDisplay() {
             mute.setVisible(false);
             unmute.setVisible(true);
         }
+        volDisp.setText("100");
         
         if (cafeClip != null && cafeClip.isRunning()) {
             cafeClip.stop();
@@ -4966,7 +4919,6 @@ private void updateVolumeDisplay() {
     private javax.swing.JLabel cmntrsBtnLabel;
     private javax.swing.JPanel cmtrsTabPanel;
     private javax.swing.JTabbedPane cmtryTabbedPanel;
-    private javax.swing.JButton darkMode;
     private javax.swing.JLabel dayLabel4;
     private javax.swing.JLabel dayLabel5;
     private javax.swing.JLabel dayLabel6;
@@ -5016,8 +4968,6 @@ private void updateVolumeDisplay() {
     private javax.swing.JPanel notesTabPanel;
     private javax.swing.JTextArea pdfDisplay;
     private javax.swing.JButton rainAmbience;
-    private javax.swing.JButton rainAmbience4;
-    private javax.swing.JButton rainAmbience5;
     private javax.swing.JButton reRandomizer;
     private javax.swing.JButton readBtn;
     private javax.swing.JPanel readStatus1;
