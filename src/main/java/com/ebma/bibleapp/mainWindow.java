@@ -85,7 +85,10 @@ import java.awt.event.MouseEvent;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
-
+import javax.sound.sampled.FloatControl;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.LineEvent;
+import javax.sound.sampled.LineListener;
 
 
 
@@ -141,7 +144,8 @@ public class mainWindow extends javax.swing.JFrame {
     private Clip lastPlayedClip = null; // remembers the last active ambience
     private long lastClipPosition = 0;  // remembers frame position for resume
     private String lastTheme = "";  
-    
+    //private int baseFontSize = 20;
+    //private float volumePercent = 50; 
     
     public mainWindow() {
         
@@ -177,7 +181,7 @@ public class mainWindow extends javax.swing.JFrame {
         selectedBookUnderline11.setContentAreaFilled(false);
         selectedBookUnderline12.setContentAreaFilled(false);
         
-        bookmarkSaved.setVisible(false);
+        bookmarkSavedNotif.setVisible(false);
 
         unmute.setVisible(false);
         mute.setVisible(false);
@@ -418,6 +422,9 @@ public class mainWindow extends javax.swing.JFrame {
 
 
         private void restoreHighlights() {
+                if (tabs.getSelectedIndex() != 0) {
+                    return; 
+                }
             try (Connection conn = DBManager.getConnection()) {
 
                 // Remove old highlights
@@ -724,6 +731,24 @@ private void startScrollLogger(JScrollPane scrollPane) {
 }
 
 
+private void updateVolumeDisplay() {
+    if (lastPlayedClip != null && lastPlayedClip.isRunning()) {
+        try {
+            FloatControl gainControl = (FloatControl) lastPlayedClip.getControl(FloatControl.Type.MASTER_GAIN);
+            float current = gainControl.getValue();
+            float min = gainControl.getMinimum();
+            float max = gainControl.getMaximum();
+
+            // Convert dB to 0–100% scale
+            int percent = Math.round(((current - min) / (max - min)) * 100);
+            volDisp.setText(" "+ percent );
+        } catch (IllegalArgumentException ex) {
+            volDisp.setText("N/A");
+        }
+    } else {
+        volDisp.setText("N/A");
+    }
+}
 
 
 
@@ -1206,25 +1231,22 @@ private void startScrollLogger(JScrollPane scrollPane) {
         subTabLayered = new javax.swing.JLayeredPane();
         mute = new javax.swing.JButton();
         unmute = new javax.swing.JButton();
+        bookmarkSavedNotif = new javax.swing.JLabel();
         toolBox = new javax.swing.JPanel();
         bookmark = new javax.swing.JButton();
         cafeTheme = new javax.swing.JButton();
         treeTheme = new javax.swing.JButton();
         rainAmbience = new javax.swing.JButton();
-        fontPlus = new javax.swing.JButton();
-        fontDisplay = new javax.swing.JTextField();
-        fontMinus = new javax.swing.JButton();
+        volPLus = new javax.swing.JButton();
+        volDisp = new javax.swing.JTextField();
+        volMinus = new javax.swing.JButton();
         darkMode = new javax.swing.JButton();
         rainAmbience4 = new javax.swing.JButton();
         rainAmbience5 = new javax.swing.JButton();
         bookScroll = new javax.swing.JScrollPane();
         pdfDisplay = new javax.swing.JTextArea();
         themer = new javax.swing.JLabel();
-        jPanel1 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        bookmarksDisp = new javax.swing.JTextArea();
-        bookmarkSaved = new javax.swing.JLabel();
+        spacer = new javax.swing.JButton();
         jPanel14 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
 
@@ -3693,16 +3715,16 @@ private void startScrollLogger(JScrollPane scrollPane) {
                     .addGroup(loadingPrevisLayout.createSequentialGroup()
                         .addGap(161, 161, 161)
                         .addComponent(loadingBook, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(180, Short.MAX_VALUE))
+                .addContainerGap(142, Short.MAX_VALUE))
         );
         loadingPrevisLayout.setVerticalGroup(
             loadingPrevisLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(loadingPrevisLayout.createSequentialGroup()
                 .addGap(54, 54, 54)
                 .addComponent(loadingBook)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(18, 18, 18)
                 .addComponent(loadingLoop, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(68, Short.MAX_VALUE))
+                .addContainerGap(56, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout loadingScreenLayout = new javax.swing.GroupLayout(loadingScreen);
@@ -3712,7 +3734,7 @@ private void startScrollLogger(JScrollPane scrollPane) {
             .addGroup(loadingScreenLayout.createSequentialGroup()
                 .addGap(555, 555, 555)
                 .addComponent(loadingPrevis, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(567, Short.MAX_VALUE))
+                .addContainerGap(605, Short.MAX_VALUE))
         );
         loadingScreenLayout.setVerticalGroup(
             loadingScreenLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -3745,6 +3767,11 @@ private void startScrollLogger(JScrollPane scrollPane) {
             }
         });
         subTabLayered.add(unmute, new org.netbeans.lib.awtextra.AbsoluteConstraints(1540, 930, -1, -1));
+
+        bookmarkSavedNotif.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 12)); // NOI18N
+        bookmarkSavedNotif.setForeground(new java.awt.Color(255, 255, 255));
+        bookmarkSavedNotif.setText("Bookmark Saved");
+        subTabLayered.add(bookmarkSavedNotif, new org.netbeans.lib.awtextra.AbsoluteConstraints(1450, 290, -1, 40));
 
         toolBox.setBackground(new java.awt.Color(40, 43, 45));
 
@@ -3780,14 +3807,21 @@ private void startScrollLogger(JScrollPane scrollPane) {
             }
         });
 
-        fontPlus.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/plus30.png"))); // NOI18N
-        fontPlus.setContentAreaFilled(false);
-
-        fontMinus.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/minus30.png"))); // NOI18N
-        fontMinus.setContentAreaFilled(false);
-        fontMinus.addActionListener(new java.awt.event.ActionListener() {
+        volPLus.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/plus30.png"))); // NOI18N
+        volPLus.setContentAreaFilled(false);
+        volPLus.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                fontMinusActionPerformed(evt);
+                volPLusActionPerformed(evt);
+            }
+        });
+
+        volDisp.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 10)); // NOI18N
+
+        volMinus.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/minus30.png"))); // NOI18N
+        volMinus.setContentAreaFilled(false);
+        volMinus.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                volMinusActionPerformed(evt);
             }
         });
 
@@ -3827,9 +3861,9 @@ private void startScrollLogger(JScrollPane scrollPane) {
                             .addComponent(cafeTheme, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(treeTheme, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(rainAmbience, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(fontPlus, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(fontDisplay, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(fontMinus, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(volPLus, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(volDisp, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(volMinus, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(darkMode, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(rainAmbience5, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(0, 0, Short.MAX_VALUE))
@@ -3851,11 +3885,11 @@ private void startScrollLogger(JScrollPane scrollPane) {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(rainAmbience, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(fontPlus, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(volPLus, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(fontDisplay, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(volDisp, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(fontMinus, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(volMinus, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(darkMode, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -3869,52 +3903,20 @@ private void startScrollLogger(JScrollPane scrollPane) {
 
         bookScroll.setBackground(new java.awt.Color(255, 246, 236));
 
+        pdfDisplay.setEditable(false);
         pdfDisplay.setBackground(new java.awt.Color(255, 251, 247));
         pdfDisplay.setColumns(20);
         pdfDisplay.setRows(5);
+        pdfDisplay.setFocusable(false);
         bookScroll.setViewportView(pdfDisplay);
         startScrollLogger(bookScroll);
 
         subTabLayered.add(bookScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(333, 55, 930, 920));
         subTabLayered.add(themer, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 55, 1580, 930));
 
-        jLabel1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/bookmark20.png"))); // NOI18N
-        jLabel1.setText("Bookmarks");
-
-        jScrollPane1.setBorder(null);
-
-        bookmarksDisp.setEditable(false);
-        bookmarksDisp.setColumns(20);
-        bookmarksDisp.setRows(5);
-        bookmarksDisp.setBorder(null);
-        bookmarksDisp.setFocusable(false);
-        jScrollPane1.setViewportView(bookmarksDisp);
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(97, 97, 97)
-                .addComponent(jLabel1)
-                .addGap(0, 128, Short.MAX_VALUE))
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(17, 17, 17)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 872, Short.MAX_VALUE))
-        );
-
-        subTabLayered.add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 50, 330, 920));
-
-        bookmarkSaved.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 12)); // NOI18N
-        bookmarkSaved.setText("Bookmark Saved");
-        subTabLayered.add(bookmarkSaved, new org.netbeans.lib.awtextra.AbsoluteConstraints(1450, 290, -1, 40));
+        spacer.setBorderPainted(false);
+        spacer.setContentAreaFilled(false);
+        subTabLayered.add(spacer, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 220, 330, -1));
 
         javax.swing.GroupLayout bookReaderContentLayout = new javax.swing.GroupLayout(bookReaderContent);
         bookReaderContent.setLayout(bookReaderContentLayout);
@@ -4001,6 +4003,26 @@ private void startScrollLogger(JScrollPane scrollPane) {
         tabs.addTab("tab6", jPanel2);
 
         mainPanel_layered.add(tabs, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, -50, 1580, 1010));
+        tabs.addChangeListener(e -> {
+            int selectedIndex = tabs.getSelectedIndex();
+            if (selectedIndex >= 0 && selectedIndex <= 10) {
+                // Clear the background image
+                themer.setIcon(null);
+
+                // Pause all clips
+                if (cafeClip != null && cafeClip.isRunning()) {
+                    cafeClip.stop();
+                }
+                if (treeClip != null && treeClip.isRunning()) {
+                    treeClip.stop();
+                }
+                if (rainClip != null && rainClip.isRunning()) {
+                    rainClip.stop();
+                }
+
+                System.out.println("Tabs 0–10 selected: Themer cleared, all music paused");
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -4538,9 +4560,28 @@ private void startScrollLogger(JScrollPane scrollPane) {
 
     }//GEN-LAST:event_readBtnActionPerformed
 
-    private void fontMinusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fontMinusActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_fontMinusActionPerformed
+    private void volMinusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_volMinusActionPerformed
+        if (lastPlayedClip != null && lastPlayedClip.isRunning()) {
+            try {
+                FloatControl gainControl = (FloatControl) lastPlayedClip.getControl(FloatControl.Type.MASTER_GAIN);
+
+                // Get current volume in dB
+                float current = gainControl.getValue();
+
+                // Decrease by 6 dB for noticeable change, clamp to min
+                float min = gainControl.getMinimum();
+                float newGain = Math.max(current - 6.0f, min);
+
+                gainControl.setValue(newGain);
+                System.out.println("Volume decreased to: " + newGain + " dB");
+                updateVolumeDisplay();
+            } catch (IllegalArgumentException ex) {
+                System.out.println("Volume control not supported for this clip.");
+            }
+        } else {
+            System.out.println("No clip is currently running.");
+        }
+    }//GEN-LAST:event_volMinusActionPerformed
 
     private void darkModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_darkModeActionPerformed
         // TODO add your handling code here:
@@ -4555,7 +4596,37 @@ private void startScrollLogger(JScrollPane scrollPane) {
     }//GEN-LAST:event_rainAmbience5ActionPerformed
 
     private void bookmarkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookmarkActionPerformed
+        int bookIndex = loadedBook; // assuming this field exists
+        int scrollIndex = bookScroll.getVerticalScrollBar().getValue();
 
+        String dbPath = "bookStack.db";
+        String insertQuery = "INSERT INTO bookmarks (bookIndex, scrollIndex) VALUES (?, ?)";
+
+        // --- Save to DB ---
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+             PreparedStatement pstmt = conn.prepareStatement(insertQuery)) {
+
+            pstmt.setInt(1, bookIndex);
+            pstmt.setInt(2, scrollIndex);
+            pstmt.executeUpdate();
+
+            System.out.println("Bookmark saved for bookIndex: " + bookIndex + " | scrollIndex: " + scrollIndex);
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        
+        bookmark.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/bookmark.png")));
+        bookmarkSavedNotif.setVisible(true);
+
+        
+        javax.swing.Timer timer = new javax.swing.Timer(1500, e -> {
+            bookmarkSavedNotif.setVisible(false);
+            bookmark.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/bookmark30W.png")));
+        });
+        timer.setRepeats(false);
+        timer.start(); 
     }//GEN-LAST:event_bookmarkActionPerformed
 
     private void cafeThemeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cafeThemeActionPerformed
@@ -4613,6 +4684,7 @@ private void startScrollLogger(JScrollPane scrollPane) {
         if (!mute.isVisible()) {
             unmute.setVisible(true);
         }
+        lastPlayedClip = cafeClip;
     }//GEN-LAST:event_cafeThemeActionPerformed
 
     private void treeThemeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_treeThemeActionPerformed
@@ -4670,6 +4742,7 @@ private void startScrollLogger(JScrollPane scrollPane) {
         if (!mute.isVisible()) {
             unmute.setVisible(true);
         }
+        lastPlayedClip = treeClip;
     }//GEN-LAST:event_treeThemeActionPerformed
 
     private void rainAmbienceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rainAmbienceActionPerformed
@@ -4732,6 +4805,7 @@ private void startScrollLogger(JScrollPane scrollPane) {
         if (!mute.isVisible()) {
             unmute.setVisible(true);
         }
+        lastPlayedClip = rainClip;
     }//GEN-LAST:event_rainAmbienceActionPerformed
 
     private void muteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_muteActionPerformed
@@ -4777,6 +4851,29 @@ private void startScrollLogger(JScrollPane scrollPane) {
 
         System.out.println("🔇 All ambience muted");        
     }//GEN-LAST:event_unmuteActionPerformed
+
+    private void volPLusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_volPLusActionPerformed
+        if (lastPlayedClip != null && lastPlayedClip.isRunning()) {
+            try {
+                FloatControl gainControl = (FloatControl) lastPlayedClip.getControl(FloatControl.Type.MASTER_GAIN);
+
+                // Get current volume in dB
+                float current = gainControl.getValue();
+
+                // Increase by 6 dB for noticeable change, clamp to max
+                float max = gainControl.getMaximum();
+                float newGain = Math.min(current + 6.0f, max);
+
+                gainControl.setValue(newGain);
+                System.out.println("Volume increased to: " + newGain + " dB");
+                updateVolumeDisplay();
+            } catch (IllegalArgumentException ex) {
+                System.out.println("Volume control not supported for this clip.");
+            }
+        } else {
+            System.out.println("No clip is currently running.");
+        }
+    }//GEN-LAST:event_volPLusActionPerformed
 
     
    
@@ -4860,9 +4957,8 @@ private void startScrollLogger(JScrollPane scrollPane) {
     private javax.swing.JScrollPane bookScroll;
     private javax.swing.JButton bookmark;
     private javax.swing.JButton bookmarkBtn;
-    private javax.swing.JLabel bookmarkSaved;
+    private javax.swing.JLabel bookmarkSavedNotif;
     private javax.swing.JLabel bookmarksBtn;
-    private javax.swing.JTextArea bookmarksDisp;
     private javax.swing.JButton cafeTheme;
     private javax.swing.JComboBox<String> chapterChooser;
     private javax.swing.JButton closeBtn;
@@ -4878,20 +4974,14 @@ private void startScrollLogger(JScrollPane scrollPane) {
     private javax.swing.JButton exploreMoreBtn1;
     private javax.swing.JButton eyeHide;
     private javax.swing.JButton eyeShow;
-    private javax.swing.JTextField fontDisplay;
-    private javax.swing.JButton fontMinus;
-    private javax.swing.JButton fontPlus;
     private javax.swing.JSlider fontSizeSlider;
     private javax.swing.JButton highlightBtn;
     private javax.swing.JButton homeBtn;
     private javax.swing.JLabel homeBtnLabel;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel14;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JButton journalBtn;
     private javax.swing.JButton libraryBtn;
     private javax.swing.JPanel libraryContent;
@@ -4951,6 +5041,7 @@ private void startScrollLogger(JScrollPane scrollPane) {
     private javax.swing.JButton selectedBookUnderline9;
     private javax.swing.JButton settingsBtn;
     private javax.swing.JLabel settingsLabel;
+    private javax.swing.JButton spacer;
     private javax.swing.JButton statusDay1;
     private javax.swing.JButton statusDay10;
     private javax.swing.JButton statusDay100;
@@ -5326,5 +5417,8 @@ private void startScrollLogger(JScrollPane scrollPane) {
     private javax.swing.JButton treeTheme;
     private javax.swing.JButton unmute;
     private javax.swing.JComboBox<String> verseChooser;
+    private javax.swing.JTextField volDisp;
+    private javax.swing.JButton volMinus;
+    private javax.swing.JButton volPLus;
     // End of variables declaration//GEN-END:variables
 }
