@@ -3987,6 +3987,127 @@ private void updateVolumeDisplay() {
             }
         });
 
+        tabs.addChangeListener(e -> {
+            int selectedIndex = tabs.getSelectedIndex();
+
+            final String dbPath = "bookStack.db";
+            final int PAGE_HEIGHT = 1365;       // ~height of one page
+            final int SCROLL_THRESHOLD = 5460;  // minimum scroll difference to count
+            final int TIME_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+
+            // Holder class for session data
+            class SessionState {
+                long startTime = 0;
+                int startScrollIndex = 0;
+                javax.swing.Timer readingTimer = null;
+            }
+
+            // Store one SessionState in the tabs property for persistence
+            if (tabs.getClientProperty("sessionState") == null) {
+                tabs.putClientProperty("sessionState", new SessionState());
+            }
+            SessionState state = (SessionState) tabs.getClientProperty("sessionState");
+
+            // ========== TAB 3 SELECTED → START TRACKING ==========
+            if (selectedIndex == 3) {
+                try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+                    Statement stmt = conn.createStatement()) {
+
+                    ResultSet rs = stmt.executeQuery(
+                        "SELECT currentScrollIndex FROM scrollStatus WHERE bookIndex = " + loadedBook + " LIMIT 1"
+                    );
+                    if (rs.next()) {
+                        state.startScrollIndex = rs.getInt("currentScrollIndex");
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
+                state.startTime = System.currentTimeMillis();
+                state.readingTimer = new javax.swing.Timer(1000, evt2 -> {}); // ticks every sec, not doing anything
+                state.readingTimer.start();
+
+                System.out.println("📖 Entered Tab 3 → Timer started | Book: " + loadedBook +
+                    " | Start Scroll: " + state.startScrollIndex);
+            }
+
+            // ========== ANY OTHER TAB SELECTED → STOP TRACKING ==========
+            else {
+                if (state.readingTimer != null && state.readingTimer.isRunning()) {
+                    state.readingTimer.stop();
+                    long endTime = System.currentTimeMillis();
+                    long duration = endTime - state.startTime; // in ms
+                    int endScrollIndex = 0;
+
+                    // Get ending scroll index
+                    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+                        Statement stmt = conn.createStatement()) {
+
+                        ResultSet rs = stmt.executeQuery(
+                            "SELECT currentScrollIndex FROM scrollStatus WHERE bookIndex = " + loadedBook + " LIMIT 1"
+                        );
+                        if (rs.next()) {
+                            endScrollIndex = rs.getInt("currentScrollIndex");
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+
+                    int scrollDiff = Math.abs(endScrollIndex - state.startScrollIndex);
+                    int pagesRead = (int) Math.ceil((double) scrollDiff / PAGE_HEIGHT); // round up partial pages
+
+                    System.out.println("📘 Leaving Tab 3 → Time: " + (duration / 1000) + "s | ScrollDiff: " +
+                        scrollDiff + " | PagesRead: " + pagesRead);
+
+                    // Only log if conditions met
+                    if (duration >= TIME_THRESHOLD_MS && scrollDiff > SCROLL_THRESHOLD) {
+                        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
+
+                            // Add pagesRead column if missing (ignore error)
+                            try (Statement stmt = conn.createStatement()) {
+                                stmt.execute("ALTER TABLE session ADD COLUMN pagesRead INTEGER");
+                            } catch (SQLException ignored) {}
+
+                            try (PreparedStatement pstmt = conn.prepareStatement(
+                                "INSERT INTO session (bookIndex, readFor, lastRead, scrollDiff, pagesRead) " +
+                                "VALUES (?, ?, datetime('now'), ?, ?)"
+                            )) {
+                                pstmt.setInt(1, loadedBook);                             // book index
+                                pstmt.setInt(2, (int) (duration / 1000 / 60));           // minutes
+                                pstmt.setInt(3, scrollDiff);                              // scroll diff
+                                pstmt.setInt(4, pagesRead);                               // pages read
+                                pstmt.executeUpdate();
+
+                                System.out.println("✅ Session saved → Book: " + loadedBook +
+                                    " | Time: " + (duration / 1000 / 60) + "min | Pages: " + pagesRead);
+                            }
+
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    } else {
+                        System.out.println("⚠️ Session skipped (too short or no significant scroll)");
+                    }
+
+                    // Reset session state
+                    state.readingTimer = null;
+                    state.startTime = 0;
+                    state.startScrollIndex = 0;
+                }
+            }
+
+            // ========== EXISTING LOGIC: Themer + Audio Control ==========
+            if (selectedIndex >= 0 && selectedIndex <= 10) {
+                themer.setIcon(null);
+
+                if (cafeClip != null && cafeClip.isRunning()) cafeClip.stop();
+                if (treeClip != null && treeClip.isRunning()) treeClip.stop();
+                if (rainClip != null && rainClip.isRunning()) rainClip.stop();
+
+                System.out.println("🎵 Tabs 0–10 selected → Themer cleared, all music paused");
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
