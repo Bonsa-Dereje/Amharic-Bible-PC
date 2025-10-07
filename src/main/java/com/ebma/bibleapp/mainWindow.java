@@ -188,6 +188,8 @@ public class mainWindow extends javax.swing.JFrame {
         unmute.setVisible(false);
         mute.setVisible(false);
         
+        
+        //loadLastReadBookFromSession();
     
 
       
@@ -616,7 +618,6 @@ private void updateBookTiles() {
 }
       
 
-
 private void updateSelectedBookIcon() {
     // currentSelected stores which button (1–12) was clicked
     // so grab its random number from the list
@@ -629,7 +630,6 @@ private void updateSelectedBookIcon() {
         System.err.println("Icon not found: /bookTiles/" + assignedNum + ".png");
     }
 }
-
 
 private void updateBookDetails() {
     if (currentSelected < 1 || currentSelected > randomNums.size()) {
@@ -673,7 +673,6 @@ private void updateBookDetails() {
         description.setText("<html><div style='text-align:center; color:red;'>Database error: " + ex.getMessage() + "</div></html>");
     }
 }
-
 
 
         
@@ -753,7 +752,77 @@ private void updateVolumeDisplay() {
 }
 
 
+private void loadLastReadDirectly() {
+    String dbPath = "bookStack.db";
 
+    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
+
+        // 1. Get the last read bookIndex (this is already the assignedNum)
+        int assignedNum = -1;
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT bookIndex FROM lastRead LIMIT 1")) {
+            if (rs.next()) {
+                assignedNum = rs.getInt("bookIndex");
+            }
+        }
+
+        if (assignedNum == -1) {
+            // No last read, fallback to first book in randomNums
+            assignedNum = randomNums.get(0);
+        }
+
+        // 2. Find button number corresponding to assignedNum (for highlighting, optional)
+        int buttonNumber = 1;
+        for (int i = 0; i < randomNums.size(); i++) {
+            if (randomNums.get(i) == assignedNum) {
+                buttonNumber = i + 1;
+                break;
+            }
+        }
+        currentSelected = buttonNumber;
+
+        // 3. Load icon directly using assignedNum
+        URL selectedIconURL = getClass().getResource("/bookTiles/" + assignedNum + ".png");
+        if (selectedIconURL != null) {
+            selectedBook.setIcon(new ImageIcon(selectedIconURL));
+        } else {
+            System.err.println("Icon not found: /bookTiles/" + assignedNum + ".png");
+        }
+
+        // 4. Load book details directly
+        String sql = "SELECT bookName, author, category, description FROM bookStack WHERE CAST(TRIM(bookIndex) AS INTEGER) = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, assignedNum);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    String bookName = rs.getString("bookName").trim();
+                    String author = rs.getString("author").trim();
+                    String category = rs.getString("category").trim();
+                    String desc = rs.getString("description").trim();
+
+                    String htmlText = "<html><div style='text-align:center; font-family:Nokia Pure Headline Ultra Light; font-size:14px; color:white;'>" +
+                                      "<b>Title:</b> " + bookName + "<br>" +
+                                      "<b>Author:</b> " + author + "<br>" +
+                                      "<b>Category:</b> " + category + "<br><br>" +
+                                      "<b>Description:</b><br>" +
+                                      "<span style='font-size:12px;'>" + desc.replace("\n", "<br>") + "</span>" +
+                                      "</div></html>";
+
+                    description.setText(htmlText);
+
+                } else {
+                    description.setText("<html><div style='text-align:center; color:red;'>Book not found in database.</div></html>");
+                }
+            }
+        }
+
+        continueReading.setVisible(true);
+
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+        description.setText("<html><div style='text-align:center; color:red;'>Database error: " + ex.getMessage() + "</div></html>");
+    }
+}
 
 
 
@@ -1200,6 +1269,7 @@ private void updateVolumeDisplay() {
         selectedBook = new javax.swing.JButton();
         readBtn = new javax.swing.JButton();
         description = new javax.swing.JLabel();
+        continueReading = new javax.swing.JButton();
         bookDisplay1 = new javax.swing.JButton();
         bookDisplay2 = new javax.swing.JButton();
         bookDisplay3 = new javax.swing.JButton();
@@ -3245,32 +3315,44 @@ private void updateVolumeDisplay() {
         description.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
         description.setForeground(new java.awt.Color(255, 255, 255));
 
+        continueReading.setBackground(new java.awt.Color(86, 211, 100));
+        continueReading.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        continueReading.setText("Last Read");
+        continueReading.setBorderPainted(false);
+        continueReading.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                continueReadingActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout bookDescriptionSideBar1Layout = new javax.swing.GroupLayout(bookDescriptionSideBar1);
         bookDescriptionSideBar1.setLayout(bookDescriptionSideBar1Layout);
         bookDescriptionSideBar1Layout.setHorizontalGroup(
             bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBar1Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBar1Layout.createSequentialGroup()
-                        .addComponent(readBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(17, 17, 17))
-                    .addComponent(aboutTheBook1, javax.swing.GroupLayout.Alignment.TRAILING))
-                .addGap(115, 115, 115))
             .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
                 .addGroup(bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
-                        .addGap(84, 84, 84)
-                        .addComponent(selectedBook, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
                         .addGap(26, 26, 26)
-                        .addComponent(description, javax.swing.GroupLayout.PREFERRED_SIZE, 294, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(description, javax.swing.GroupLayout.PREFERRED_SIZE, 294, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
+                        .addGap(84, 84, 84)
+                        .addComponent(selectedBook, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(31, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookDescriptionSideBar1Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
+                        .addComponent(readBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(17, 17, 17))
+                    .addComponent(aboutTheBook1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(continueReading, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(115, 115, 115))
         );
         bookDescriptionSideBar1Layout.setVerticalGroup(
             bookDescriptionSideBar1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(bookDescriptionSideBar1Layout.createSequentialGroup()
-                .addGap(102, 102, 102)
+                .addComponent(continueReading)
+                .addGap(78, 78, 78)
                 .addComponent(aboutTheBook1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(selectedBook, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -4069,7 +4151,7 @@ private void updateVolumeDisplay() {
                             } catch (SQLException ignored) {}
 
                             try (PreparedStatement pstmt = conn.prepareStatement(
-                                "INSERT INTO session (bookIndex, readFor, lastRead, scrollDiff, pagesRead) " +
+                                "INSERT INTO session (bookIndex, readFor, continueReading, scrollDiff, pagesRead) " +
                                 "VALUES (?, ?, datetime('now'), ?, ?)"
                             )) {
                                 pstmt.setInt(1, loadedBook);                             // book index
@@ -4105,6 +4187,12 @@ private void updateVolumeDisplay() {
                 if (rainClip != null && rainClip.isRunning()) rainClip.stop();
 
                 System.out.println("🎵 Tabs 0–10 selected → Themer cleared, all music paused");
+            }
+        });
+
+        tabs.addChangeListener(e -> {
+            if (tabs.getSelectedIndex() == 1) {
+                loadLastReadDirectly();
             }
         });
 
@@ -4307,6 +4395,8 @@ private void updateVolumeDisplay() {
         updateSelectedBookIcon();
         updateBookDetails();
         
+        continueReading.setVisible(false);
+        
     }//GEN-LAST:event_bookDisplay1ActionPerformed
 
     private void reRandomizerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reRandomizerActionPerformed
@@ -4362,6 +4452,8 @@ private void updateVolumeDisplay() {
         currentSelected = 2;
         updateSelectedBookIcon();
         updateBookDetails();
+        
+        continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay2ActionPerformed
 
     private void bookDisplay3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay3ActionPerformed
@@ -4381,6 +4473,8 @@ private void updateVolumeDisplay() {
         currentSelected = 3;
         updateSelectedBookIcon();
         updateBookDetails();
+        
+        continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay3ActionPerformed
 
     private void bookDisplay4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay4ActionPerformed
@@ -4400,6 +4494,8 @@ private void updateVolumeDisplay() {
         currentSelected = 4;
         updateSelectedBookIcon();
         updateBookDetails();
+        
+        continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay4ActionPerformed
 
     private void bookDisplay5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay5ActionPerformed
@@ -4419,6 +4515,8 @@ private void updateVolumeDisplay() {
         currentSelected = 5;
         updateSelectedBookIcon();
         updateBookDetails();
+        
+        continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay5ActionPerformed
 
     private void bookDisplay6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay6ActionPerformed
@@ -4438,6 +4536,8 @@ private void updateVolumeDisplay() {
         currentSelected = 6;
         updateSelectedBookIcon();
         updateBookDetails();
+        
+        continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay6ActionPerformed
 
     private void bookDisplay7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay7ActionPerformed
@@ -4457,6 +4557,8 @@ private void updateVolumeDisplay() {
         currentSelected = 7;
         updateSelectedBookIcon();
         updateBookDetails();
+        
+        continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay7ActionPerformed
 
     private void bookDisplay8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay8ActionPerformed
@@ -4476,6 +4578,8 @@ private void updateVolumeDisplay() {
         currentSelected = 8;
         updateSelectedBookIcon();
         updateBookDetails();
+        
+        continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay8ActionPerformed
 
     private void bookDisplay9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay9ActionPerformed
@@ -4495,6 +4599,8 @@ private void updateVolumeDisplay() {
         currentSelected = 9;
         updateSelectedBookIcon();
         updateBookDetails();
+        
+        continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay9ActionPerformed
 
     private void bookDisplay10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay10ActionPerformed
@@ -4514,6 +4620,8 @@ private void updateVolumeDisplay() {
         currentSelected = 10;
         updateSelectedBookIcon();
         updateBookDetails();
+        
+        continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay10ActionPerformed
 
     private void bookDisplay11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay11ActionPerformed
@@ -4533,6 +4641,8 @@ private void updateVolumeDisplay() {
         currentSelected = 11;
         updateSelectedBookIcon();
         updateBookDetails();
+        
+        continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay11ActionPerformed
 
     private void bookDisplay12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay12ActionPerformed
@@ -4552,6 +4662,8 @@ private void updateVolumeDisplay() {
         currentSelected = 12;
         updateSelectedBookIcon();
         updateBookDetails();
+        
+        continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay12ActionPerformed
 
     private void readBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_readBtnActionPerformed
@@ -4561,6 +4673,46 @@ private void updateVolumeDisplay() {
     // Get the bookIndex early
     int assignedNum = randomNums.get(currentSelected - 1);
     loadedBook = assignedNum;
+    
+    // Update lastRead table
+    int realBookIndex = -1;
+    String dbPath = "bookStack.db";
+
+    // Query the real bookIndex from bookStack
+    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+         PreparedStatement ps = conn.prepareStatement(
+             "SELECT bookIndex FROM bookStack WHERE CAST(TRIM(bookIndex) AS INTEGER) = ?")) {
+
+        ps.setInt(1, assignedNum);
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                realBookIndex = rs.getInt("bookIndex");
+            }
+        }
+
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+    }
+
+    // Save to lastRead table (clear previous row first)
+    if (realBookIndex != -1) {
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+             Statement stmt = conn.createStatement()) {
+
+            // Delete old lastRead row
+            stmt.executeUpdate("DELETE FROM lastRead");
+
+            // Insert new lastRead row
+            try (PreparedStatement ps = conn.prepareStatement("INSERT INTO lastRead(bookIndex) VALUES(?)")) {
+                ps.setInt(1, realBookIndex);
+                ps.executeUpdate();
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
 
     // Background worker to load the PDF
     SwingWorker<JTextPane, Void> worker = new SwingWorker<>() {
@@ -4949,6 +5101,10 @@ private void updateVolumeDisplay() {
         }
     }//GEN-LAST:event_volPLusActionPerformed
 
+    private void continueReadingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_continueReadingActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_continueReadingActionPerformed
+
     
    
  
@@ -5040,6 +5196,7 @@ private void updateVolumeDisplay() {
     private javax.swing.JLabel cmntrsBtnLabel;
     private javax.swing.JPanel cmtrsTabPanel;
     private javax.swing.JTabbedPane cmtryTabbedPanel;
+    private javax.swing.JButton continueReading;
     private javax.swing.JLabel dayLabel4;
     private javax.swing.JLabel dayLabel5;
     private javax.swing.JLabel dayLabel6;
