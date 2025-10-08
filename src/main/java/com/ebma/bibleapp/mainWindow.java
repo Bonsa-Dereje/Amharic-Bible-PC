@@ -194,7 +194,8 @@ public class mainWindow extends javax.swing.JFrame {
         
         //loadLastReadBookFromSession();
         
-        
+        startAutoSaveClickTimer();
+
 
       
     }
@@ -774,6 +775,16 @@ private String loadNoteFromDB(int testamentIndex, int bookIndex, int chapterInde
     }
 
     return noteText;
+}
+
+
+private void startAutoSaveClickTimer() {
+    // 120000ms = 2 minutes
+    new javax.swing.Timer(120000, e -> {
+        if (saveNote.isVisible()) {      // only click if the button is visible
+            saveNote.doClick();          // simulate button click
+        }
+    }).start();
 }
 
 
