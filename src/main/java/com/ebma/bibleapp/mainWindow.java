@@ -91,6 +91,9 @@ import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineListener;
 
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
 
 
 
@@ -195,6 +198,14 @@ public class mainWindow extends javax.swing.JFrame {
         //loadLastReadBookFromSession();
         
         startAutoSaveClickTimer();
+
+        writeYourReflection.setVisible(false);
+        
+        //updateReadingStatus();
+        //updateReadingStatusDebug();
+        //SwingUtilities.invokeLater(() -> updateReadingStatus());
+
+
 
 
       
@@ -788,6 +799,87 @@ private void startAutoSaveClickTimer() {
 }
 
 
+
+public void updateStatusButtons() {
+    String dbPath = "bookStack.db"; 
+    String iconPath = "C:\\Users\\boni\\Desktop\\Files\\Projects\\BibleApp\\src\\main\\resources\\icons\\";
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    // Load icons into a map
+    HashMap<String, ImageIcon> icons = new HashMap<>();
+    String[] iconNames = {
+        "arrowRight","arrowUp15","arrowUp20","audiobook","bold","book","bookmark","bookm",
+        "bookmark20","bookmark20W","bookmark25","bookmark30","bookmark30E","bookmark30W",
+        "cafe30","cart","commentaries","darkMode30","darkMode30E","eyelride","eyeShow",
+        "heart20","highlight","hon","hostJoin","icons8-arrow-right-15","icons8-arrow-right-100",
+        "icons8-eye-15","icons8-forward-50","icons8-invisible-15","icons8-library-35",
+        "icons8-play-75","minus30","music30","notes","play","play70","plus15","plus30",
+        "rain30","refresh20","reset","resetThin","save15","search","searchTiny","settings",
+        "share30","sound30","threeDot30W","tick15","tick15White","tree","trees30V2",
+        "vertical30","vertical32","write15","zoom"
+    };
+    for (String name : iconNames) {
+        File f = new File(iconPath + name + ".png");
+        if (f.exists()) {
+            icons.put(name, new ImageIcon(f.getAbsolutePath()));
+        }
+    }
+
+    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
+        String sql = "SELECT pagesRead, readFor, lastRead FROM session";
+        try (PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                int pagesRead = rs.getInt("pagesRead");
+                int readFor = rs.getInt("readFor");
+                String lastReadStr = rs.getString("lastRead");
+
+                LocalDateTime lastRead = LocalDateTime.parse(lastReadStr, dtf);
+                int dayOfYear = lastRead.getDayOfYear();
+
+                // Determine color
+                Color color;
+                if (pagesRead >= 5 && pagesRead < 10 && readFor >= 5) {
+                    color = new Color(3, 58, 22);
+                } else if (pagesRead >= 10 && pagesRead < 15 && readFor >= 10) {
+                    color = new Color(25, 108, 46);
+                } else if (pagesRead >= 15 && pagesRead < 20 && readFor >= 15) {
+                    color = new Color(46, 160, 67);
+                } else if (pagesRead > 20 && readFor >= 20) {
+                    color = new Color(86, 211, 100);
+                } else {
+                    color = new Color(21, 27, 35);
+                }
+
+                // Pick icon based on pagesRead
+                String iconKey = "book"; // default
+                if (pagesRead >= 20) iconKey = "bookmark30";
+                else if (pagesRead >= 15) iconKey = "bookmark25";
+                else if (pagesRead >= 10) iconKey = "bookmark20";
+                else if (pagesRead >= 5) iconKey = "bookmark";
+
+                ImageIcon icon = icons.getOrDefault(iconKey, null);
+
+                // Assign to the correct button inside readStatus panel
+                for (Component comp : readStatus.getComponents()) {
+                    if (comp instanceof JButton) {
+                        JButton btn = (JButton) comp;
+                        if (btn.getName() != null && btn.getName().equals("statusDay" + dayOfYear)) {
+                            btn.setBackground(color);
+                            btn.setIcon(icon);
+                            btn.repaint(); // refresh
+                            break; // found the button, stop inner loop
+                        }
+                    }
+                }
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -830,6 +922,7 @@ private void startAutoSaveClickTimer() {
         saveTick = new javax.swing.JButton();
         addNoteBtn = new javax.swing.JButton();
         notesInput = new javax.swing.JTextArea();
+        writeYourReflection = new javax.swing.JLabel();
         nodesTabPanel = new javax.swing.JPanel();
         cmtrsTabPanel = new javax.swing.JPanel();
         biblestudyTitle = new javax.swing.JLabel();
@@ -842,7 +935,7 @@ private void startAutoSaveClickTimer() {
         bookChooserDropDown = new javax.swing.JComboBox<>();
         libraryTab = new javax.swing.JPanel();
         libraryContent = new javax.swing.JPanel();
-        readStatus1 = new javax.swing.JPanel();
+        readStatus = new javax.swing.JPanel();
         dayLabel4 = new javax.swing.JLabel();
         dayLabel5 = new javax.swing.JLabel();
         dayLabel6 = new javax.swing.JLabel();
@@ -1622,8 +1715,6 @@ private void startAutoSaveClickTimer() {
                 eyeHideActionPerformed(evt);
             }
         });
-        notesTabLayers.add(eyeHide);
-        eyeHide.setBounds(610, 10, 30, 20);
 
         eyeShow.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/icons8-eye-15.png"))); // NOI18N
         eyeShow.addActionListener(new java.awt.event.ActionListener() {
@@ -1631,8 +1722,6 @@ private void startAutoSaveClickTimer() {
                 eyeShowActionPerformed(evt);
             }
         });
-        notesTabLayers.add(eyeShow);
-        eyeShow.setBounds(610, 10, 30, 20);
 
         saveNote.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/save15.png"))); // NOI18N
         saveNote.addActionListener(new java.awt.event.ActionListener() {
@@ -1640,13 +1729,9 @@ private void startAutoSaveClickTimer() {
                 saveNoteActionPerformed(evt);
             }
         });
-        notesTabLayers.add(saveNote);
-        saveNote.setBounds(570, 10, 30, 20);
 
         saveTick.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/tick15.png"))); // NOI18N
         saveTick.setBorder(null);
-        notesTabLayers.add(saveTick);
-        saveTick.setBounds(570, 10, 30, 20);
 
         addNoteBtn.setBackground(new java.awt.Color(204, 204, 204));
         addNoteBtn.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
@@ -1658,8 +1743,6 @@ private void startAutoSaveClickTimer() {
                 addNoteBtnActionPerformed(evt);
             }
         });
-        notesTabLayers.add(addNoteBtn);
-        addNoteBtn.setBounds(260, 390, 172, 32);
 
         notesInput.setColumns(20);
         notesInput.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
@@ -1668,8 +1751,62 @@ private void startAutoSaveClickTimer() {
         notesInput.setOpaque(false);
         notesInput.setLineWrap(true);           // enable line wrapping
         notesInput.setWrapStyleWord(true);      // wrap at word boundaries, not mid-word
-        notesTabLayers.add(notesInput);
-        notesInput.setBounds(20, 40, 610, 770);
+
+        writeYourReflection.setFont(new java.awt.Font("Godana", 0, 14)); // NOI18N
+        writeYourReflection.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/write15.png"))); // NOI18N
+        writeYourReflection.setText("Write your reflection on this chapter");
+
+        notesTabLayers.setLayer(eyeHide, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        notesTabLayers.setLayer(eyeShow, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        notesTabLayers.setLayer(saveNote, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        notesTabLayers.setLayer(saveTick, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        notesTabLayers.setLayer(addNoteBtn, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        notesTabLayers.setLayer(notesInput, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        notesTabLayers.setLayer(writeYourReflection, javax.swing.JLayeredPane.DEFAULT_LAYER);
+
+        javax.swing.GroupLayout notesTabLayersLayout = new javax.swing.GroupLayout(notesTabLayers);
+        notesTabLayers.setLayout(notesTabLayersLayout);
+        notesTabLayersLayout.setHorizontalGroup(
+            notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(notesTabLayersLayout.createSequentialGroup()
+                .addGroup(notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(notesTabLayersLayout.createSequentialGroup()
+                        .addGap(260, 260, 260)
+                        .addComponent(addNoteBtn))
+                    .addGroup(notesTabLayersLayout.createSequentialGroup()
+                        .addGap(12, 12, 12)
+                        .addGroup(notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(notesTabLayersLayout.createSequentialGroup()
+                                .addComponent(writeYourReflection, javax.swing.GroupLayout.PREFERRED_SIZE, 255, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(297, 297, 297)
+                                .addGroup(notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(saveTick, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(saveNote, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(10, 10, 10)
+                                .addGroup(notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(eyeShow, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(eyeHide, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(notesInput, javax.swing.GroupLayout.PREFERRED_SIZE, 618, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGap(20, 20, 20))
+        );
+        notesTabLayersLayout.setVerticalGroup(
+            notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(notesTabLayersLayout.createSequentialGroup()
+                .addGap(10, 10, 10)
+                .addGroup(notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(writeYourReflection)
+                    .addComponent(saveTick, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(saveNote, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(eyeShow, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(eyeHide, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(10, 10, 10)
+                .addGroup(notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(notesTabLayersLayout.createSequentialGroup()
+                        .addGap(350, 350, 350)
+                        .addComponent(addNoteBtn))
+                    .addComponent(notesInput, javax.swing.GroupLayout.PREFERRED_SIZE, 770, javax.swing.GroupLayout.PREFERRED_SIZE)))
+        );
+
         notesInput.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             private void handleChange() {
                 if (saveTick.isVisible() && notesInput.getText().length() > 0) {
@@ -1691,6 +1828,35 @@ private void startAutoSaveClickTimer() {
             @Override
             public void changedUpdate(javax.swing.event.DocumentEvent e) {
                 handleChange();
+            }
+        });
+
+        notesInput.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                if (addNoteBtn.isVisible()) {
+                    notesInput.setFocusable(false);
+                    notesInput.getCaret().setVisible(false);
+                    notesInput.transferFocus(); // move focus away
+                } else {
+                    notesInput.setFocusable(true);
+                    notesInput.getCaret().setVisible(true);
+                }
+            }
+        });
+
+        // --- Also prevent mouse clicks from showing caret when addNoteBtn is visible ---
+        notesInput.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                if (addNoteBtn.isVisible()) {
+                    notesInput.setFocusable(false);
+                    notesInput.getCaret().setVisible(false);
+                    evt.consume(); // block the click
+                } else {
+                    notesInput.setFocusable(true);
+                    notesInput.getCaret().setVisible(true);
+                }
             }
         });
 
@@ -1861,6 +2027,7 @@ private void startAutoSaveClickTimer() {
         */
 
         chapterChooser.addActionListener(e -> {
+
             int selectedChapterIndex = chapterChooser.getSelectedIndex();
             if (selectedChapterIndex < 0) return;
 
@@ -1880,9 +2047,11 @@ private void startAutoSaveClickTimer() {
             // Adjust buttons visibility based on whether a note exists
             if (!loadedNote.isEmpty()) {
                 addNoteBtn.setVisible(false); // hide the add button if note exists
+
                 eyeHide.setVisible(true);
                 saveNote.setVisible(true);
                 saveTick.setVisible(false);
+                writeYourReflection.setVisible(true);
             } else {
                 notesInput.setText(""); // new note
                 addNoteBtn.setVisible(true);
@@ -1890,6 +2059,7 @@ private void startAutoSaveClickTimer() {
                 eyeHide.setVisible(false);
                 saveNote.setVisible(false);
                 saveTick.setVisible(false); // show the add button if no note exists
+                writeYourReflection.setVisible(false);
             }
         });
 
@@ -1898,13 +2068,30 @@ private void startAutoSaveClickTimer() {
         bibleTab.add(testamentChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(17, 67, 105, -1));
 
         bookChooserDropDown.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 12)); // NOI18N
-        bookChooserDropDown.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "አማርኛ", "English", " ", " " }));
+        bookChooserDropDown.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "አማርኛ", "English" }));
         bookChooserDropDown.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 bookChooserDropDownActionPerformed(evt);
             }
         });
         bibleTab.add(bookChooserDropDown, new org.netbeans.lib.awtextra.AbsoluteConstraints(630, 70, 89, -1));
+        bookChooserDropDown.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                int selectedIndex = bookChooserDropDown.getSelectedIndex();
+
+                if (selectedIndex == 0) {
+                    // Amharic selected
+                    testamentChooser.setModel(new javax.swing.DefaultComboBoxModel<>(
+                        new String[] { "ብሉይ ኪዳን", "አዲስ ኪዳን" }
+                    ));
+                } else if (selectedIndex == 1) {
+                    // English selected
+                    testamentChooser.setModel(new javax.swing.DefaultComboBoxModel<>(
+                        new String[] { "Old Testament", "New Testament" }
+                    ));
+                }
+            }
+        });
 
         tabs.addTab("Home", bibleTab);
 
@@ -1956,15 +2143,747 @@ private void startAutoSaveClickTimer() {
         month26.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 12)); // NOI18N
         month26.setText("Sep");
 
-        javax.swing.GroupLayout readStatus1Layout = new javax.swing.GroupLayout(readStatus1);
-        readStatus1.setLayout(readStatus1Layout);
-        readStatus1Layout.setHorizontalGroup(
-            readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(readStatus1Layout.createSequentialGroup()
+        statusDay1.setOpaque(true);
+
+        statusDay2.setOpaque(true);
+
+        statusDay3.setOpaque(true);
+
+        statusDay4.setOpaque(true);
+
+        statusDay5.setOpaque(true);
+
+        statusDay6.setOpaque(true);
+
+        statusDay7.setOpaque(true);
+
+        statusDay8.setOpaque(true);
+
+        statusDay9.setOpaque(true);
+
+        statusDay10.setOpaque(true);
+
+        statusDay11.setOpaque(true);
+
+        statusDay12.setOpaque(true);
+
+        statusDay13.setOpaque(true);
+
+        statusDay14.setOpaque(true);
+
+        statusDay15.setOpaque(true);
+
+        statusDay16.setOpaque(true);
+
+        statusDay17.setOpaque(true);
+
+        statusDay18.setOpaque(true);
+
+        statusDay19.setOpaque(true);
+
+        statusDay20.setOpaque(true);
+
+        statusDay21.setOpaque(true);
+
+        statusDay22.setOpaque(true);
+
+        statusDay23.setOpaque(true);
+
+        statusDay24.setOpaque(true);
+
+        statusDay25.setOpaque(true);
+
+        statusDay26.setOpaque(true);
+
+        statusDay27.setOpaque(true);
+
+        statusDay28.setOpaque(true);
+
+        statusDay29.setOpaque(true);
+
+        statusDay30.setOpaque(true);
+
+        statusDay31.setOpaque(true);
+
+        statusDay32.setOpaque(true);
+
+        statusDay33.setOpaque(true);
+
+        statusDay34.setOpaque(true);
+
+        statusDay35.setOpaque(true);
+
+        statusDay36.setOpaque(true);
+
+        statusDay37.setOpaque(true);
+
+        statusDay38.setOpaque(true);
+
+        statusDay39.setOpaque(true);
+
+        statusDay40.setOpaque(true);
+
+        statusDay41.setOpaque(true);
+
+        statusDay42.setOpaque(true);
+
+        statusDay43.setOpaque(true);
+
+        statusDay44.setOpaque(true);
+
+        statusDay45.setOpaque(true);
+
+        statusDay46.setOpaque(true);
+
+        statusDay47.setOpaque(true);
+
+        statusDay48.setOpaque(true);
+
+        statusDay49.setOpaque(true);
+
+        statusDay50.setOpaque(true);
+
+        statusDay51.setOpaque(true);
+
+        statusDay52.setOpaque(true);
+
+        statusDay53.setOpaque(true);
+
+        statusDay54.setOpaque(true);
+
+        statusDay55.setOpaque(true);
+
+        statusDay56.setOpaque(true);
+
+        statusDay57.setOpaque(true);
+
+        statusDay58.setOpaque(true);
+
+        statusDay59.setOpaque(true);
+
+        statusDay60.setOpaque(true);
+
+        statusDay61.setOpaque(true);
+
+        statusDay62.setOpaque(true);
+
+        statusDay63.setOpaque(true);
+
+        statusDay64.setOpaque(true);
+
+        statusDay65.setOpaque(true);
+
+        statusDay66.setOpaque(true);
+
+        statusDay67.setOpaque(true);
+
+        statusDay68.setOpaque(true);
+
+        statusDay69.setOpaque(true);
+
+        statusDay70.setOpaque(true);
+
+        statusDay71.setOpaque(true);
+
+        statusDay72.setOpaque(true);
+
+        statusDay73.setOpaque(true);
+
+        statusDay74.setOpaque(true);
+
+        statusDay75.setOpaque(true);
+
+        statusDay76.setOpaque(true);
+
+        statusDay77.setOpaque(true);
+
+        statusDay78.setOpaque(true);
+
+        statusDay79.setOpaque(true);
+
+        statusDay80.setOpaque(true);
+
+        statusDay81.setOpaque(true);
+
+        statusDay82.setOpaque(true);
+
+        statusDay83.setOpaque(true);
+
+        statusDay84.setOpaque(true);
+
+        statusDay85.setOpaque(true);
+
+        statusDay86.setOpaque(true);
+
+        statusDay87.setOpaque(true);
+
+        statusDay88.setOpaque(true);
+
+        statusDay89.setOpaque(true);
+
+        statusDay90.setOpaque(true);
+
+        statusDay91.setOpaque(true);
+
+        statusDay92.setOpaque(true);
+
+        statusDay93.setOpaque(true);
+
+        statusDay94.setOpaque(true);
+
+        statusDay95.setOpaque(true);
+
+        statusDay96.setOpaque(true);
+
+        statusDay97.setOpaque(true);
+
+        statusDay98.setOpaque(true);
+
+        statusDay99.setOpaque(true);
+
+        statusDay100.setOpaque(true);
+
+        statusDay101.setOpaque(true);
+
+        statusDay102.setOpaque(true);
+
+        statusDay103.setOpaque(true);
+
+        statusDay104.setOpaque(true);
+
+        statusDay105.setOpaque(true);
+
+        statusDay106.setOpaque(true);
+
+        statusDay107.setOpaque(true);
+
+        statusDay108.setOpaque(true);
+
+        statusDay109.setOpaque(true);
+
+        statusDay110.setOpaque(true);
+
+        statusDay111.setOpaque(true);
+
+        statusDay112.setOpaque(true);
+
+        statusDay113.setOpaque(true);
+
+        statusDay114.setOpaque(true);
+
+        statusDay115.setOpaque(true);
+
+        statusDay116.setOpaque(true);
+
+        statusDay117.setOpaque(true);
+
+        statusDay118.setOpaque(true);
+
+        statusDay119.setOpaque(true);
+
+        statusDay120.setOpaque(true);
+
+        statusDay121.setOpaque(true);
+
+        statusDay122.setOpaque(true);
+
+        statusDay123.setOpaque(true);
+
+        statusDay124.setOpaque(true);
+
+        statusDay125.setOpaque(true);
+
+        statusDay126.setOpaque(true);
+
+        statusDay127.setOpaque(true);
+
+        statusDay128.setOpaque(true);
+
+        statusDay129.setOpaque(true);
+
+        statusDay130.setOpaque(true);
+
+        statusDay131.setOpaque(true);
+
+        statusDay132.setOpaque(true);
+
+        statusDay133.setOpaque(true);
+
+        statusDay134.setOpaque(true);
+
+        statusDay135.setOpaque(true);
+
+        statusDay136.setOpaque(true);
+
+        statusDay137.setOpaque(true);
+
+        statusDay138.setOpaque(true);
+
+        statusDay139.setOpaque(true);
+
+        statusDay140.setOpaque(true);
+
+        statusDay141.setOpaque(true);
+
+        statusDay142.setOpaque(true);
+
+        statusDay143.setOpaque(true);
+
+        statusDay144.setOpaque(true);
+
+        statusDay145.setOpaque(true);
+
+        statusDay146.setOpaque(true);
+
+        statusDay147.setOpaque(true);
+
+        statusDay148.setOpaque(true);
+
+        statusDay149.setOpaque(true);
+
+        statusDay150.setOpaque(true);
+
+        statusDay151.setOpaque(true);
+
+        statusDay152.setOpaque(true);
+
+        statusDay153.setOpaque(true);
+
+        statusDay154.setOpaque(true);
+
+        statusDay155.setOpaque(true);
+
+        statusDay156.setOpaque(true);
+
+        statusDay157.setOpaque(true);
+
+        statusDay158.setOpaque(true);
+
+        statusDay159.setOpaque(true);
+
+        statusDay160.setOpaque(true);
+
+        statusDay161.setOpaque(true);
+
+        statusDay162.setOpaque(true);
+
+        statusDay163.setOpaque(true);
+
+        statusDay164.setOpaque(true);
+
+        statusDay165.setOpaque(true);
+
+        statusDay166.setOpaque(true);
+
+        statusDay167.setOpaque(true);
+
+        statusDay168.setOpaque(true);
+
+        statusDay169.setOpaque(true);
+
+        statusDay170.setOpaque(true);
+
+        statusDay171.setOpaque(true);
+
+        statusDay172.setOpaque(true);
+
+        statusDay173.setOpaque(true);
+
+        statusDay174.setOpaque(true);
+
+        statusDay175.setOpaque(true);
+
+        statusDay176.setOpaque(true);
+
+        statusDay177.setOpaque(true);
+
+        statusDay178.setOpaque(true);
+
+        statusDay179.setOpaque(true);
+
+        statusDay180.setOpaque(true);
+
+        statusDay181.setOpaque(true);
+
+        statusDay182.setOpaque(true);
+
+        statusDay183.setOpaque(true);
+
+        statusDay184.setOpaque(true);
+
+        statusDay185.setOpaque(true);
+
+        statusDay186.setOpaque(true);
+
+        statusDay187.setOpaque(true);
+
+        statusDay188.setOpaque(true);
+
+        statusDay189.setOpaque(true);
+
+        statusDay190.setOpaque(true);
+
+        statusDay191.setOpaque(true);
+
+        statusDay192.setOpaque(true);
+
+        statusDay193.setOpaque(true);
+
+        statusDay194.setOpaque(true);
+
+        statusDay195.setOpaque(true);
+
+        statusDay196.setOpaque(true);
+
+        statusDay197.setOpaque(true);
+
+        statusDay198.setOpaque(true);
+
+        statusDay199.setOpaque(true);
+
+        statusDay200.setOpaque(true);
+
+        statusDay201.setOpaque(true);
+
+        statusDay202.setOpaque(true);
+
+        statusDay203.setOpaque(true);
+
+        statusDay204.setOpaque(true);
+
+        statusDay205.setOpaque(true);
+
+        statusDay206.setOpaque(true);
+
+        statusDay207.setOpaque(true);
+
+        statusDay208.setOpaque(true);
+
+        statusDay209.setOpaque(true);
+
+        statusDay210.setOpaque(true);
+
+        statusDay211.setOpaque(true);
+
+        statusDay212.setOpaque(true);
+
+        statusDay213.setOpaque(true);
+
+        statusDay214.setOpaque(true);
+
+        statusDay215.setOpaque(true);
+
+        statusDay216.setOpaque(true);
+
+        statusDay217.setOpaque(true);
+
+        statusDay218.setOpaque(true);
+
+        statusDay219.setOpaque(true);
+
+        statusDay220.setOpaque(true);
+
+        statusDay221.setOpaque(true);
+
+        statusDay222.setOpaque(true);
+
+        statusDay223.setOpaque(true);
+
+        statusDay224.setOpaque(true);
+
+        statusDay225.setOpaque(true);
+
+        statusDay226.setOpaque(true);
+
+        statusDay227.setOpaque(true);
+
+        statusDay228.setOpaque(true);
+
+        statusDay229.setOpaque(true);
+
+        statusDay230.setOpaque(true);
+
+        statusDay231.setOpaque(true);
+
+        statusDay232.setOpaque(true);
+
+        statusDay233.setOpaque(true);
+
+        statusDay234.setOpaque(true);
+
+        statusDay235.setOpaque(true);
+
+        statusDay236.setOpaque(true);
+
+        statusDay237.setOpaque(true);
+
+        statusDay238.setOpaque(true);
+
+        statusDay239.setOpaque(true);
+
+        statusDay240.setOpaque(true);
+
+        statusDay241.setOpaque(true);
+
+        statusDay242.setOpaque(true);
+
+        statusDay243.setOpaque(true);
+
+        statusDay244.setOpaque(true);
+
+        statusDay245.setOpaque(true);
+
+        statusDay246.setOpaque(true);
+
+        statusDay247.setOpaque(true);
+
+        statusDay248.setOpaque(true);
+
+        statusDay249.setOpaque(true);
+
+        statusDay250.setOpaque(true);
+
+        statusDay251.setOpaque(true);
+
+        statusDay252.setOpaque(true);
+
+        statusDay253.setOpaque(true);
+
+        statusDay254.setOpaque(true);
+
+        statusDay255.setOpaque(true);
+
+        statusDay256.setOpaque(true);
+
+        statusDay257.setOpaque(true);
+
+        statusDay258.setOpaque(true);
+
+        statusDay259.setOpaque(true);
+
+        statusDay260.setOpaque(true);
+
+        statusDay261.setOpaque(true);
+
+        statusDay262.setOpaque(true);
+
+        statusDay263.setOpaque(true);
+
+        statusDay264.setOpaque(true);
+
+        statusDay265.setOpaque(true);
+
+        statusDay266.setOpaque(true);
+
+        statusDay267.setOpaque(true);
+
+        statusDay268.setOpaque(true);
+
+        statusDay269.setOpaque(true);
+
+        statusDay270.setOpaque(true);
+
+        statusDay271.setOpaque(true);
+
+        statusDay272.setOpaque(true);
+
+        statusDay273.setOpaque(true);
+
+        statusDay274.setOpaque(true);
+
+        statusDay275.setOpaque(true);
+
+        statusDay276.setOpaque(true);
+
+        statusDay277.setOpaque(true);
+
+        statusDay278.setOpaque(true);
+
+        statusDay279.setOpaque(true);
+
+        statusDay280.setOpaque(true);
+
+        statusDay281.setOpaque(true);
+
+        statusDay282.setOpaque(true);
+
+        statusDay283.setOpaque(true);
+
+        statusDay284.setOpaque(true);
+
+        statusDay285.setOpaque(true);
+
+        statusDay286.setOpaque(true);
+
+        statusDay287.setOpaque(true);
+
+        statusDay288.setOpaque(true);
+
+        statusDay289.setOpaque(true);
+
+        statusDay290.setOpaque(true);
+
+        statusDay291.setOpaque(true);
+
+        statusDay292.setOpaque(true);
+
+        statusDay293.setOpaque(true);
+
+        statusDay294.setOpaque(true);
+
+        statusDay295.setOpaque(true);
+
+        statusDay296.setOpaque(true);
+
+        statusDay297.setOpaque(true);
+
+        statusDay298.setOpaque(true);
+
+        statusDay299.setOpaque(true);
+
+        statusDay300.setOpaque(true);
+
+        statusDay301.setOpaque(true);
+
+        statusDay302.setOpaque(true);
+
+        statusDay303.setOpaque(true);
+
+        statusDay304.setOpaque(true);
+
+        statusDay305.setOpaque(true);
+
+        statusDay306.setOpaque(true);
+
+        statusDay307.setOpaque(true);
+
+        statusDay308.setOpaque(true);
+
+        statusDay309.setOpaque(true);
+
+        statusDay310.setOpaque(true);
+
+        statusDay311.setOpaque(true);
+
+        statusDay312.setOpaque(true);
+
+        statusDay313.setOpaque(true);
+
+        statusDay314.setOpaque(true);
+
+        statusDay315.setOpaque(true);
+
+        statusDay316.setOpaque(true);
+
+        statusDay317.setOpaque(true);
+
+        statusDay318.setOpaque(true);
+
+        statusDay319.setOpaque(true);
+
+        statusDay320.setOpaque(true);
+
+        statusDay321.setOpaque(true);
+
+        statusDay322.setOpaque(true);
+
+        statusDay323.setOpaque(true);
+
+        statusDay324.setOpaque(true);
+
+        statusDay325.setOpaque(true);
+
+        statusDay326.setOpaque(true);
+
+        statusDay327.setOpaque(true);
+
+        statusDay328.setOpaque(true);
+
+        statusDay329.setOpaque(true);
+
+        statusDay330.setOpaque(true);
+
+        statusDay331.setOpaque(true);
+
+        statusDay332.setOpaque(true);
+
+        statusDay333.setOpaque(true);
+
+        statusDay334.setOpaque(true);
+
+        statusDay335.setOpaque(true);
+
+        statusDay336.setOpaque(true);
+
+        statusDay337.setOpaque(true);
+
+        statusDay338.setOpaque(true);
+
+        statusDay339.setOpaque(true);
+
+        statusDay340.setOpaque(true);
+
+        statusDay341.setOpaque(true);
+
+        statusDay342.setOpaque(true);
+
+        statusDay343.setOpaque(true);
+
+        statusDay344.setOpaque(true);
+
+        statusDay345.setOpaque(true);
+
+        statusDay346.setOpaque(true);
+
+        statusDay347.setOpaque(true);
+
+        statusDay348.setOpaque(true);
+
+        statusDay349.setOpaque(true);
+
+        statusDay350.setOpaque(true);
+
+        statusDay351.setOpaque(true);
+
+        statusDay352.setOpaque(true);
+
+        statusDay353.setOpaque(true);
+
+        statusDay354.setOpaque(true);
+
+        statusDay355.setOpaque(true);
+
+        statusDay356.setOpaque(true);
+
+        statusDay357.setOpaque(true);
+
+        statusDay358.setOpaque(true);
+
+        statusDay359.setOpaque(true);
+
+        statusDay360.setOpaque(true);
+
+        statusDay361.setOpaque(true);
+
+        statusDay362.setOpaque(true);
+
+        statusDay363.setOpaque(true);
+
+        statusDay364.setOpaque(true);
+
+        statusDay365.setOpaque(true);
+
+        statusDay366.setOpaque(true);
+
+        javax.swing.GroupLayout readStatusLayout = new javax.swing.GroupLayout(readStatus);
+        readStatus.setLayout(readStatusLayout);
+        readStatusLayout.setHorizontalGroup(
+            readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(readStatusLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(readStatus1Layout.createSequentialGroup()
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(readStatusLayout.createSequentialGroup()
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay1, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay2, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay4, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1973,7 +2892,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay5, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay7, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay8, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay9, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay11, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1982,7 +2901,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay12, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay14, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay15, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay16, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay18, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1991,7 +2910,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay19, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay21, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay22, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay23, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay25, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2000,7 +2919,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay26, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay28, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay29, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay30, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay32, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2009,7 +2928,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay33, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay35, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay36, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay37, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay39, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2018,7 +2937,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay40, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay42, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay43, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay44, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay46, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2027,7 +2946,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay47, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay49, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay50, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay51, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay53, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2036,7 +2955,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay54, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay56, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay57, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay58, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay60, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2045,7 +2964,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay61, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay63, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay64, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay65, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay67, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2054,7 +2973,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay68, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay70, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay71, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay72, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay74, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2063,7 +2982,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay75, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay77, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay78, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay79, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay81, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2072,7 +2991,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay82, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay84, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay85, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay86, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay88, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2081,7 +3000,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay89, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay91, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay92, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay93, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay95, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2090,7 +3009,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay96, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay98, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay99, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay100, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay102, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2099,7 +3018,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay103, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay105, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay106, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay107, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay109, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2108,7 +3027,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay110, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay112, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay113, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay114, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay116, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2117,7 +3036,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay117, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay119, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay120, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay121, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay123, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2126,7 +3045,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay124, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay126, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay127, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay128, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay130, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2135,7 +3054,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay131, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay133, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay134, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay135, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay137, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2144,7 +3063,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay138, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay140, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay141, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay142, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay144, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2153,7 +3072,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay145, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay147, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay148, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay149, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay151, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2162,7 +3081,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay152, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay154, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay155, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay156, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay158, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2171,7 +3090,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay159, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay161, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay162, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay163, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay165, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2180,7 +3099,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay166, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay168, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay169, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay170, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay172, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2189,7 +3108,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay173, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay175, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay176, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay177, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay179, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2198,7 +3117,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay180, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay182, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay183, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay184, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay186, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2207,7 +3126,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay187, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay189, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay190, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay191, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay193, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2216,7 +3135,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay194, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay196, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay197, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay198, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay200, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2225,7 +3144,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay201, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay203, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay204, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay205, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay207, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2234,7 +3153,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay208, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay210, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay211, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay212, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay214, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2243,7 +3162,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay215, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay217, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay218, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay219, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay221, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2252,7 +3171,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay222, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay224, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay225, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay226, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay228, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2261,7 +3180,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay229, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay231, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay232, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay233, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay235, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2270,7 +3189,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay236, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay238, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay239, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay240, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay242, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2279,7 +3198,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay243, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay245, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay246, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay247, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay249, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2288,7 +3207,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay250, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay252, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay253, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay254, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay256, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2297,7 +3216,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay257, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay259, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay260, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay261, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay263, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2306,7 +3225,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay264, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay266, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay267, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay268, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay270, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2315,7 +3234,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay271, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay273, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay274, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay275, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay277, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2324,7 +3243,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay278, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay280, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay281, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay282, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay284, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2333,7 +3252,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay285, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay287, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay288, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay289, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay291, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2342,7 +3261,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay292, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay294, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay295, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay296, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay298, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2351,7 +3270,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay299, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay301, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay302, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay303, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay305, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2360,7 +3279,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay306, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay308, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay309, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay310, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay312, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2369,7 +3288,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay313, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay315, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay316, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay317, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay319, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2378,7 +3297,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay320, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay322, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay323, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay324, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay326, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2387,7 +3306,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay327, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay329, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay330, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay331, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay333, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2395,7 +3314,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay332, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay334, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay336, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(readStatus1Layout.createSequentialGroup()
+                    .addGroup(readStatusLayout.createSequentialGroup()
                         .addComponent(month14)
                         .addGap(70, 70, 70)
                         .addComponent(month15)
@@ -2420,9 +3339,9 @@ private void startAutoSaveClickTimer() {
                         .addGap(75, 75, 75)
                         .addComponent(month25)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(readStatus1Layout.createSequentialGroup()
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(readStatusLayout.createSequentialGroup()
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay337, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay338, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay340, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2431,7 +3350,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay341, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay343, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay344, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay345, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay347, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2440,7 +3359,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay348, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay350, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay351, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay352, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay354, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2449,38 +3368,38 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay355, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay357, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(6, 6, 6)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusDay361, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay363, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay360, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay362, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(statusDay364, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(readStatus1Layout.createSequentialGroup()
-                                .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(readStatusLayout.createSequentialGroup()
+                                .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(statusDay358, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(statusDay359, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(statusDay365, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(statusDay366, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))))
                         .addGap(50, 50, 50)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(dayLabel5)
                             .addComponent(dayLabel4)
                             .addComponent(dayLabel6)))
                     .addComponent(month26))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        readStatus1Layout.setVerticalGroup(
-            readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(readStatus1Layout.createSequentialGroup()
+        readStatusLayout.setVerticalGroup(
+            readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(readStatusLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(readStatus1Layout.createSequentialGroup()
-                                .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(readStatus1Layout.createSequentialGroup()
+                .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(readStatusLayout.createSequentialGroup()
+                                .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(readStatusLayout.createSequentialGroup()
                                         .addComponent(statusDay1, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(statusDay2, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2492,7 +3411,7 @@ private void startAutoSaveClickTimer() {
                                         .addComponent(statusDay5, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(statusDay6, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(readStatus1Layout.createSequentialGroup()
+                                    .addGroup(readStatusLayout.createSequentialGroup()
                                         .addGap(22, 22, 22)
                                         .addComponent(dayLabel4)
                                         .addGap(27, 27, 27)
@@ -2501,7 +3420,7 @@ private void startAutoSaveClickTimer() {
                                         .addComponent(dayLabel6)))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay7, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay8, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay9, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2515,7 +3434,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay13, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay14, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay15, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay16, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2529,7 +3448,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay20, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay21, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay22, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay23, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2543,7 +3462,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay27, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay28, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay29, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay30, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2557,7 +3476,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay34, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay35, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay36, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay37, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2571,7 +3490,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay41, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay42, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay43, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay44, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2585,7 +3504,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay48, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay49, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay50, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay51, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2599,7 +3518,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay55, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay56, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay57, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay58, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2613,7 +3532,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay62, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay63, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay64, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay65, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2627,7 +3546,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay69, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay70, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay71, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay72, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2641,7 +3560,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay76, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay77, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay78, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay79, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2655,7 +3574,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay83, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay84, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay85, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay86, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2669,7 +3588,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay90, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay91, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay92, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay93, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2683,7 +3602,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay97, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay98, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay99, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay100, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2697,7 +3616,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay104, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay105, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay106, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay107, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2711,7 +3630,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay111, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay112, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay113, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay114, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2725,8 +3644,8 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay118, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay119, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay120, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay121, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2740,7 +3659,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay125, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay126, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay127, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay128, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2754,7 +3673,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay132, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay133, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay134, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay135, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2768,7 +3687,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay139, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay140, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay141, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay142, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2782,7 +3701,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay146, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay147, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay148, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay149, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2796,7 +3715,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay153, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay154, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay155, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay156, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2810,7 +3729,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay160, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay161, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay162, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay163, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2824,7 +3743,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay167, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay168, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay169, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay170, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2838,7 +3757,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay174, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay175, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay176, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay177, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2852,7 +3771,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay181, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay182, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay183, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay184, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2866,7 +3785,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay188, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay189, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay190, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay191, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2880,7 +3799,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay195, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay196, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay197, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay198, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2894,7 +3813,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay202, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay203, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay204, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay205, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2908,7 +3827,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay209, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay210, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay211, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay212, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2922,7 +3841,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay216, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay217, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay218, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay219, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2936,7 +3855,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay223, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay224, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay225, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay226, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2950,8 +3869,8 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay230, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay231, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay232, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay233, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2965,7 +3884,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay237, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay238, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay239, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay240, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2979,7 +3898,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay244, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay245, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay246, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay247, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2993,7 +3912,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay251, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay252, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay253, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay254, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -3007,7 +3926,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay258, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay259, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay260, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay261, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -3021,7 +3940,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay265, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay266, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay267, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay268, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -3035,7 +3954,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay272, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay273, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay274, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay275, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -3049,7 +3968,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay279, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay280, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay281, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay282, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -3063,7 +3982,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay286, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay287, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay288, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay289, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -3077,7 +3996,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay293, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay294, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay295, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay296, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -3091,7 +4010,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay300, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay301, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay302, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay303, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -3105,7 +4024,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay307, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay308, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay309, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay310, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -3119,7 +4038,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay314, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay315, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay316, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay317, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -3133,7 +4052,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay321, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay322, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay323, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay324, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -3147,7 +4066,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay328, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay329, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay330, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay331, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -3161,7 +4080,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay335, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay336, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay337, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay338, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -3175,7 +4094,7 @@ private void startAutoSaveClickTimer() {
                                 .addComponent(statusDay342, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay343, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGroup(readStatus1Layout.createSequentialGroup()
+                        .addGroup(readStatusLayout.createSequentialGroup()
                             .addComponent(statusDay344, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                             .addComponent(statusDay345, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -3189,7 +4108,7 @@ private void startAutoSaveClickTimer() {
                             .addComponent(statusDay349, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                             .addComponent(statusDay350, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(readStatus1Layout.createSequentialGroup()
+                    .addGroup(readStatusLayout.createSequentialGroup()
                         .addComponent(statusDay351, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(statusDay352, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -3203,13 +4122,13 @@ private void startAutoSaveClickTimer() {
                         .addComponent(statusDay356, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(statusDay357, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(readStatus1Layout.createSequentialGroup()
-                        .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                    .addGroup(readStatusLayout.createSequentialGroup()
+                        .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay358, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay359, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(readStatus1Layout.createSequentialGroup()
+                            .addGroup(readStatusLayout.createSequentialGroup()
                                 .addComponent(statusDay365, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(statusDay366, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -3224,7 +4143,7 @@ private void startAutoSaveClickTimer() {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(statusDay364, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(readStatus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(readStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(month14)
                     .addComponent(month15)
                     .addComponent(month16)
@@ -3553,7 +4472,7 @@ private void startAutoSaveClickTimer() {
                                         .addGap(81, 81, 81)
                                         .addComponent(selectedBookUnderline6, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addGap(28, 28, 28))))
-                            .addComponent(readStatus1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 1178, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(readStatus, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 1178, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(27, 27, 27))
                     .addGroup(libraryContentLayout.createSequentialGroup()
                         .addGap(53, 53, 53)
@@ -3617,7 +4536,7 @@ private void startAutoSaveClickTimer() {
                     .addComponent(selectedBookUnderline12)
                     .addComponent(selectedBookUnderline8))
                 .addGap(18, 18, 18)
-                .addComponent(readStatus1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(readStatus, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(236, 236, 236))
             .addGroup(libraryContentLayout.createSequentialGroup()
                 .addComponent(bookDescriptionSideBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -4141,6 +5060,7 @@ private void startAutoSaveClickTimer() {
         tabs.addChangeListener(e -> {
             if (tabs.getSelectedIndex() == 1) {
                 loadLastReadDirectly();
+                updateStatusButtons();
             }
         });
 
@@ -4284,7 +5204,7 @@ private void startAutoSaveClickTimer() {
         addNoteBtn.setVisible(false);
         eyeHide.setVisible(true);
         saveNote.setVisible(true);
-        //writeYourRefelctions.setVisible(true);
+        writeYourReflection.setVisible(true);
         
         notesInput.setFocusable(true);
         notesInput.setEditable(true);
@@ -5267,7 +6187,7 @@ private void startAutoSaveClickTimer() {
     private javax.swing.JButton rainAmbience;
     private javax.swing.JButton reRandomizer;
     private javax.swing.JButton readBtn;
-    private javax.swing.JPanel readStatus1;
+    private javax.swing.JPanel readStatus;
     private javax.swing.JButton restoreBtn;
     private javax.swing.JButton saveNote;
     private javax.swing.JButton saveTick;
@@ -5666,5 +6586,6 @@ private void startAutoSaveClickTimer() {
     private javax.swing.JTextField volDisp;
     private javax.swing.JButton volMinus;
     private javax.swing.JButton volPLus;
+    private javax.swing.JLabel writeYourReflection;
     // End of variables declaration//GEN-END:variables
 }

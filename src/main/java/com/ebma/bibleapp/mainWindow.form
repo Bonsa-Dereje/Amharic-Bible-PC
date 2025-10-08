@@ -482,7 +482,7 @@
         </Container>
         <Container class="javax.swing.JTabbedPane" name="tabs">
           <AuxValues>
-            <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="tabs.addChangeListener(e -&gt; {&#xa;    int selectedIndex = tabs.getSelectedIndex();&#xa;    if (selectedIndex &gt;= 0 &amp;&amp; selectedIndex &lt;= 10) {&#xa;        // Clear the background image&#xa;        themer.setIcon(null);&#xa;&#xa;        // Pause all clips&#xa;        if (cafeClip != null &amp;&amp; cafeClip.isRunning()) {&#xa;            cafeClip.stop();&#xa;        }&#xa;        if (treeClip != null &amp;&amp; treeClip.isRunning()) {&#xa;            treeClip.stop();&#xa;        }&#xa;        if (rainClip != null &amp;&amp; rainClip.isRunning()) {&#xa;            rainClip.stop();&#xa;        }&#xa;&#xa;        System.out.println(&quot;Tabs 0&#x2013;10 selected: Themer cleared, all music paused&quot;);&#xa;    }&#xa;});&#xa;&#xa;tabs.addChangeListener(e -&gt; {&#xa;    int selectedIndex = tabs.getSelectedIndex();&#xa;&#xa;    final String dbPath = &quot;bookStack.db&quot;;&#xa;    final int PAGE_HEIGHT = 1365;       // ~height of one page&#xa;    final int SCROLL_THRESHOLD = 5460;  // minimum scroll difference to count&#xa;    final int TIME_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes&#xa;&#xa;    // Holder class for session data&#xa;    class SessionState {&#xa;        long startTime = 0;&#xa;        int startScrollIndex = 0;&#xa;        javax.swing.Timer readingTimer = null;&#xa;    }&#xa;&#xa;    // Store one SessionState in the tabs property for persistence&#xa;    if (tabs.getClientProperty(&quot;sessionState&quot;) == null) {&#xa;        tabs.putClientProperty(&quot;sessionState&quot;, new SessionState());&#xa;    }&#xa;    SessionState state = (SessionState) tabs.getClientProperty(&quot;sessionState&quot;);&#xa;&#xa;    // ========== TAB 3 SELECTED &#x2192; START TRACKING ==========&#xa;    if (selectedIndex == 3) {&#xa;        try (Connection conn = DriverManager.getConnection(&quot;jdbc:sqlite:&quot; + dbPath);&#xa;             Statement stmt = conn.createStatement()) {&#xa;&#xa;            ResultSet rs = stmt.executeQuery(&#xa;                &quot;SELECT currentScrollIndex FROM scrollStatus WHERE bookIndex = &quot; + loadedBook + &quot; LIMIT 1&quot;&#xa;            );&#xa;            if (rs.next()) {&#xa;                state.startScrollIndex = rs.getInt(&quot;currentScrollIndex&quot;);&#xa;            }&#xa;        } catch (Exception ex) {&#xa;            ex.printStackTrace();&#xa;        }&#xa;&#xa;        state.startTime = System.currentTimeMillis();&#xa;        state.readingTimer = new javax.swing.Timer(1000, evt2 -&gt; {}); // ticks every sec, not doing anything&#xa;        state.readingTimer.start();&#xa;&#xa;        System.out.println(&quot;&#xd83d;&#xdcd6; Entered Tab 3 &#x2192; Timer started | Book: &quot; + loadedBook +&#xa;                &quot; | Start Scroll: &quot; + state.startScrollIndex);&#xa;    }&#xa;&#xa;    // ========== ANY OTHER TAB SELECTED &#x2192; STOP TRACKING ==========&#xa;    else {&#xa;        if (state.readingTimer != null &amp;&amp; state.readingTimer.isRunning()) {&#xa;            state.readingTimer.stop();&#xa;            long endTime = System.currentTimeMillis();&#xa;            long duration = endTime - state.startTime; // in ms&#xa;            int endScrollIndex = 0;&#xa;&#xa;            // Get ending scroll index&#xa;            try (Connection conn = DriverManager.getConnection(&quot;jdbc:sqlite:&quot; + dbPath);&#xa;                 Statement stmt = conn.createStatement()) {&#xa;&#xa;                ResultSet rs = stmt.executeQuery(&#xa;                    &quot;SELECT currentScrollIndex FROM scrollStatus WHERE bookIndex = &quot; + loadedBook + &quot; LIMIT 1&quot;&#xa;                );&#xa;                if (rs.next()) {&#xa;                    endScrollIndex = rs.getInt(&quot;currentScrollIndex&quot;);&#xa;                }&#xa;            } catch (Exception ex) {&#xa;                ex.printStackTrace();&#xa;            }&#xa;&#xa;            int scrollDiff = Math.abs(endScrollIndex - state.startScrollIndex);&#xa;            int pagesRead = (int) Math.ceil((double) scrollDiff / PAGE_HEIGHT); // round up partial pages&#xa;&#xa;            System.out.println(&quot;&#xd83d;&#xdcd8; Leaving Tab 3 &#x2192; Time: &quot; + (duration / 1000) + &quot;s | ScrollDiff: &quot; +&#xa;                    scrollDiff + &quot; | PagesRead: &quot; + pagesRead);&#xa;&#xa;            // Only log if conditions met&#xa;            if (duration &gt;= TIME_THRESHOLD_MS &amp;&amp; scrollDiff &gt; SCROLL_THRESHOLD) {&#xa;                try (Connection conn = DriverManager.getConnection(&quot;jdbc:sqlite:&quot; + dbPath)) {&#xa;&#xa;                    // Add pagesRead column if missing (ignore error)&#xa;                    try (Statement stmt = conn.createStatement()) {&#xa;                        stmt.execute(&quot;ALTER TABLE session ADD COLUMN pagesRead INTEGER&quot;);&#xa;                    } catch (SQLException ignored) {}&#xa;&#xa;                    try (PreparedStatement pstmt = conn.prepareStatement(&#xa;                        &quot;INSERT INTO session (bookIndex, readFor, continueReading, scrollDiff, pagesRead) &quot; +&#xa;                        &quot;VALUES (?, ?, datetime(&apos;now&apos;), ?, ?)&quot;&#xa;                    )) {&#xa;                        pstmt.setInt(1, loadedBook);                             // book index&#xa;                        pstmt.setInt(2, (int) (duration / 1000 / 60));           // minutes&#xa;                        pstmt.setInt(3, scrollDiff);                              // scroll diff&#xa;                        pstmt.setInt(4, pagesRead);                               // pages read&#xa;                        pstmt.executeUpdate();&#xa;&#xa;                        System.out.println(&quot;&#x2705; Session saved &#x2192; Book: &quot; + loadedBook +&#xa;                                &quot; | Time: &quot; + (duration / 1000 / 60) + &quot;min | Pages: &quot; + pagesRead);&#xa;                    }&#xa;&#xa;                } catch (Exception ex) {&#xa;                    ex.printStackTrace();&#xa;                }&#xa;            } else {&#xa;                System.out.println(&quot;&#x26a0;&#xfe0f; Session skipped (too short or no significant scroll)&quot;);&#xa;            }&#xa;&#xa;            // Reset session state&#xa;            state.readingTimer = null;&#xa;            state.startTime = 0;&#xa;            state.startScrollIndex = 0;&#xa;        }&#xa;    }&#xa;&#xa;    // ========== EXISTING LOGIC: Themer + Audio Control ==========&#xa;    if (selectedIndex &gt;= 0 &amp;&amp; selectedIndex &lt;= 10) {&#xa;        themer.setIcon(null);&#xa;&#xa;        if (cafeClip != null &amp;&amp; cafeClip.isRunning()) cafeClip.stop();&#xa;        if (treeClip != null &amp;&amp; treeClip.isRunning()) treeClip.stop();&#xa;        if (rainClip != null &amp;&amp; rainClip.isRunning()) rainClip.stop();&#xa;&#xa;        System.out.println(&quot;&#xd83c;&#xdfb5; Tabs 0&#x2013;10 selected &#x2192; Themer cleared, all music paused&quot;);&#xa;    }&#xa;});&#xa;&#xa;&#xa;tabs.addChangeListener(e -&gt; {&#xa;    if (tabs.getSelectedIndex() == 1) { &#xa;        loadLastReadDirectly();&#xa;    }&#xa;});"/>
+            <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="tabs.addChangeListener(e -&gt; {&#xa;    int selectedIndex = tabs.getSelectedIndex();&#xa;    if (selectedIndex &gt;= 0 &amp;&amp; selectedIndex &lt;= 10) {&#xa;        // Clear the background image&#xa;        themer.setIcon(null);&#xa;&#xa;        // Pause all clips&#xa;        if (cafeClip != null &amp;&amp; cafeClip.isRunning()) {&#xa;            cafeClip.stop();&#xa;        }&#xa;        if (treeClip != null &amp;&amp; treeClip.isRunning()) {&#xa;            treeClip.stop();&#xa;        }&#xa;        if (rainClip != null &amp;&amp; rainClip.isRunning()) {&#xa;            rainClip.stop();&#xa;        }&#xa;&#xa;        System.out.println(&quot;Tabs 0&#x2013;10 selected: Themer cleared, all music paused&quot;);&#xa;    }&#xa;});&#xa;&#xa;tabs.addChangeListener(e -&gt; {&#xa;    int selectedIndex = tabs.getSelectedIndex();&#xa;&#xa;    final String dbPath = &quot;bookStack.db&quot;;&#xa;    final int PAGE_HEIGHT = 1365;       // ~height of one page&#xa;    final int SCROLL_THRESHOLD = 5460;  // minimum scroll difference to count&#xa;    final int TIME_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes&#xa;&#xa;    // Holder class for session data&#xa;    class SessionState {&#xa;        long startTime = 0;&#xa;        int startScrollIndex = 0;&#xa;        javax.swing.Timer readingTimer = null;&#xa;    }&#xa;&#xa;    // Store one SessionState in the tabs property for persistence&#xa;    if (tabs.getClientProperty(&quot;sessionState&quot;) == null) {&#xa;        tabs.putClientProperty(&quot;sessionState&quot;, new SessionState());&#xa;    }&#xa;    SessionState state = (SessionState) tabs.getClientProperty(&quot;sessionState&quot;);&#xa;&#xa;    // ========== TAB 3 SELECTED &#x2192; START TRACKING ==========&#xa;    if (selectedIndex == 3) {&#xa;        try (Connection conn = DriverManager.getConnection(&quot;jdbc:sqlite:&quot; + dbPath);&#xa;             Statement stmt = conn.createStatement()) {&#xa;&#xa;            ResultSet rs = stmt.executeQuery(&#xa;                &quot;SELECT currentScrollIndex FROM scrollStatus WHERE bookIndex = &quot; + loadedBook + &quot; LIMIT 1&quot;&#xa;            );&#xa;            if (rs.next()) {&#xa;                state.startScrollIndex = rs.getInt(&quot;currentScrollIndex&quot;);&#xa;            }&#xa;        } catch (Exception ex) {&#xa;            ex.printStackTrace();&#xa;        }&#xa;&#xa;        state.startTime = System.currentTimeMillis();&#xa;        state.readingTimer = new javax.swing.Timer(1000, evt2 -&gt; {}); // ticks every sec, not doing anything&#xa;        state.readingTimer.start();&#xa;&#xa;        System.out.println(&quot;&#xd83d;&#xdcd6; Entered Tab 3 &#x2192; Timer started | Book: &quot; + loadedBook +&#xa;                &quot; | Start Scroll: &quot; + state.startScrollIndex);&#xa;    }&#xa;&#xa;    // ========== ANY OTHER TAB SELECTED &#x2192; STOP TRACKING ==========&#xa;    else {&#xa;        if (state.readingTimer != null &amp;&amp; state.readingTimer.isRunning()) {&#xa;            state.readingTimer.stop();&#xa;            long endTime = System.currentTimeMillis();&#xa;            long duration = endTime - state.startTime; // in ms&#xa;            int endScrollIndex = 0;&#xa;&#xa;            // Get ending scroll index&#xa;            try (Connection conn = DriverManager.getConnection(&quot;jdbc:sqlite:&quot; + dbPath);&#xa;                 Statement stmt = conn.createStatement()) {&#xa;&#xa;                ResultSet rs = stmt.executeQuery(&#xa;                    &quot;SELECT currentScrollIndex FROM scrollStatus WHERE bookIndex = &quot; + loadedBook + &quot; LIMIT 1&quot;&#xa;                );&#xa;                if (rs.next()) {&#xa;                    endScrollIndex = rs.getInt(&quot;currentScrollIndex&quot;);&#xa;                }&#xa;            } catch (Exception ex) {&#xa;                ex.printStackTrace();&#xa;            }&#xa;&#xa;            int scrollDiff = Math.abs(endScrollIndex - state.startScrollIndex);&#xa;            int pagesRead = (int) Math.ceil((double) scrollDiff / PAGE_HEIGHT); // round up partial pages&#xa;&#xa;            System.out.println(&quot;&#xd83d;&#xdcd8; Leaving Tab 3 &#x2192; Time: &quot; + (duration / 1000) + &quot;s | ScrollDiff: &quot; +&#xa;                    scrollDiff + &quot; | PagesRead: &quot; + pagesRead);&#xa;&#xa;            // Only log if conditions met&#xa;            if (duration &gt;= TIME_THRESHOLD_MS &amp;&amp; scrollDiff &gt; SCROLL_THRESHOLD) {&#xa;                try (Connection conn = DriverManager.getConnection(&quot;jdbc:sqlite:&quot; + dbPath)) {&#xa;&#xa;                    // Add pagesRead column if missing (ignore error)&#xa;                    try (Statement stmt = conn.createStatement()) {&#xa;                        stmt.execute(&quot;ALTER TABLE session ADD COLUMN pagesRead INTEGER&quot;);&#xa;                    } catch (SQLException ignored) {}&#xa;&#xa;                    try (PreparedStatement pstmt = conn.prepareStatement(&#xa;                        &quot;INSERT INTO session (bookIndex, readFor, continueReading, scrollDiff, pagesRead) &quot; +&#xa;                        &quot;VALUES (?, ?, datetime(&apos;now&apos;), ?, ?)&quot;&#xa;                    )) {&#xa;                        pstmt.setInt(1, loadedBook);                             // book index&#xa;                        pstmt.setInt(2, (int) (duration / 1000 / 60));           // minutes&#xa;                        pstmt.setInt(3, scrollDiff);                              // scroll diff&#xa;                        pstmt.setInt(4, pagesRead);                               // pages read&#xa;                        pstmt.executeUpdate();&#xa;&#xa;                        System.out.println(&quot;&#x2705; Session saved &#x2192; Book: &quot; + loadedBook +&#xa;                                &quot; | Time: &quot; + (duration / 1000 / 60) + &quot;min | Pages: &quot; + pagesRead);&#xa;                    }&#xa;&#xa;                } catch (Exception ex) {&#xa;                    ex.printStackTrace();&#xa;                }&#xa;            } else {&#xa;                System.out.println(&quot;&#x26a0;&#xfe0f; Session skipped (too short or no significant scroll)&quot;);&#xa;            }&#xa;&#xa;            // Reset session state&#xa;            state.readingTimer = null;&#xa;            state.startTime = 0;&#xa;            state.startScrollIndex = 0;&#xa;        }&#xa;    }&#xa;&#xa;    // ========== EXISTING LOGIC: Themer + Audio Control ==========&#xa;    if (selectedIndex &gt;= 0 &amp;&amp; selectedIndex &lt;= 10) {&#xa;        themer.setIcon(null);&#xa;&#xa;        if (cafeClip != null &amp;&amp; cafeClip.isRunning()) cafeClip.stop();&#xa;        if (treeClip != null &amp;&amp; treeClip.isRunning()) treeClip.stop();&#xa;        if (rainClip != null &amp;&amp; rainClip.isRunning()) rainClip.stop();&#xa;&#xa;        System.out.println(&quot;&#xd83c;&#xdfb5; Tabs 0&#x2013;10 selected &#x2192; Themer cleared, all music paused&quot;);&#xa;    }&#xa;});&#xa;&#xa;&#xa;tabs.addChangeListener(e -&gt; {&#xa;    if (tabs.getSelectedIndex() == 1) { &#xa;        loadLastReadDirectly();&#xa;updateStatusButtons();&#xa;    }&#xa;});"/>
           </AuxValues>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
@@ -574,8 +574,61 @@
                             </Constraint>
                           </Constraints>
 
-                          <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
-                            <Property name="useNullLayout" type="boolean" value="true"/>
+                          <Layout>
+                            <DimensionLayout dim="0">
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Group type="102" attributes="0">
+                                      <Group type="103" groupAlignment="0" attributes="0">
+                                          <Group type="102" attributes="0">
+                                              <EmptySpace min="-2" pref="260" max="-2" attributes="0"/>
+                                              <Component id="addNoteBtn" min="-2" max="-2" attributes="0"/>
+                                          </Group>
+                                          <Group type="102" alignment="0" attributes="0">
+                                              <EmptySpace min="-2" pref="12" max="-2" attributes="0"/>
+                                              <Group type="103" groupAlignment="0" attributes="0">
+                                                  <Group type="102" attributes="0">
+                                                      <Component id="writeYourReflection" min="-2" pref="255" max="-2" attributes="0"/>
+                                                      <EmptySpace min="-2" pref="297" max="-2" attributes="0"/>
+                                                      <Group type="103" groupAlignment="0" attributes="0">
+                                                          <Component id="saveTick" min="-2" pref="30" max="-2" attributes="0"/>
+                                                          <Component id="saveNote" min="-2" pref="30" max="-2" attributes="0"/>
+                                                      </Group>
+                                                      <EmptySpace min="10" pref="10" max="-2" attributes="0"/>
+                                                      <Group type="103" groupAlignment="0" attributes="0">
+                                                          <Component id="eyeShow" min="-2" pref="30" max="-2" attributes="0"/>
+                                                          <Component id="eyeHide" min="-2" pref="30" max="-2" attributes="0"/>
+                                                      </Group>
+                                                  </Group>
+                                                  <Component id="notesInput" min="-2" pref="618" max="-2" attributes="0"/>
+                                              </Group>
+                                          </Group>
+                                      </Group>
+                                      <EmptySpace min="-2" pref="20" max="-2" attributes="0"/>
+                                  </Group>
+                              </Group>
+                            </DimensionLayout>
+                            <DimensionLayout dim="1">
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Group type="102" attributes="0">
+                                      <EmptySpace min="10" pref="10" max="-2" attributes="0"/>
+                                      <Group type="103" groupAlignment="0" attributes="0">
+                                          <Component id="writeYourReflection" min="-2" max="-2" attributes="0"/>
+                                          <Component id="saveTick" min="-2" pref="20" max="-2" attributes="0"/>
+                                          <Component id="saveNote" min="-2" pref="20" max="-2" attributes="0"/>
+                                          <Component id="eyeShow" min="-2" pref="20" max="-2" attributes="0"/>
+                                          <Component id="eyeHide" min="-2" pref="20" max="-2" attributes="0"/>
+                                      </Group>
+                                      <EmptySpace min="10" pref="10" max="-2" attributes="0"/>
+                                      <Group type="103" groupAlignment="0" attributes="0">
+                                          <Group type="102" attributes="0">
+                                              <EmptySpace min="350" pref="350" max="-2" attributes="0"/>
+                                              <Component id="addNoteBtn" min="-2" max="-2" attributes="0"/>
+                                          </Group>
+                                          <Component id="notesInput" min="-2" pref="770" max="-2" attributes="0"/>
+                                      </Group>
+                                  </Group>
+                              </Group>
+                            </DimensionLayout>
                           </Layout>
                           <SubComponents>
                             <Component class="javax.swing.JButton" name="eyeHide">
@@ -587,11 +640,6 @@
                               <Events>
                                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="eyeHideActionPerformed"/>
                               </Events>
-                              <Constraints>
-                                <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-                                  <AbsoluteConstraints x="610" y="10" width="30" height="20"/>
-                                </Constraint>
-                              </Constraints>
                             </Component>
                             <Component class="javax.swing.JButton" name="eyeShow">
                               <Properties>
@@ -602,11 +650,6 @@
                               <Events>
                                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="eyeShowActionPerformed"/>
                               </Events>
-                              <Constraints>
-                                <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-                                  <AbsoluteConstraints x="610" y="10" width="30" height="20"/>
-                                </Constraint>
-                              </Constraints>
                             </Component>
                             <Component class="javax.swing.JButton" name="saveNote">
                               <Properties>
@@ -617,11 +660,6 @@
                               <Events>
                                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="saveNoteActionPerformed"/>
                               </Events>
-                              <Constraints>
-                                <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-                                  <AbsoluteConstraints x="570" y="10" width="30" height="20"/>
-                                </Constraint>
-                              </Constraints>
                             </Component>
                             <Component class="javax.swing.JButton" name="saveTick">
                               <Properties>
@@ -632,11 +670,6 @@
                                   <Border info="null"/>
                                 </Property>
                               </Properties>
-                              <Constraints>
-                                <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-                                  <AbsoluteConstraints x="570" y="10" width="30" height="20"/>
-                                </Constraint>
-                              </Constraints>
                             </Component>
                             <Component class="javax.swing.JButton" name="addNoteBtn">
                               <Properties>
@@ -655,11 +688,6 @@
                               <Events>
                                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="addNoteBtnActionPerformed"/>
                               </Events>
-                              <Constraints>
-                                <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-                                  <AbsoluteConstraints x="260" y="390" width="-1" height="-1"/>
-                                </Constraint>
-                              </Constraints>
                             </Component>
                             <Component class="javax.swing.JTextArea" name="notesInput">
                               <Properties>
@@ -674,14 +702,20 @@
                                 <Property name="opaque" type="boolean" value="false"/>
                               </Properties>
                               <AuxValues>
-                                <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="notesInput.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {&#xa;    private void handleChange() {&#xa;        if (saveTick.isVisible() &amp;&amp; notesInput.getText().length() &gt; 0) {&#xa;            saveTick.setVisible(false);&#xa;            saveNote.setVisible(true);&#xa;        }&#xa;    }&#xa;&#xa;    @Override&#xa;    public void insertUpdate(javax.swing.event.DocumentEvent e) {&#xa;        handleChange();&#xa;    }&#xa;&#xa;    @Override&#xa;    public void removeUpdate(javax.swing.event.DocumentEvent e) {&#xa;        handleChange();&#xa;    }&#xa;&#xa;    @Override&#xa;    public void changedUpdate(javax.swing.event.DocumentEvent e) {&#xa;        handleChange();&#xa;    }&#xa;});"/>
+                                <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="notesInput.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {&#xa;    private void handleChange() {&#xa;        if (saveTick.isVisible() &amp;&amp; notesInput.getText().length() &gt; 0) {&#xa;            saveTick.setVisible(false);&#xa;            saveNote.setVisible(true);&#xa;        }&#xa;    }&#xa;&#xa;    @Override&#xa;    public void insertUpdate(javax.swing.event.DocumentEvent e) {&#xa;        handleChange();&#xa;    }&#xa;&#xa;    @Override&#xa;    public void removeUpdate(javax.swing.event.DocumentEvent e) {&#xa;        handleChange();&#xa;    }&#xa;&#xa;    @Override&#xa;    public void changedUpdate(javax.swing.event.DocumentEvent e) {&#xa;        handleChange();&#xa;    }&#xa;});&#xa;&#xa;&#xa;notesInput.addFocusListener(new java.awt.event.FocusAdapter() {&#xa;    @Override&#xa;    public void focusGained(java.awt.event.FocusEvent evt) {&#xa;        if (addNoteBtn.isVisible()) {&#xa;            notesInput.setFocusable(false);&#xa;            notesInput.getCaret().setVisible(false);&#xa;            notesInput.transferFocus(); // move focus away&#xa;        } else {&#xa;            notesInput.setFocusable(true);&#xa;            notesInput.getCaret().setVisible(true);&#xa;        }&#xa;    }&#xa;});&#xa;&#xa;// --- Also prevent mouse clicks from showing caret when addNoteBtn is visible ---&#xa;notesInput.addMouseListener(new java.awt.event.MouseAdapter() {&#xa;    @Override&#xa;    public void mousePressed(java.awt.event.MouseEvent evt) {&#xa;        if (addNoteBtn.isVisible()) {&#xa;            notesInput.setFocusable(false);&#xa;            notesInput.getCaret().setVisible(false);&#xa;            evt.consume(); // block the click&#xa;        } else {&#xa;            notesInput.setFocusable(true);&#xa;            notesInput.getCaret().setVisible(true);&#xa;        }&#xa;    }&#xa;});"/>
                                 <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="notesInput.setLineWrap(true);           // enable line wrapping&#xa;notesInput.setWrapStyleWord(true);      // wrap at word boundaries, not mid-word"/>
                               </AuxValues>
-                              <Constraints>
-                                <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-                                  <AbsoluteConstraints x="20" y="40" width="610" height="770"/>
-                                </Constraint>
-                              </Constraints>
+                            </Component>
+                            <Component class="javax.swing.JLabel" name="writeYourReflection">
+                              <Properties>
+                                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                                  <Font name="Godana" size="14" style="0"/>
+                                </Property>
+                                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                                  <Image iconType="3" name="/icons/write15.png"/>
+                                </Property>
+                                <Property name="text" type="java.lang.String" value="Write your reflection on this chapter"/>
+                              </Properties>
                             </Component>
                           </SubComponents>
                         </Container>
@@ -834,7 +868,7 @@
                     </Property>
                   </Properties>
                   <AuxValues>
-                    <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="chapterChooser.addActionListener(e -&gt; {&#xa;    int selectedChapterIndex = chapterChooser.getSelectedIndex();&#xa;    if (selectedChapterIndex &lt; 0) return;&#xa;&#xa;    int selectedBookIndex = bookChooser.getSelectedIndex();&#xa;    if (selectedBookIndex &lt; 0) return;&#xa;&#xa;    int selectedTestamentIndex = testamentChooser.getSelectedIndex();&#xa;&#xa;    // Figure out the folder number&#xa;    int folderNumber;&#xa;    if (selectedTestamentIndex == 1) {&#xa;        folderNumber = selectedBookIndex + 40; // New Testament offset&#xa;    } else {&#xa;        folderNumber = selectedBookIndex + 1;  // Old Testament&#xa;    }&#xa;&#xa;    // Chapter files are named as index+1.pdf&#xa;    int chapterNumber = selectedChapterIndex + 1;&#xa;    File pdfFile = new File(&#xa;            &quot;C:\\Users\\boni\\Desktop\\Files\\The Bible Project\\BibleApp\\src\\main\\resources\\files\\books\\&quot;&#xa;                    + folderNumber,&#xa;            chapterNumber + &quot;.pdf&quot;&#xa;    );&#xa;&#xa;    if (!pdfFile.exists()) {&#xa;        mainTextArea.setText(&quot;Chapter file not found: &quot; + pdfFile.getName());&#xa;        return;&#xa;    }&#xa;&#xa;    // Load the PDF text into mainTextArea&#xa;    try (PDDocument doc = PDDocument.load(pdfFile)) {&#xa;        PDFTextStripper stripper = new PDFTextStripper();&#xa;        String text = stripper.getText(doc);&#xa;        mainTextArea.setText(text.trim());&#xa;        mainTextArea.setCaretPosition(0); // scroll to top&#xa;    } catch (IOException ex) {&#xa;        ex.printStackTrace();&#xa;        mainTextArea.setText(&quot;Error reading: &quot; + pdfFile.getName());&#xa;    }&#xa;});&#xa;chapterChooser.addActionListener(e -&gt;{&#xa;    currentChapterIndex = chapterChooser.getSelectedIndex();&#xa;});&#xa;&#xa;&#xa;/*&#xa;&#xa;chapterChooser.addActionListener(e -&gt; {&#xa;    int selectedChapterIndex = chapterChooser.getSelectedIndex();&#xa;    if (selectedChapterIndex &lt; 0) return;&#xa;&#xa;    int selectedBookIndex = bookChooser.getSelectedIndex();&#xa;    if (selectedBookIndex &lt; 0) return;&#xa;&#xa;    currentChapterIndex = selectedChapterIndex;&#xa;    currentBookIndex = selectedBookIndex;&#xa;&#xa;    // --- Notes DB check ---&#xa;    if (NotesDatabase.noteExists(currentBookIndex, currentChapterIndex)) {&#xa;        notesInput.setText(NotesDatabase.loadNote(currentBookIndex, currentChapterIndex));&#xa;        addNoteBtn.setVisible(false); // hide the add button if note exists&#xa;        eyeHide.setVisible(true);&#xa;        saveNote.setVisible(true);&#xa;    } else {&#xa;        notesInput.setText(&quot;&quot;); // new note&#xa;        addNoteBtn.setVisible(true);&#xa;        eyeShow.setVisible(false);&#xa;        eyeHide.setVisible(false);&#xa;        saveNote.setVisible(false);&#xa;        saveTick.setVisible(false);// show the add button if no note exists&#xa;    }&#xa;});&#xa;&#xa;&#xa;*/&#xa;&#xa;&#xa;chapterChooser.addActionListener(e -&gt; {&#xa;    int selectedChapterIndex = chapterChooser.getSelectedIndex();&#xa;    if (selectedChapterIndex &lt; 0) return;&#xa;&#xa;    int selectedBookIndex = bookChooser.getSelectedIndex();&#xa;    if (selectedBookIndex &lt; 0) return;&#xa;&#xa;    int selectedTestamentIndex = testamentChooser.getSelectedIndex();&#xa;&#xa;    // Update current indices&#xa;    currentChapterIndex = selectedChapterIndex;&#xa;    currentBookIndex = selectedBookIndex;&#xa;&#xa;    // --- Load note from DB ---&#xa;    String loadedNote = loadNoteFromDB(selectedTestamentIndex, selectedBookIndex, selectedChapterIndex);&#xa;    notesInput.setText(loadedNote);&#xa;&#xa;    // Adjust buttons visibility based on whether a note exists&#xa;    if (!loadedNote.isEmpty()) {&#xa;        addNoteBtn.setVisible(false); // hide the add button if note exists&#xa;        eyeHide.setVisible(true);&#xa;        saveNote.setVisible(true);&#xa;        saveTick.setVisible(false);&#xa;    } else {&#xa;        notesInput.setText(&quot;&quot;); // new note&#xa;        addNoteBtn.setVisible(true);&#xa;        eyeShow.setVisible(false);&#xa;        eyeHide.setVisible(false);&#xa;        saveNote.setVisible(false);&#xa;        saveTick.setVisible(false); // show the add button if no note exists&#xa;    }&#xa;});"/>
+                    <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="chapterChooser.addActionListener(e -&gt; {&#xa;    int selectedChapterIndex = chapterChooser.getSelectedIndex();&#xa;    if (selectedChapterIndex &lt; 0) return;&#xa;&#xa;    int selectedBookIndex = bookChooser.getSelectedIndex();&#xa;    if (selectedBookIndex &lt; 0) return;&#xa;&#xa;    int selectedTestamentIndex = testamentChooser.getSelectedIndex();&#xa;&#xa;    // Figure out the folder number&#xa;    int folderNumber;&#xa;    if (selectedTestamentIndex == 1) {&#xa;        folderNumber = selectedBookIndex + 40; // New Testament offset&#xa;    } else {&#xa;        folderNumber = selectedBookIndex + 1;  // Old Testament&#xa;    }&#xa;&#xa;    // Chapter files are named as index+1.pdf&#xa;    int chapterNumber = selectedChapterIndex + 1;&#xa;    File pdfFile = new File(&#xa;            &quot;C:\\Users\\boni\\Desktop\\Files\\The Bible Project\\BibleApp\\src\\main\\resources\\files\\books\\&quot;&#xa;                    + folderNumber,&#xa;            chapterNumber + &quot;.pdf&quot;&#xa;    );&#xa;&#xa;    if (!pdfFile.exists()) {&#xa;        mainTextArea.setText(&quot;Chapter file not found: &quot; + pdfFile.getName());&#xa;        return;&#xa;    }&#xa;&#xa;    // Load the PDF text into mainTextArea&#xa;    try (PDDocument doc = PDDocument.load(pdfFile)) {&#xa;        PDFTextStripper stripper = new PDFTextStripper();&#xa;        String text = stripper.getText(doc);&#xa;        mainTextArea.setText(text.trim());&#xa;        mainTextArea.setCaretPosition(0); // scroll to top&#xa;    } catch (IOException ex) {&#xa;        ex.printStackTrace();&#xa;        mainTextArea.setText(&quot;Error reading: &quot; + pdfFile.getName());&#xa;    }&#xa;});&#xa;chapterChooser.addActionListener(e -&gt;{&#xa;    currentChapterIndex = chapterChooser.getSelectedIndex();&#xa;});&#xa;&#xa;&#xa;/*&#xa;&#xa;chapterChooser.addActionListener(e -&gt; {&#xa;    int selectedChapterIndex = chapterChooser.getSelectedIndex();&#xa;    if (selectedChapterIndex &lt; 0) return;&#xa;&#xa;    int selectedBookIndex = bookChooser.getSelectedIndex();&#xa;    if (selectedBookIndex &lt; 0) return;&#xa;&#xa;    currentChapterIndex = selectedChapterIndex;&#xa;    currentBookIndex = selectedBookIndex;&#xa;&#xa;    // --- Notes DB check ---&#xa;    if (NotesDatabase.noteExists(currentBookIndex, currentChapterIndex)) {&#xa;        notesInput.setText(NotesDatabase.loadNote(currentBookIndex, currentChapterIndex));&#xa;        addNoteBtn.setVisible(false); // hide the add button if note exists&#xa;        eyeHide.setVisible(true);&#xa;        saveNote.setVisible(true);&#xa;    } else {&#xa;        notesInput.setText(&quot;&quot;); // new note&#xa;        addNoteBtn.setVisible(true);&#xa;        eyeShow.setVisible(false);&#xa;        eyeHide.setVisible(false);&#xa;        saveNote.setVisible(false);&#xa;        saveTick.setVisible(false);// show the add button if no note exists&#xa;    }&#xa;});&#xa;&#xa;&#xa;*/&#xa;&#xa;&#xa;chapterChooser.addActionListener(e -&gt; {&#xa;    &#xa;    int selectedChapterIndex = chapterChooser.getSelectedIndex();&#xa;    if (selectedChapterIndex &lt; 0) return;&#xa;&#xa;    int selectedBookIndex = bookChooser.getSelectedIndex();&#xa;    if (selectedBookIndex &lt; 0) return;&#xa;&#xa;    int selectedTestamentIndex = testamentChooser.getSelectedIndex();&#xa;&#xa;    // Update current indices&#xa;    currentChapterIndex = selectedChapterIndex;&#xa;    currentBookIndex = selectedBookIndex;&#xa;&#xa;    // --- Load note from DB ---&#xa;    String loadedNote = loadNoteFromDB(selectedTestamentIndex, selectedBookIndex, selectedChapterIndex);&#xa;    notesInput.setText(loadedNote);&#xa;&#xa;    // Adjust buttons visibility based on whether a note exists&#xa;    if (!loadedNote.isEmpty()) {&#xa;        addNoteBtn.setVisible(false); // hide the add button if note exists&#xa;        &#xa;        eyeHide.setVisible(true);&#xa;        saveNote.setVisible(true);&#xa;        saveTick.setVisible(false);&#xa;        writeYourReflection.setVisible(true);&#xa;    } else {&#xa;        notesInput.setText(&quot;&quot;); // new note&#xa;        addNoteBtn.setVisible(true);&#xa;        eyeShow.setVisible(false);&#xa;        eyeHide.setVisible(false);&#xa;        saveNote.setVisible(false);&#xa;        saveTick.setVisible(false); // show the add button if no note exists&#xa;        writeYourReflection.setVisible(false);&#xa;    }&#xa;});"/>
                     <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
                   </AuxValues>
                   <Constraints>
@@ -870,11 +904,9 @@
                       <Font name="Nokia Pure Headline Ultra Light" size="12" style="1"/>
                     </Property>
                     <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-                      <StringArray count="4">
+                      <StringArray count="2">
                         <StringItem index="0" value="&#x12a0;&#x121b;&#x122d;&#x129b;"/>
                         <StringItem index="1" value="English"/>
-                        <StringItem index="2" value=" "/>
-                        <StringItem index="3" value=" "/>
                       </StringArray>
                     </Property>
                   </Properties>
@@ -882,6 +914,7 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bookChooserDropDownActionPerformed"/>
                   </Events>
                   <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="bookChooserDropDown.addActionListener(new java.awt.event.ActionListener() {&#xa;    public void actionPerformed(java.awt.event.ActionEvent evt) {&#xa;        int selectedIndex = bookChooserDropDown.getSelectedIndex();&#xa;&#xa;        if (selectedIndex == 0) {&#xa;            // Amharic selected&#xa;            testamentChooser.setModel(new javax.swing.DefaultComboBoxModel&lt;&gt;(&#xa;                new String[] { &quot;&#x1265;&#x1209;&#x12ed; &#x12aa;&#x12f3;&#x1295;&quot;, &quot;&#x12a0;&#x12f2;&#x1235; &#x12aa;&#x12f3;&#x1295;&quot; }&#xa;            ));&#xa;        } else if (selectedIndex == 1) {&#xa;            // English selected&#xa;            testamentChooser.setModel(new javax.swing.DefaultComboBoxModel&lt;&gt;(&#xa;                new String[] { &quot;Old Testament&quot;, &quot;New Testament&quot; }&#xa;            ));&#xa;        }&#xa;    }&#xa;});"/>
                     <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
                   </AuxValues>
                   <Constraints>
@@ -989,7 +1022,7 @@
                                                   </Group>
                                               </Group>
                                           </Group>
-                                          <Component id="readStatus1" alignment="1" min="-2" pref="1178" max="-2" attributes="0"/>
+                                          <Component id="readStatus" alignment="1" min="-2" pref="1178" max="-2" attributes="0"/>
                                       </Group>
                                       <EmptySpace min="-2" pref="27" max="-2" attributes="0"/>
                                   </Group>
@@ -1069,7 +1102,7 @@
                                   <Component id="selectedBookUnderline8" alignment="0" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <EmptySpace type="separate" max="-2" attributes="0"/>
-                              <Component id="readStatus1" max="32767" attributes="0"/>
+                              <Component id="readStatus" max="32767" attributes="0"/>
                               <EmptySpace min="-2" pref="236" max="-2" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
@@ -1080,7 +1113,7 @@
                     </DimensionLayout>
                   </Layout>
                   <SubComponents>
-                    <Container class="javax.swing.JPanel" name="readStatus1">
+                    <Container class="javax.swing.JPanel" name="readStatus">
 
                       <Layout>
                         <DimensionLayout dim="0">
@@ -2625,736 +2658,1834 @@
                           </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay1">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay2">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay3">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay4">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay5">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay6">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay7">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay8">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay9">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay10">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay11">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay12">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay13">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay14">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay15">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay16">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay17">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay18">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay19">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay20">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay21">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay22">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay23">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay24">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay25">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay26">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay27">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay28">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay29">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay30">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay31">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay32">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay33">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay34">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay35">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay36">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay37">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay38">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay39">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay40">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay41">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay42">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay43">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay44">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay45">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay46">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay47">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay48">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay49">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay50">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay51">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay52">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay53">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay54">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay55">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay56">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay57">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay58">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay59">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay60">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay61">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay62">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay63">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay64">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay65">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay66">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay67">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay68">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay69">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay70">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay71">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay72">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay73">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay74">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay75">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay76">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay77">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay78">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay79">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay80">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay81">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay82">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay83">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay84">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay85">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay86">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay87">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay88">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay89">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay90">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay91">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay92">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay93">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay94">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay95">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay96">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay97">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay98">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay99">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay100">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay101">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay102">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay103">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay104">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay105">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay106">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay107">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay108">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay109">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay110">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay111">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay112">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay113">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay114">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay115">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay116">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay117">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay118">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay119">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay120">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay121">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay122">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay123">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay124">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay125">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay126">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay127">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay128">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay129">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay130">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay131">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay132">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay133">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay134">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay135">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay136">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay137">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay138">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay139">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay140">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay141">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay142">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay143">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay144">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay145">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay146">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay147">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay148">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay149">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay150">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay151">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay152">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay153">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay154">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay155">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay156">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay157">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay158">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay159">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay160">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay161">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay162">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay163">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay164">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay165">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay166">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay167">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay168">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay169">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay170">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay171">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay172">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay173">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay174">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay175">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay176">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay177">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay178">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay179">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay180">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay181">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay182">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay183">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay184">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay185">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay186">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay187">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay188">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay189">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay190">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay191">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay192">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay193">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay194">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay195">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay196">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay197">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay198">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay199">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay200">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay201">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay202">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay203">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay204">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay205">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay206">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay207">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay208">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay209">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay210">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay211">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay212">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay213">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay214">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay215">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay216">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay217">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay218">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay219">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay220">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay221">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay222">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay223">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay224">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay225">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay226">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay227">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay228">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay229">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay230">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay231">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay232">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay233">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay234">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay235">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay236">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay237">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay238">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay239">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay240">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay241">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay242">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay243">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay244">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay245">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay246">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay247">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay248">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay249">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay250">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay251">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay252">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay253">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay254">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay255">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay256">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay257">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay258">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay259">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay260">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay261">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay262">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay263">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay264">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay265">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay266">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay267">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay268">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay269">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay270">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay271">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay272">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay273">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay274">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay275">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay276">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay277">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay278">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay279">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay280">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay281">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay282">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay283">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay284">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay285">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay286">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay287">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay288">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay289">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay290">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay291">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay292">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay293">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay294">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay295">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay296">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay297">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay298">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay299">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay300">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay301">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay302">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay303">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay304">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay305">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay306">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay307">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay308">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay309">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay310">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay311">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay312">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay313">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay314">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay315">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay316">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay317">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay318">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay319">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay320">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay321">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay322">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay323">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay324">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay325">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay326">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay327">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay328">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay329">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay330">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay331">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay332">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay333">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay334">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay335">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay336">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay337">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay338">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay339">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay340">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay341">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay342">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay343">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay344">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay345">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay346">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay347">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay348">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay349">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay350">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay351">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay352">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay353">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay354">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay355">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay356">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay357">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay358">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay359">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay360">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay361">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay362">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay363">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay364">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay365">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                         <Component class="javax.swing.JButton" name="statusDay366">
+                          <Properties>
+                            <Property name="opaque" type="boolean" value="true"/>
+                          </Properties>
                         </Component>
                       </SubComponents>
                     </Container>
