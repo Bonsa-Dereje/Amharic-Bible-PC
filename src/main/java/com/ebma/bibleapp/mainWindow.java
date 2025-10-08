@@ -193,7 +193,8 @@ public class mainWindow extends javax.swing.JFrame {
         
         
         //loadLastReadBookFromSession();
-    
+        
+        
 
       
     }
@@ -255,29 +256,29 @@ public class mainWindow extends javax.swing.JFrame {
         }
 
 
-private void updateVerseChooser() {
-    String text = mainTextArea.getText();
-    if (text == null || text.isEmpty()) return;
+        private void updateVerseChooser() {
+            String text = mainTextArea.getText();
+            if (text == null || text.isEmpty()) return;
 
-    // Just verify the text has verses
-    Pattern pattern = Pattern.compile("\\b\\d+\\b");
-    Matcher matcher = pattern.matcher(text);
+            // Just verify the text has verses
+            Pattern pattern = Pattern.compile("\\b\\d+\\b");
+            Matcher matcher = pattern.matcher(text);
 
-    boolean found = matcher.find();
-    if (!found) return;
+            boolean found = matcher.find();
+            if (!found) return;
 
-    // Always default to first verse (index 0)
-    try {
-        Rectangle viewRect = mainTextArea.modelToView(0);
-        if (viewRect != null) {
-            JViewport viewport = (JViewport) mainTextArea.getParent();
-            viewport.setViewPosition(viewRect.getLocation());
+            // Always default to first verse (index 0)
+            try {
+                Rectangle viewRect = mainTextArea.modelToView(0);
+                if (viewRect != null) {
+                    JViewport viewport = (JViewport) mainTextArea.getParent();
+                    viewport.setViewPosition(viewRect.getLocation());
+                }
+            } catch (Exception ignored) {}
+
+            // Optional: mark that verse loading is initialized
+            verseChooserInitialized = false;
         }
-    } catch (Exception ignored) {}
-
-    // Optional: mark that verse loading is initialized
-    verseChooserInitialized = false;
-}
 
 
         
@@ -751,7 +752,29 @@ private void loadLastReadDirectly() {
         description.setText("<html><div style='text-align:center; color:red;'>Database error: " + ex.getMessage() + "</div></html>");
     }
 }
+private String loadNoteFromDB(int testamentIndex, int bookIndex, int chapterIndex) {
+    String noteText = "";
 
+    // Build the key as stored in DB: "testament-book-chapter" (0-based)
+    String bookChapterIndex = testamentIndex + "-" + bookIndex + "-" + chapterIndex;
+
+    String dbPath = "notesNJournals.db"; // make sure this path is correct relative to your project
+    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
+        String sql = "SELECT note FROM notesReflections WHERE bookChapterIndex = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, bookChapterIndex);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    noteText = rs.getString("note");
+                }
+            }
+        }
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+    }
+
+    return noteText;
+}
 
 
     @SuppressWarnings("unchecked")
@@ -1631,9 +1654,34 @@ private void loadLastReadDirectly() {
         notesInput.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
         notesInput.setRows(5);
         notesInput.setBorder(null);
-        notesInput.setFocusable(false);
+        notesInput.setOpaque(false);
+        notesInput.setLineWrap(true);           // enable line wrapping
+        notesInput.setWrapStyleWord(true);      // wrap at word boundaries, not mid-word
         notesTabLayers.add(notesInput);
-        notesInput.setBounds(10, 10, 630, 810);
+        notesInput.setBounds(20, 40, 610, 770);
+        notesInput.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            private void handleChange() {
+                if (saveTick.isVisible() && notesInput.getText().length() > 0) {
+                    saveTick.setVisible(false);
+                    saveNote.setVisible(true);
+                }
+            }
+
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                handleChange();
+            }
+
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                handleChange();
+            }
+
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                handleChange();
+            }
+        });
 
         notesTabPanel.add(notesTabLayers, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 660, 820));
 
@@ -1771,6 +1819,8 @@ private void loadLastReadDirectly() {
             currentChapterIndex = chapterChooser.getSelectedIndex();
         });
 
+        /*
+
         chapterChooser.addActionListener(e -> {
             int selectedChapterIndex = chapterChooser.getSelectedIndex();
             if (selectedChapterIndex < 0) return;
@@ -1794,6 +1844,41 @@ private void loadLastReadDirectly() {
                 eyeHide.setVisible(false);
                 saveNote.setVisible(false);
                 saveTick.setVisible(false);// show the add button if no note exists
+            }
+        });
+
+        */
+
+        chapterChooser.addActionListener(e -> {
+            int selectedChapterIndex = chapterChooser.getSelectedIndex();
+            if (selectedChapterIndex < 0) return;
+
+            int selectedBookIndex = bookChooser.getSelectedIndex();
+            if (selectedBookIndex < 0) return;
+
+            int selectedTestamentIndex = testamentChooser.getSelectedIndex();
+
+            // Update current indices
+            currentChapterIndex = selectedChapterIndex;
+            currentBookIndex = selectedBookIndex;
+
+            // --- Load note from DB ---
+            String loadedNote = loadNoteFromDB(selectedTestamentIndex, selectedBookIndex, selectedChapterIndex);
+            notesInput.setText(loadedNote);
+
+            // Adjust buttons visibility based on whether a note exists
+            if (!loadedNote.isEmpty()) {
+                addNoteBtn.setVisible(false); // hide the add button if note exists
+                eyeHide.setVisible(true);
+                saveNote.setVisible(true);
+                saveTick.setVisible(false);
+            } else {
+                notesInput.setText(""); // new note
+                addNoteBtn.setVisible(true);
+                eyeShow.setVisible(false);
+                eyeHide.setVisible(false);
+                saveNote.setVisible(false);
+                saveTick.setVisible(false); // show the add button if no note exists
             }
         });
 
@@ -4185,7 +4270,21 @@ private void loadLastReadDirectly() {
     }//GEN-LAST:event_libraryBtnActionPerformed
 
     private void addNoteBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addNoteBtnActionPerformed
+        addNoteBtn.setVisible(false);
+        eyeHide.setVisible(true);
+        saveNote.setVisible(true);
+        //writeYourRefelctions.setVisible(true);
         
+        notesInput.setFocusable(true);
+        notesInput.setEditable(true);
+
+        // Set font color to black
+        notesInput.setForeground(Color.BLACK);
+
+        // Optionally, request focus so user can type immediately
+        notesInput.requestFocusInWindow();
+        notesTabLayers.moveToFront(eyeHide);
+        notesTabLayers.moveToFront(saveNote);        
     }//GEN-LAST:event_addNoteBtnActionPerformed
 
     private void homeBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_homeBtnActionPerformed
@@ -4217,6 +4316,63 @@ private void loadLastReadDirectly() {
     private void saveNoteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveNoteActionPerformed
         saveTick.setVisible(true);
         saveNote.setVisible(false);
+
+        // Get note text
+        String noteText = notesInput.getText();
+        if (noteText == null || noteText.trim().isEmpty()) return;
+
+        // Get current selections (0-based indices)
+        int testamentNum = testamentChooser.getSelectedIndex(); 
+        int bookNum = bookChooser.getSelectedIndex();
+        int chapterNum = chapterChooser.getSelectedIndex();
+
+        // Combine with dashes
+        String bookChapterIndex = testamentNum + "-" + bookNum + "-" + chapterNum;
+
+        // Save to database with upsert logic
+        String dbPath = "notesNJournals.db"; // database in project folder
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
+            // Check if entry exists
+            String checkSql = "SELECT COUNT(*) FROM notesReflections WHERE bookChapterIndex = ?";
+            boolean exists = false;
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                checkStmt.setString(1, bookChapterIndex);
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        exists = true;
+                    }
+                }
+            }
+
+            if (exists) {
+                // Update existing note
+                String updateSql = "UPDATE notesReflections SET note = ? WHERE bookChapterIndex = ?";
+                try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                    updateStmt.setString(1, noteText);
+                    updateStmt.setString(2, bookChapterIndex);
+                    updateStmt.executeUpdate();
+                }
+            } else {
+                // Insert new note
+                String insertSql = "INSERT INTO notesReflections (bookChapterIndex, note) VALUES (?, ?)";
+                try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                    insertStmt.setString(1, bookChapterIndex);
+                    insertStmt.setString(2, noteText);
+                    insertStmt.executeUpdate();
+                }
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        // Change text color to light gray after saving
+        notesInput.setForeground(new Color(100, 100, 100));
+
+        // Keep notesInput editable for new notes
+        notesInput.setFocusable(true);
+        notesInput.setEditable(true);
+        notesInput.requestFocusInWindow();
         
     }//GEN-LAST:event_saveNoteActionPerformed
 
