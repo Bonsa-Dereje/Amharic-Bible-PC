@@ -839,25 +839,6 @@
                     </Constraint>
                   </Constraints>
                 </Component>
-                <Component class="javax.swing.JComboBox" name="verseChooser">
-                  <Properties>
-                    <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                      <Font name="Nokia Pure Headline Ultra Light" size="14" style="0"/>
-                    </Property>
-                    <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-                      <StringArray count="0"/>
-                    </Property>
-                  </Properties>
-                  <AuxValues>
-                    <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="verseChooser.addActionListener(e -&gt; {&#xa;    String selected = (String) verseChooser.getSelectedItem();&#xa;    if (selected == null || selected.isEmpty()) return;&#xa;&#xa;    int verse;&#xa;    try {&#xa;        verse = Integer.parseInt(selected.split(&quot;-&quot;)[0]); // allow &quot;1-2&quot; as valid&#xa;    } catch (NumberFormatException ex) {&#xa;        return;&#xa;    }&#xa;&#xa;    // Skip verse 1 only if it&#x2019;s exactly &quot;1&quot;&#xa;    if (verse == 1 &amp;&amp; !selected.contains(&quot;-&quot;)) return;&#xa;&#xa;    String text = mainTextArea.getText();&#xa;    if (text == null || text.isEmpty()) return;&#xa;&#xa;    // Regex: find numbers at start of lines&#xa;    Pattern pattern = Pattern.compile(&quot;(?m)^(\\d+)\\b&quot;);&#xa;    Matcher matcher = pattern.matcher(text);&#xa;&#xa;    int start = -1;&#xa;    int end = text.length();&#xa;&#xa;    while (matcher.find()) {&#xa;        int foundNum = Integer.parseInt(matcher.group(1));&#xa;        if (foundNum != verse) continue;&#xa;&#xa;        // skip if previous word is &quot;&#x121d;&#x12d5;&#x122b;&#x134d;&quot;&#xa;        int lineStart = matcher.start(1);&#xa;        String lineText = text.substring(0, lineStart);&#xa;        String[] words = lineText.split(&quot;\\s+&quot;);&#xa;        if (words.length &gt; 0 &amp;&amp; words[words.length - 1].equals(&quot;&#x121d;&#x12d5;&#x122b;&#x134d;&quot;)) {&#xa;            return;&#xa;        }&#xa;&#xa;        start = matcher.start(1);&#xa;&#xa;        if (matcher.find()) {&#xa;            end = matcher.start(1);&#xa;        }&#xa;        break;&#xa;    }&#xa;&#xa;    if (start != -1) {&#xa;        // Scroll to top&#xa;        try {&#xa;            Rectangle rect = mainTextArea.modelToView(start);&#xa;            if (rect != null) {&#xa;                JViewport viewport = (JViewport) mainTextArea.getParent();&#xa;                rect.y = Math.max(0, rect.y - mainTextArea.getVisibleRect().height / 2);&#xa;                viewport.setViewPosition(rect.getLocation());&#xa;            }&#xa;        } catch (Exception ignored) {}&#xa;&#xa;        // Highlight&#xa;        Highlighter highlighter = mainTextArea.getHighlighter();&#xa;        highlighter.removeAllHighlights();&#xa;        try {&#xa;            final Object tag = highlighter.addHighlight(start, end,&#xa;                    new DefaultHighlighter.DefaultHighlightPainter(new Color(173, 216, 230, 128)));&#xa;&#xa;            // Remove after 3s&#xa;            Timer timer = new Timer(3000, ev -&gt; highlighter.removeHighlight(tag));&#xa;            timer.setRepeats(false);&#xa;            timer.start();&#xa;&#xa;        } catch (BadLocationException ex) {&#xa;            ex.printStackTrace();&#xa;        }&#xa;    }&#xa;});"/>
-                    <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
-                  </AuxValues>
-                  <Constraints>
-                    <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-                      <AbsoluteConstraints x="394" y="68" width="59" height="-1"/>
-                    </Constraint>
-                  </Constraints>
-                </Component>
                 <Component class="javax.swing.JComboBox" name="testamentChooser">
                   <Properties>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
@@ -888,7 +869,7 @@
                       <StringArray count="4">
                         <StringItem index="0" value="&#x12a0;&#x121b;&#x122d;&#x129b;"/>
                         <StringItem index="1" value="English"/>
-                        <StringItem index="2" value="Afaan Oromoo"/>
+                        <StringItem index="2" value=" "/>
                         <StringItem index="3" value=" "/>
                       </StringArray>
                     </Property>
@@ -901,7 +882,7 @@
                   </AuxValues>
                   <Constraints>
                     <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-                      <AbsoluteConstraints x="460" y="70" width="89" height="-1"/>
+                      <AbsoluteConstraints x="630" y="70" width="89" height="-1"/>
                     </Constraint>
                   </Constraints>
                 </Component>

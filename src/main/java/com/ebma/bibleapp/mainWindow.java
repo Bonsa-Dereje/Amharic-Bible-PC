@@ -92,6 +92,9 @@ import javax.sound.sampled.LineListener;
 
 
 
+
+
+
 public class mainWindow extends javax.swing.JFrame {
 
     private boolean isBoldActive = true;
@@ -252,106 +255,31 @@ public class mainWindow extends javax.swing.JFrame {
         }
 
 
-        private void updateVerseChooser() {
-            String text = mainTextArea.getText();
-            if (text == null || text.isEmpty()) return;
+private void updateVerseChooser() {
+    String text = mainTextArea.getText();
+    if (text == null || text.isEmpty()) return;
 
-            Pattern pattern = Pattern.compile("\\b\\d+\\b");
-            Matcher matcher = pattern.matcher(text);
+    // Just verify the text has verses
+    Pattern pattern = Pattern.compile("\\b\\d+\\b");
+    Matcher matcher = pattern.matcher(text);
 
-            Set<Integer> verseNumbers = new TreeSet<>();
+    boolean found = matcher.find();
+    if (!found) return;
 
-            while (matcher.find()) {
-                try {
-                    int num = Integer.parseInt(matcher.group());
-                    verseNumbers.add(num);
-                } catch (NumberFormatException ignored) {}
-            }
-
-            // Always include 1
-            verseNumbers.add(1);
-
-            // Convert to String array
-            String[] verses = verseNumbers.stream()
-                    .map(String::valueOf)
-                    .toArray(String[]::new);
-
-            verseChooser.setModel(new javax.swing.DefaultComboBoxModel<>(verses));
-
-            if (verses.length > 0) {
-                verseChooser.setSelectedIndex(0); // default first verse
-            }
-
-            // Reset flag so first selection is ignored
-            verseChooserInitialized = false;
+    // Always default to first verse (index 0)
+    try {
+        Rectangle viewRect = mainTextArea.modelToView(0);
+        if (viewRect != null) {
+            JViewport viewport = (JViewport) mainTextArea.getParent();
+            viewport.setViewPosition(viewRect.getLocation());
         }
+    } catch (Exception ignored) {}
+
+    // Optional: mark that verse loading is initialized
+    verseChooserInitialized = false;
+}
 
 
-
-        private void scrollToAndHighlightVerse(int verseNumber) {
-            if (verseNumber == 1) return; // ignore verse 1
-
-            String text = mainTextArea.getText();
-            if (text == null || text.isEmpty()) return;
-
-            // Regex: find numbers at the start of lines
-            Pattern pattern = Pattern.compile("(?m)^(\\d+)\\b");
-            Matcher matcher = pattern.matcher(text);
-
-            int start = -1;
-            int end = text.length(); // default: highlight to end of text
-
-            while (matcher.find()) {
-                int foundNum = Integer.parseInt(matcher.group(1));
-
-                // Skip if it’s not the selected verse
-                if (foundNum != verseNumber) continue;
-
-                // Check if the word before the number is "ምዕራፍ"
-                int lineStart = matcher.start(1);
-                String lineText = text.substring(0, lineStart); // text before number
-                String[] words = lineText.split("\\s+");
-                if (words.length > 0 && words[words.length - 1].equals("ምዕራፍ")) {
-                    return; // skip highlighting if previous word is ምዕራፍ
-                }
-
-                start = matcher.start(1);
-
-                if (matcher.find()) {
-                    end = matcher.start(1); // up to next number
-                }
-                break;
-            }
-
-            if (start != -1) {
-                // Scroll so the verse is at the top
-                try {
-                    Rectangle viewRect = mainTextArea.modelToView(start);
-                    if (viewRect != null) {
-                        JViewport viewport = (JViewport) mainTextArea.getParent();
-                        viewRect.y -= 5; // small offset
-                        viewport.setViewPosition(viewRect.getLocation());
-                    }
-                } catch (Exception ignored) {}
-
-                // Highlight
-                Highlighter highlighter = mainTextArea.getHighlighter();
-                highlighter.removeAllHighlights();
-                try {
-                    final Object tag = highlighter.addHighlight(start, end,
-                            new DefaultHighlighter.DefaultHighlightPainter(new Color(173, 216, 230, 128))); // light blue
-
-                    // Remove after 3s
-                    Timer timer = new Timer(3000, e -> highlighter.removeHighlight(tag));
-                    timer.setRepeats(false);
-                    timer.start();
-
-                } catch (BadLocationException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-        
         
         
         private void saveHighlight(String text, Color color) {
@@ -876,7 +804,6 @@ private void loadLastReadDirectly() {
         fontSizeSlider = new javax.swing.JSlider();
         bookChooser = new javax.swing.JComboBox<>();
         chapterChooser = new javax.swing.JComboBox<>();
-        verseChooser = new javax.swing.JComboBox<>();
         testamentChooser = new javax.swing.JComboBox<>();
         bookChooserDropDown = new javax.swing.JComboBox<>();
         libraryTab = new javax.swing.JPanel();
@@ -1870,93 +1797,18 @@ private void loadLastReadDirectly() {
             }
         });
 
-        verseChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        bibleTab.add(verseChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(394, 68, 59, -1));
-        verseChooser.addActionListener(e -> {
-            String selected = (String) verseChooser.getSelectedItem();
-            if (selected == null || selected.isEmpty()) return;
-
-            int verse;
-            try {
-                verse = Integer.parseInt(selected.split("-")[0]); // allow "1-2" as valid
-            } catch (NumberFormatException ex) {
-                return;
-            }
-
-            // Skip verse 1 only if it’s exactly "1"
-            if (verse == 1 && !selected.contains("-")) return;
-
-            String text = mainTextArea.getText();
-            if (text == null || text.isEmpty()) return;
-
-            // Regex: find numbers at start of lines
-            Pattern pattern = Pattern.compile("(?m)^(\\d+)\\b");
-            Matcher matcher = pattern.matcher(text);
-
-            int start = -1;
-            int end = text.length();
-
-            while (matcher.find()) {
-                int foundNum = Integer.parseInt(matcher.group(1));
-                if (foundNum != verse) continue;
-
-                // skip if previous word is "ምዕራፍ"
-                int lineStart = matcher.start(1);
-                String lineText = text.substring(0, lineStart);
-                String[] words = lineText.split("\\s+");
-                if (words.length > 0 && words[words.length - 1].equals("ምዕራፍ")) {
-                    return;
-                }
-
-                start = matcher.start(1);
-
-                if (matcher.find()) {
-                    end = matcher.start(1);
-                }
-                break;
-            }
-
-            if (start != -1) {
-                // Scroll to top
-                try {
-                    Rectangle rect = mainTextArea.modelToView(start);
-                    if (rect != null) {
-                        JViewport viewport = (JViewport) mainTextArea.getParent();
-                        rect.y = Math.max(0, rect.y - mainTextArea.getVisibleRect().height / 2);
-                        viewport.setViewPosition(rect.getLocation());
-                    }
-                } catch (Exception ignored) {}
-
-                // Highlight
-                Highlighter highlighter = mainTextArea.getHighlighter();
-                highlighter.removeAllHighlights();
-                try {
-                    final Object tag = highlighter.addHighlight(start, end,
-                        new DefaultHighlighter.DefaultHighlightPainter(new Color(173, 216, 230, 128)));
-
-                    // Remove after 3s
-                    Timer timer = new Timer(3000, ev -> highlighter.removeHighlight(tag));
-                    timer.setRepeats(false);
-                    timer.start();
-
-                } catch (BadLocationException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        });
-
         testamentChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
         testamentChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ብሉይ ኪዳን", "አዲስ ኪዳን" }));
         bibleTab.add(testamentChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(17, 67, 105, -1));
 
         bookChooserDropDown.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 12)); // NOI18N
-        bookChooserDropDown.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "አማርኛ", "English", "Afaan Oromoo", " " }));
+        bookChooserDropDown.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "አማርኛ", "English", " ", " " }));
         bookChooserDropDown.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 bookChooserDropDownActionPerformed(evt);
             }
         });
-        bibleTab.add(bookChooserDropDown, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 70, 89, -1));
+        bibleTab.add(bookChooserDropDown, new org.netbeans.lib.awtextra.AbsoluteConstraints(630, 70, 89, -1));
 
         tabs.addTab("Home", bibleTab);
 
@@ -5644,7 +5496,6 @@ private void loadLastReadDirectly() {
     private javax.swing.JPanel topBar;
     private javax.swing.JButton treeTheme;
     private javax.swing.JButton unmute;
-    private javax.swing.JComboBox<String> verseChooser;
     private javax.swing.JTextField volDisp;
     private javax.swing.JButton volMinus;
     private javax.swing.JButton volPLus;
