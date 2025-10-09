@@ -155,6 +155,8 @@ public class mainWindow extends javax.swing.JFrame {
     //private int baseFontSize = 20;
     //private float volumePercent = 50; 
     private boolean isDarkMode = false;
+    
+    private boolean closeClicked = false;
 
     
     public mainWindow() {
@@ -295,7 +297,6 @@ public class mainWindow extends javax.swing.JFrame {
         }
 
 
-        
         
         private void saveHighlight(String text, Color color) {
             try (Connection conn = DBManager.getConnection()) {
@@ -454,7 +455,6 @@ public class mainWindow extends javax.swing.JFrame {
                 this.postSpaceLength = postSpaceLength;
             }
         }
-
 
 
         private void saveNotes() {
@@ -800,31 +800,60 @@ private void startAutoSaveClickTimer() {
     }).start();
 }
 
-
 public void updateStatusLabels() {
-    String dbPath = "bookStack.db"; 
+    String dbPath = "bookStack.db";
 
-    // January 1 corresponds to statusDay113
-    int statusDayOffset = 113 - 1; // subtract 1 because arrays/indices start at 0
+    // Map to hold summed data per day
+    Map<LocalDate, int[]> dailyTotals = new HashMap<>();
 
     try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
         String sql = "SELECT pagesRead, readFor, lastRead FROM session";
         try (PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
+            // --- Aggregate totals per day ---
             while (rs.next()) {
-                int pagesRead = rs.getInt("pagesRead");
-                int readFor = rs.getInt("readFor"); 
                 String lastReadStr = rs.getString("lastRead");
-
-                // Only consider the date portion (ignore time)
                 String dateOnlyStr = lastReadStr.split(" ")[0]; // yyyy-MM-dd
-                LocalDate lastReadDate = LocalDate.parse(dateOnlyStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                LocalDate date = LocalDate.parse(dateOnlyStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-                // Get day number in the year (1-365/366), Java handles month lengths automatically
-                int dayOfYear = lastReadDate.getDayOfYear();
+                int pages = rs.getInt("pagesRead");
+                int minutes = rs.getInt("readFor");
 
-                // Determine label color based on pagesRead and readFor
+                dailyTotals.putIfAbsent(date, new int[]{0, 0});
+                int[] totals = dailyTotals.get(date);
+                totals[0] += pages;   // sum pagesRead
+                totals[1] += minutes; // sum readFor
+            }
+
+            // --- Set label colors based on aggregated totals ---
+            for (Map.Entry<LocalDate, int[]> entry : dailyTotals.entrySet()) {
+                LocalDate date = entry.getKey();
+                int pagesRead = entry.getValue()[0];
+                int readFor = entry.getValue()[1];
+
+                int month = date.getMonthValue();
+                int day = date.getDayOfMonth();
+                int customDay = 0;
+
+                // --- Custom month mapping ---
+                switch (month) {
+                    case 9:  customDay = 1   + (day - 1); break;  // Sept
+                    case 10: customDay = 31  + (day - 1); break;  // Oct
+                    case 11: customDay = 61  + (day - 1); break;  // Nov
+                    case 12: customDay = 91  + (day - 1); break;  // Dec
+                    case 1:  customDay = 122 + (day - 1); break;  // Jan
+                    case 2:  customDay = 153 + (day - 1); break;  // Feb
+                    case 3:  customDay = 181 + (day - 1); break;  // Mar
+                    case 4:  customDay = 212 + (day - 1); break;  // Apr
+                    case 5:  customDay = 242 + (day - 1); break;  // May
+                    case 6:  customDay = 273 + (day - 1); break;  // Jun
+                    case 7:  customDay = 303 + (day - 1); break;  // Jul
+                    case 8:  customDay = 334 + (day - 1); break;  // Aug
+                    default: customDay = 0; break;
+                }
+
+                // --- Determine label color ---
                 Color color;
                 if (pagesRead >= 5 && pagesRead < 10 && readFor >= 5) {
                     color = new Color(70, 140, 70); // level 1
@@ -835,21 +864,21 @@ public void updateStatusLabels() {
                 } else if (pagesRead >= 20 && readFor >= 20) {
                     color = new Color(86, 211, 100); // level 4
                 } else {
-                    color = new Color(50, 90, 50); // level 0, muted dark green
+                    color = new Color(50, 90, 50); // level 0
                 }
 
-                // Map to JLabel
-                int labelIndex = dayOfYear + statusDayOffset - 1;
+                // --- Map to JLabel ---
+                int labelIndex = customDay - 1; // convert to 0-based index
                 if (labelIndex >= 0 && labelIndex < readStatus.getComponentCount()) {
                     Component comp = readStatus.getComponent(labelIndex);
-                    if (comp instanceof JLabel) {
-                        JLabel lbl = (JLabel) comp;
+                    if (comp instanceof JLabel lbl) {
                         lbl.setOpaque(true);
                         lbl.setBackground(color);
                         lbl.repaint();
                     }
                 }
             }
+
         }
     } catch (Exception e) {
         e.printStackTrace();
@@ -909,7 +938,7 @@ public void updateStatusLabels() {
         bookChooser = new javax.swing.JComboBox<>();
         chapterChooser = new javax.swing.JComboBox<>();
         testamentChooser = new javax.swing.JComboBox<>();
-        bookChooserDropDown = new javax.swing.JComboBox<>();
+        languageChooser = new javax.swing.JComboBox<>();
         libraryTab = new javax.swing.JPanel();
         libraryContent = new javax.swing.JPanel();
         bookDescriptionSideBar1 = new javax.swing.JPanel();
@@ -2041,29 +2070,29 @@ public void updateStatusLabels() {
         testamentChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ብሉይ ኪዳን", "አዲስ ኪዳን" }));
         bibleTab.add(testamentChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(17, 67, 105, -1));
 
-        bookChooserDropDown.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 12)); // NOI18N
-        bookChooserDropDown.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "አማርኛ", "English" }));
-        bookChooserDropDown.addActionListener(new java.awt.event.ActionListener() {
+        languageChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 12)); // NOI18N
+        languageChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "አማርኛ", "English" }));
+        languageChooser.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                bookChooserDropDownActionPerformed(evt);
+                languageChooserActionPerformed(evt);
             }
         });
-        bibleTab.add(bookChooserDropDown, new org.netbeans.lib.awtextra.AbsoluteConstraints(630, 70, 89, -1));
-        bookChooserDropDown.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                int selectedIndex = bookChooserDropDown.getSelectedIndex();
+        bibleTab.add(languageChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(630, 70, 89, -1));
+        languageChooser.addActionListener(evt -> {
+            int selectedIndex = languageChooser.getSelectedIndex();
 
-                if (selectedIndex == 0) {
-                    // Amharic selected
-                    testamentChooser.setModel(new javax.swing.DefaultComboBoxModel<>(
-                        new String[] { "ብሉይ ኪዳን", "አዲስ ኪዳን" }
-                    ));
-                } else if (selectedIndex == 1) {
-                    // English selected
-                    testamentChooser.setModel(new javax.swing.DefaultComboBoxModel<>(
-                        new String[] { "Old Testament", "New Testament" }
-                    ));
-                }
+            if (selectedIndex == 0) {
+                // Amharic selected
+                //restoreHighlights(); // restore Amharic highlights
+                testamentChooser.setModel(new javax.swing.DefaultComboBoxModel<>(
+                    new String[] { "ብሉይ ኪዳን", "አዲስ ኪዳን" }
+                ));
+            } else if (selectedIndex == 1) {
+                // English selected
+                //restoreEnglishHighlights(); // restore English highlights
+                testamentChooser.setModel(new javax.swing.DefaultComboBoxModel<>(
+                    new String[] { "Old Testament", "New Testament" }
+                ));
             }
         });
 
@@ -5141,7 +5170,7 @@ public void updateStatusLabels() {
         libraryContentLayout.setHorizontalGroup(
             libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(libraryContentLayout.createSequentialGroup()
-                .addGap(14, 14, 14)
+                .addGap(19, 19, 19)
                 .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(libraryContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(libraryContentLayout.createSequentialGroup()
@@ -5206,7 +5235,7 @@ public void updateStatusLabels() {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(selectedBookUnderline12, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(27, 27, 27)))
-                .addGap(31, 31, 31)
+                .addGap(26, 26, 26)
                 .addComponent(bookDescriptionSideBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         libraryContentLayout.setVerticalGroup(
@@ -5653,8 +5682,7 @@ public void updateStatusLabels() {
 
                 System.out.println("Tabs 0–10 selected: Themer cleared, all music paused");
             }
-        });
-        tabs.addChangeListener(e -> {
+        });tabs.addChangeListener(e -> {
             int selectedIndex = tabs.getSelectedIndex();
 
             final String dbPath = "bookStack.db";
@@ -5698,6 +5726,13 @@ public void updateStatusLabels() {
             // ANY OTHER TAB SELECTED → STOP TRACKING
             else {
                 if (state.readingTimer != null && state.readingTimer.isRunning()) {
+                    if (closeClicked) {
+                        state.readingTimer.stop();
+                        state.startTime = 0;
+                        state.startScrollIndex = 0;
+                        state.readingTimer = null;
+                        return; // exit early, don’t log session
+                    }
                     state.readingTimer.stop();
                     long endTime = System.currentTimeMillis();
                     long duration = endTime - state.startTime; // in ms
@@ -5783,9 +5818,9 @@ public void updateStatusLabels() {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void bookChooserDropDownActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookChooserDropDownActionPerformed
+    private void languageChooserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_languageChooserActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_bookChooserDropDownActionPerformed
+    }//GEN-LAST:event_languageChooserActionPerformed
 
     private void restoreBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_restoreBtnActionPerformed
         
@@ -5802,7 +5837,8 @@ public void updateStatusLabels() {
     
     
     private void closeBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeBtnActionPerformed
-           int result = JOptionPane.showConfirmDialog(
+        closeClicked = true;
+        int result = JOptionPane.showConfirmDialog(
             this, 
             "Are you sure you want to exit?", 
             "Warning", 
@@ -6814,7 +6850,6 @@ public void updateStatusLabels() {
     private javax.swing.JLabel biblestudyTitle;
     private javax.swing.JButton boldBtn;
     private javax.swing.JComboBox<String> bookChooser;
-    private javax.swing.JComboBox<String> bookChooserDropDown;
     private javax.swing.JPanel bookDescriptionSideBar1;
     private javax.swing.JButton bookDisplay1;
     private javax.swing.JButton bookDisplay10;
@@ -6861,6 +6896,7 @@ public void updateStatusLabels() {
     private javax.swing.JButton journalBtn;
     private javax.swing.JLabel jul;
     private javax.swing.JLabel jun;
+    private javax.swing.JComboBox<String> languageChooser;
     private javax.swing.JButton libraryBtn;
     private javax.swing.JPanel libraryContent;
     private javax.swing.JPanel libraryTab;
