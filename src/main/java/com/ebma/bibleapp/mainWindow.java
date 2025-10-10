@@ -96,6 +96,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.LocalDate;
 
+import java.awt.geom.Rectangle2D;
 
 
 
@@ -157,8 +158,8 @@ public class mainWindow extends javax.swing.JFrame {
     private boolean isDarkMode = false;
     
     private boolean closeClicked = false;
-    
-    private String[] englishBooks = {
+
+    private String[] allBooksEnglish = {
         "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
         "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel",
         "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra",
@@ -168,15 +169,14 @@ public class mainWindow extends javax.swing.JFrame {
         "Amos", "Obadiah", "Jonah", "Micah", "Nahum",
         "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi",
         "Matthew", "Mark", "Luke", "John", "Acts",
-        "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians",
-        "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians",
-        "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews",
-        "James", "1 Peter", "2 Peter", "1 John", "2 John",
-        "3 John", "Jude", "Revelation"
-    };    
-
-    private int selectedLanguage;
+        "Romans", "1 Corinthians", "2 Corinthians", "Galatians",
+        "Ephesians", "Philippians", "Colossians", "1 Thessalonians",
+        "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus",
+        "Philemon", "Hebrews", "James", "1 Peter", "2 Peter",
+        "1 John", "2 John", "3 John", "Jude", "Revelation"
+    };
     
+    private boolean isEnglish = false;
     public mainWindow() {
         
         setUndecorated(true);  
@@ -227,90 +227,71 @@ public class mainWindow extends javax.swing.JFrame {
         //updateReadingStatusDebug();
         //SwingUtilities.invokeLater(() -> updateReadingStatus());
 
-setFixedSizeComboBox(bookChooser, 182, 25);       // width, height
-setFixedSizeComboBox(testamentChooser, 182, 25);  // width, height
-setFixedSizeComboBox(chapterChooser, 60, 25);
+        englishDropDownUpdater();
 
+
+
+           // updateChapterChooserEnglish();
+        
 
       
     }
     
-private void updateBookChooser() {
-    int selectedTestament = testamentChooser.getSelectedIndex();
-    int selectedLanguage = languageChooser.getSelectedIndex();
-    int start, end;
+        private void updateBookChooser() {
+        int selectedTestament = testamentChooser.getSelectedIndex();
+        int start, end;
 
-    if (selectedTestament == 0) {
-        start = 0;
-        end = 39; // Old Testament
-    } else {
-        start = 39;
-        end = (selectedLanguage == 0) ? allBooks.length : englishBooks.length; // New Testament
+        if (selectedTestament == 0) { 
+            start = 0;
+            end = 39;
+        } else { 
+            start = 39;
+            end = allBooks.length;
+        }
+
+        String[] subset = java.util.Arrays.copyOfRange(allBooks, start, end);
+        bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(subset));
     }
-
-    String[] subset;
-    if (selectedLanguage == 0) {
-        subset = java.util.Arrays.copyOfRange(allBooks, start, end);
-        bookChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", java.awt.Font.BOLD, 14));
-    } else {
-        subset = java.util.Arrays.copyOfRange(englishBooks, start, end);
-        //bookChooser.setFont(new java.awt.Font("Sogue", java.awt.Font.PLAIN, 20));
-    }
-
-    bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(subset));
-}
-
-
-
 
 
      
-  private void updateChapterChooser() {
-    int selectedBookIndex = bookChooser.getSelectedIndex(); 
-    if (selectedBookIndex < 0) return;
+        private void updateChapterChooser() {
+            int selectedBookIndex = bookChooser.getSelectedIndex(); 
+            if (selectedBookIndex < 0) return;
+            
+            int selectedTestamentIndex = testamentChooser.getSelectedIndex();
 
-    int selectedTestamentIndex = testamentChooser.getSelectedIndex();
-    int selectedLanguage = languageChooser.getSelectedIndex(); // 0 = Amharic, 1 = English
+            // Adjust for New Testament starting after 39 books
+            int folderNumber;
+            if (selectedTestamentIndex == 1) {
+                folderNumber = selectedBookIndex + 40; // since NT starts at book #40 (index 39)
+            } else {
+                folderNumber = selectedBookIndex + 1;  // OT starts at book #1
+            }
 
-    // --- Determine base folder path based on language ---
-    String basePath;
-    if (selectedLanguage == 0) {
-        basePath = "src/main/resources/files/books/amh";
-    } else {
-        basePath = "src/main/resources/files/books/eng";
-    }
+            File bookFolder = new File(
+                    "src/main/resources/files/books/amh",
+                    String.valueOf(folderNumber)
+            );
 
-    // --- Adjust folder number for New Testament ---
-    int folderNumber;
-    if (selectedTestamentIndex == 1) {
-        folderNumber = selectedBookIndex + 40; // NT starts at #40 (index 39)
-    } else {
-        folderNumber = selectedBookIndex + 1;  // OT starts at #1
-    }
+            if (!bookFolder.exists() || !bookFolder.isDirectory()) {
+                chapterChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"1"}));
+                return;
+            }
 
-    // --- Locate the folder ---
-    File bookFolder = new File(basePath, String.valueOf(folderNumber));
+            // Count all PDF files in the folder
+            File[] chapterFiles = bookFolder.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
+            int chapterCount = (chapterFiles != null) ? chapterFiles.length : 0;
 
-    if (!bookFolder.exists() || !bookFolder.isDirectory()) {
-        chapterChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"1"}));
-        return;
-    }
+            // Populate chapterChooser with numbers 1 .. chapterCount
+            String[] chapters = new String[chapterCount];
+            for (int i = 0; i < chapterCount; i++) {
+                chapters[i] = String.valueOf(i + 1); // start from 1
+            }
 
-    // --- Count all PDF files in the folder ---
-    File[] chapterFiles = bookFolder.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
-    int chapterCount = (chapterFiles != null) ? chapterFiles.length : 0;
-
-    // --- Populate chapterChooser with 1..chapterCount ---
-    String[] chapters = new String[chapterCount];
-    for (int i = 0; i < chapterCount; i++) {
-        chapters[i] = String.valueOf(i + 1);
-    }
-
-    chapterChooser.setModel(new javax.swing.DefaultComboBoxModel<>(chapters));
-    chapterChooser.setSelectedIndex(0);
-}
-
-
+            chapterChooser.setModel(new javax.swing.DefaultComboBoxModel<>(chapters));
+            chapterChooser.setSelectedIndex(0); // default to first chapter
+        }
 
 
         private void updateVerseChooser() {
@@ -926,23 +907,64 @@ public void updateStatusLabels() {
     }
 }
 
+private void englishDropDownUpdater() {
+    boolean isEnglish = langChooser.getSelectedIndex() == 1;
 
+    int scrollTo = mainTextScrollPanel.getVerticalScrollBar().getValue();
+    int openBook = bookChooser.getSelectedIndex();
+    int openChapter = chapterChooser.getSelectedIndex();
 
-private void setFixedSizeComboBox(JComboBox<String> comboBox, int width, int height) {
-    comboBox.setRenderer(new DefaultListCellRenderer() {
-        @Override
-        public Component getListCellRendererComponent(JList<?> list, Object value, int index,
-                                                      boolean isSelected, boolean cellHasFocus) {
-            JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-            label.setPreferredSize(new Dimension(width, height)); // fixed size
-            return label;
-        }
-    });
+    int fontStyle = isEnglish ? Font.PLAIN : Font.BOLD;
+    testamentChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
+    bookChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
+    chapterChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
+    langChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
 
-    // Also force the combo box itself to the same height
-    Dimension size = comboBox.getPreferredSize();
-    size.height = height;
-    comboBox.setPreferredSize(size);
+    if(isEnglish) {
+        // Save current testament before replacing model
+        int selectedTestament = testamentChooser.getSelectedIndex();
+
+        // Update testament model and restore selection
+        testamentChooser.setModel(new DefaultComboBoxModel<>(new String[]{"Old Testament", "New Testament"}));
+        testamentChooser.setSelectedIndex(selectedTestament);
+
+        // Update books correctly
+        int start = (selectedTestament == 0) ? 0 : 39;
+        int end = (selectedTestament == 0) ? 39 : allBooksEnglish.length;
+        String[] subsetEng = Arrays.copyOfRange(allBooksEnglish, start, end);
+        bookChooser.setModel(new DefaultComboBoxModel<>(subsetEng));
+
+        // Restore previous book/chapter selection if valid
+        bookChooser.setSelectedIndex(Math.min(openBook, subsetEng.length - 1));
+        chapterChooser.setSelectedIndex(openChapter);
+
+        // Update chapters if needed
+        updateChapterChooserEnglish();
+    } else {
+        // Amharic branch
+        testamentChooser.setModel(new DefaultComboBoxModel<>(new String[]{"ብሉይ ኪዳን", "አዲስ ኪዳን"}));
+        updateBookChooser();
+        updateVerseChooser();
+    }
+
+    // Restore scroll position
+    mainTextScrollPanel.getVerticalScrollBar().setValue(scrollTo);
+}
+
+private void updateChapterChooserEnglish(){
+            int selectedTestament = testamentChooser.getSelectedIndex();
+                int start, end;
+
+                if (selectedTestament == 0) { 
+                    start = 0;
+                    end = 39;
+                } else { 
+                    start = 39;
+                    end = allBooksEnglish.length;
+                }
+
+                String[] subsetEng = java.util.Arrays.copyOfRange(allBooksEnglish, start, end);
+                bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(subsetEng)); 
 }
 
 
@@ -995,10 +1017,10 @@ private void setFixedSizeComboBox(JComboBox<String> comboBox, int width, int hei
         highlightBtn = new javax.swing.JButton();
         boldBtn = new javax.swing.JButton();
         fontSizeSlider = new javax.swing.JSlider();
+        langChooser = new javax.swing.JComboBox<>();
         bookChooser = new javax.swing.JComboBox<>();
         chapterChooser = new javax.swing.JComboBox<>();
         testamentChooser = new javax.swing.JComboBox<>();
-        languageChooser = new javax.swing.JComboBox<>();
         libraryTab = new javax.swing.JPanel();
         libraryContent = new javax.swing.JPanel();
         bookDescriptionSideBar1 = new javax.swing.JPanel();
@@ -1722,14 +1744,14 @@ private void setFixedSizeComboBox(JComboBox<String> comboBox, int width, int hei
                     // Live reload after saving to ensure latest highlights are displayed
                     restoreHighlights();
 
-                    // Optional: simulate actual mouse click
+                    /*           // Optional: simulate actual mouse click
                     new Thread(() -> {
                         try {
-                            Thread.sleep(5); // 5 ms delay
-                            Rectangle caretRect = mainTextArea.modelToView(start);
+                            Thread.sleep(150); // wait 150ms
+                            Rectangle2D caretRect2D = mainTextArea.modelToView2D(start);
                             Point textAreaOnScreen = mainTextArea.getLocationOnScreen();
-                            int mouseX = textAreaOnScreen.x + caretRect.x + 1;
-                            int mouseY = textAreaOnScreen.y + caretRect.y + 1;
+                            int mouseX = textAreaOnScreen.x + (int) caretRect2D.getX() + 1;
+                            int mouseY = textAreaOnScreen.y + (int) caretRect2D.getY() + 1;
 
                             Robot robot = new Robot();
                             robot.mouseMove(mouseX, mouseY);
@@ -1739,6 +1761,7 @@ private void setFixedSizeComboBox(JComboBox<String> comboBox, int width, int hei
                             ex.printStackTrace();
                         }
                     }).start();
+                    */
 
                 } catch (BadLocationException ex) {
                     ex.printStackTrace();
@@ -1999,6 +2022,22 @@ private void setFixedSizeComboBox(JComboBox<String> comboBox, int width, int hei
             }
         });
 
+        langChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
+        langChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "አማርኛ", "English" }));
+        bookChooser.addActionListener(e -> updateChapterChooser());
+        langChooser.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                langChooserActionPerformed(evt);
+            }
+        });
+        bibleTab.add(langChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(630, 70, 90, 20));
+        langChooser.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                langChooserActionPerformed(evt);
+                englishDropDownUpdater(); // 👈 add this line
+            }
+        });
+
         bookChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
         bookChooser.addActionListener(e -> updateChapterChooser());
         bookChooser.addActionListener(new java.awt.event.ActionListener() {
@@ -2007,6 +2046,10 @@ private void setFixedSizeComboBox(JComboBox<String> comboBox, int width, int hei
             }
         });
         bibleTab.add(bookChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(128, 67, 182, -1));
+        bookChooser.addActionListener(e ->{
+            currentBookIndex = bookChooser.getSelectedIndex();
+
+        });
 
         chapterChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         bibleTab.add(chapterChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(322, 68, 60, -1));
@@ -2030,8 +2073,7 @@ private void setFixedSizeComboBox(JComboBox<String> comboBox, int width, int hei
             // Chapter files are named as index+1.pdf
             int chapterNumber = selectedChapterIndex + 1;
             File pdfFile = new File(
-                "C:\\Users\\boni\\Desktop\\Files\\The Bible Project\\BibleApp\\src\\main\\resources\\files\\books\\"
-                + folderNumber,
+                "src/main/resources/files/books/amh/" + folderNumber,
                 chapterNumber + ".pdf"
             );
 
@@ -2051,11 +2093,10 @@ private void setFixedSizeComboBox(JComboBox<String> comboBox, int width, int hei
                 mainTextArea.setText("Error reading: " + pdfFile.getName());
             }
         });
+
         chapterChooser.addActionListener(e ->{
             currentChapterIndex = chapterChooser.getSelectedIndex();
         });
-
-        /*
 
         chapterChooser.addActionListener(e -> {
             int selectedChapterIndex = chapterChooser.getSelectedIndex();
@@ -2082,8 +2123,6 @@ private void setFixedSizeComboBox(JComboBox<String> comboBox, int width, int hei
                 saveTick.setVisible(false);// show the add button if no note exists
             }
         });
-
-        */
 
         chapterChooser.addActionListener(e -> {
 
@@ -2130,122 +2169,25 @@ private void setFixedSizeComboBox(JComboBox<String> comboBox, int width, int hei
             }
         });
         bibleTab.add(testamentChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(17, 67, 105, -1));
-        languageChooser.addActionListener(evt -> {
-            int selectedIndex = languageChooser.getSelectedIndex();
+        testamentChooser.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                // Only live-update bookChooser if English is selected
+                if (langChooser.getSelectedIndex() == 1) {
+                    int selectedTestament = testamentChooser.getSelectedIndex();
+                    int start = (selectedTestament == 0) ? 0 : 39;
+                    int end = (selectedTestament == 0) ? 39 : allBooksEnglish.length;
 
-            if (selectedIndex == 0) {
-                // --- Amharic selected ---
-                testamentChooser.setModel(new javax.swing.DefaultComboBoxModel<>(
-                    new String[] { "ብሉይ ኪዳን", "አዲስ ኪዳን" }
-                ));
+                    String[] subsetEng = java.util.Arrays.copyOfRange(allBooksEnglish, start, end);
+                    bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(subsetEng));
 
-                bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(allBooks));
-                bookChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", java.awt.Font.BOLD, 14));
-
-                // Set renderer to Amharic font
-                bookChooser.setRenderer(new DefaultListCellRenderer() {
-                    @Override
-                    public Component getListCellRendererComponent(JList<?> list, Object value, int index,
-                        boolean isSelected, boolean cellHasFocus) {
-                        JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                        label.setFont(new Font("Nokia Pure Headline Ultra Light", Font.BOLD, 14));
-                        return label;
-                    }
-                });
-
-                // Optional: restoreHighlights();
-            }
-            else if (selectedIndex == 1) {
-                // --- English selected ---
-                testamentChooser.setModel(new javax.swing.DefaultComboBoxModel<>(
-                    new String[] { "Old Testament", "New Testament" }
-                ));
-
-                int selectedTestament = testamentChooser.getSelectedIndex(); // 0 = OT, 1 = NT
-                int start, end;
-
-                if (selectedTestament == 0) {
-                    start = 0;
-                    end = 39; // Old Testament
-                } else {
-                    start = 39;
-                    end = englishBooks.length; // New Testament
+                    // Optionally reset chapter selection to first chapter
+                    chapterChooser.setSelectedIndex(0);
                 }
 
-                // Set font first, then model
-                //bookChooser.setFont(new java.awt.Font("Arial", java.awt.Font.PLAIN, 15));
-                bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(
-                    java.util.Arrays.copyOfRange(englishBooks, start, end)
-                ));
-
-                // Set renderer to Arial for English
-                bookChooser.setRenderer(new DefaultListCellRenderer() {
-                    @Override
-                    public Component getListCellRendererComponent(JList<?> list, Object value, int index,
-                        boolean isSelected, boolean cellHasFocus) {
-                        JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                        //label.setFont(new Font("Sogue  UI", Font.PLAIN, 20));
-                        return label;
-                    }
-                });
-
-                // Optional: restoreEnglishHighlights();
-            }
-
-            // Force repaint
-            bookChooser.revalidate();
-            bookChooser.repaint();
-        });
-
-        languageChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 12)); // NOI18N
-        languageChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "አማርኛ", "English" }));
-        languageChooser.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                languageChooserActionPerformed(evt);
+                // Call your existing handler if needed
+                testamentChooserActionPerformed(evt);
             }
         });
-        bibleTab.add(languageChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(630, 70, 89, -1));
-        languageChooser.addActionListener(evt -> {
-            int selectedIndex = languageChooser.getSelectedIndex();
-
-            java.awt.Font selectedFont;
-
-            if (selectedIndex == 0) {
-                // --- Amharic selected ---
-                testamentChooser.setModel(new javax.swing.DefaultComboBoxModel<>(
-                    new String[]{"ብሉይ ኪዳን", "አዲስ ኪዳን"}
-                ));
-                bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(allBooks));
-
-                // Set unified font
-                selectedFont = new java.awt.Font("Nokia Pure Headline Ultra Light", java.awt.Font.BOLD, 14);
-
-            } else {
-                // --- English selected ---
-                testamentChooser.setModel(new javax.swing.DefaultComboBoxModel<>(
-                    new String[]{"Old Testament", "New Testament"}
-                ));
-                bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(englishBooks));
-
-                // Set unified font
-                selectedFont = new java.awt.Font("Sogue UI", java.awt.Font.PLAIN, 15);
-            }
-
-            // Apply the same font to all relevant combo boxes
-            testamentChooser.setFont(selectedFont);
-            bookChooser.setFont(selectedFont);
-            chapterChooser.setFont(selectedFont); // <-- chapterChooser now matches
-
-            // Optional: restore highlights
-            // if(selectedIndex == 0) restoreHighlights();
-            // else restoreEnglishHighlights();
-        });
-
-        // Add languageChooser to panel
-        bibleTab.add(languageChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(630, 70, 89, -1));
-
-        // Track the currently selected language
-        selectedLanguage = languageChooser.getSelectedIndex();
 
         tabs.addTab("Home", bibleTab);
 
@@ -5437,7 +5379,7 @@ private void setFixedSizeComboBox(JComboBox<String> comboBox, int width, int hei
                     .addComponent(selectedBookUnderline11)
                     .addComponent(selectedBookUnderline12)
                     .addComponent(selectedBookUnderline8))
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(readStatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -5968,10 +5910,6 @@ private void setFixedSizeComboBox(JComboBox<String> comboBox, int width, int hei
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    private void languageChooserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_languageChooserActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_languageChooserActionPerformed
 
     private void restoreBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_restoreBtnActionPerformed
         
@@ -6936,6 +6874,10 @@ private void setFixedSizeComboBox(JComboBox<String> comboBox, int width, int hei
         // TODO add your handling code here:
     }//GEN-LAST:event_continueReadingActionPerformed
 
+    private void langChooserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_langChooserActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_langChooserActionPerformed
+
     private void testamentChooserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_testamentChooserActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_testamentChooserActionPerformed
@@ -7051,7 +6993,7 @@ private void setFixedSizeComboBox(JComboBox<String> comboBox, int width, int hei
     private javax.swing.JButton journalBtn;
     private javax.swing.JLabel jul;
     private javax.swing.JLabel jun;
-    private javax.swing.JComboBox<String> languageChooser;
+    private javax.swing.JComboBox<String> langChooser;
     private javax.swing.JButton libraryBtn;
     private javax.swing.JPanel libraryContent;
     private javax.swing.JPanel libraryTab;
