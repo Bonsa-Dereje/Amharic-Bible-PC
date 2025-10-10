@@ -176,7 +176,10 @@ public class mainWindow extends javax.swing.JFrame {
         "1 John", "2 John", "3 John", "Jude", "Revelation"
     };
     
-    private boolean isEnglish = false;
+    private String langChosen = "amh";
+    private boolean isAmh = true;
+    
+    
     public mainWindow() {
         
         setUndecorated(true);  
@@ -321,6 +324,7 @@ public class mainWindow extends javax.swing.JFrame {
 
         
         private void saveHighlight(String text, Color color) {
+            if(isAmh){
             try (Connection conn = DBManager.getConnection()) {
 
                 int selectionStart = mainTextArea.getSelectionStart();
@@ -387,11 +391,13 @@ public class mainWindow extends javax.swing.JFrame {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
+            }
         }
 
 
 
         private void restoreHighlights() {
+            if(isAmh){
                 if (tabs.getSelectedIndex() != 0) {
                     return; 
                 }
@@ -456,6 +462,7 @@ public class mainWindow extends javax.swing.JFrame {
 
             } catch (Exception ex) {
                 ex.printStackTrace();
+            }
             }
         }
 
@@ -967,6 +974,49 @@ private void updateChapterChooserEnglish(){
                 bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(subsetEng)); 
 }
 
+private void langSwitch(){
+
+    int selectedChapterIndex = chapterChooser.getSelectedIndex();
+    if (selectedChapterIndex < 0) return;
+
+    int selectedBookIndex = bookChooser.getSelectedIndex();
+    if (selectedBookIndex < 0) return;
+
+    int selectedTestamentIndex = testamentChooser.getSelectedIndex();
+
+    // Figure out the folder number
+    int folderNumber;
+    if (selectedTestamentIndex == 1) {
+        folderNumber = selectedBookIndex + 40; // New Testament offset
+    } else {
+        folderNumber = selectedBookIndex + 1;  // Old Testament
+    }
+
+    // Chapter files are named as index+1.pdf
+    int chapterNumber = selectedChapterIndex + 1;
+    File pdfFile = new File(
+            "src/main/resources/files/books/" + langChosen + "/" + folderNumber,
+            chapterNumber + ".pdf"
+    );
+
+    if (!pdfFile.exists()) {
+        mainTextArea.setText("Chapter file not found: " + pdfFile.getName());
+        return;
+    }
+
+    // Load the PDF text into mainTextArea
+    try (PDDocument doc = PDDocument.load(pdfFile)) {
+        PDFTextStripper stripper = new PDFTextStripper();
+        String text = stripper.getText(doc);
+        mainTextArea.setText(text.trim());
+        mainTextArea.setCaretPosition(0); // scroll to top
+    } catch (IOException ex) {
+        ex.printStackTrace();
+        mainTextArea.setText("Error reading: " + pdfFile.getName());
+    }
+
+}
+
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -1021,6 +1071,7 @@ private void updateChapterChooserEnglish(){
         bookChooser = new javax.swing.JComboBox<>();
         chapterChooser = new javax.swing.JComboBox<>();
         testamentChooser = new javax.swing.JComboBox<>();
+        jLabel1 = new javax.swing.JLabel();
         libraryTab = new javax.swing.JPanel();
         libraryContent = new javax.swing.JPanel();
         bookDescriptionSideBar1 = new javax.swing.JPanel();
@@ -1742,6 +1793,7 @@ private void updateChapterChooserEnglish(){
                     saveHighlight(selectedText, currentHighlightColor);
 
                     // Live reload after saving to ensure latest highlights are displayed
+
                     restoreHighlights();
 
                     /*           // Optional: simulate actual mouse click
@@ -1786,6 +1838,7 @@ private void updateChapterChooserEnglish(){
                 restoreHighlights(); // live reload on style changes
             }
         });
+        langSwitch();
 
         bibleTab.add(mainTextScrollPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 110, 870, 860));
 
@@ -2034,7 +2087,26 @@ private void updateChapterChooserEnglish(){
         langChooser.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 langChooserActionPerformed(evt);
-                englishDropDownUpdater(); // 👈 add this line
+                englishDropDownUpdater(); //  add this line
+            }
+        });
+        langChooser.addActionListener(e -> {
+            int selectedIndex = langChooser.getSelectedIndex();
+            //langChosen = (selectedIndex == 1) ? "eng" : "amh";
+
+            // Only change font when English is selected
+            if (selectedIndex == 1) {
+                isAmh = false;
+                langChosen = "eng";
+                mainTextArea.setFont(new java.awt.Font("Times New Roman", java.awt.Font.PLAIN, 20));
+                langSwitch();
+            }
+            if (selectedIndex == 0) {
+                mainTextArea.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", java.awt.Font.BOLD, 20));
+                isAmh = true;
+                langChosen = "amh";
+                langSwitch();
+                System.out.println(langChosen);
             }
         });
 
@@ -2054,44 +2126,7 @@ private void updateChapterChooserEnglish(){
         chapterChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         bibleTab.add(chapterChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(322, 68, 60, -1));
         chapterChooser.addActionListener(e -> {
-            int selectedChapterIndex = chapterChooser.getSelectedIndex();
-            if (selectedChapterIndex < 0) return;
-
-            int selectedBookIndex = bookChooser.getSelectedIndex();
-            if (selectedBookIndex < 0) return;
-
-            int selectedTestamentIndex = testamentChooser.getSelectedIndex();
-
-            // Figure out the folder number
-            int folderNumber;
-            if (selectedTestamentIndex == 1) {
-                folderNumber = selectedBookIndex + 40; // New Testament offset
-            } else {
-                folderNumber = selectedBookIndex + 1;  // Old Testament
-            }
-
-            // Chapter files are named as index+1.pdf
-            int chapterNumber = selectedChapterIndex + 1;
-            File pdfFile = new File(
-                "src/main/resources/files/books/amh/" + folderNumber,
-                chapterNumber + ".pdf"
-            );
-
-            if (!pdfFile.exists()) {
-                mainTextArea.setText("Chapter file not found: " + pdfFile.getName());
-                return;
-            }
-
-            // Load the PDF text into mainTextArea
-            try (PDDocument doc = PDDocument.load(pdfFile)) {
-                PDFTextStripper stripper = new PDFTextStripper();
-                String text = stripper.getText(doc);
-                mainTextArea.setText(text.trim());
-                mainTextArea.setCaretPosition(0); // scroll to top
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                mainTextArea.setText("Error reading: " + pdfFile.getName());
-            }
+            langSwitch();
         });
 
         chapterChooser.addActionListener(e ->{
@@ -2188,6 +2223,9 @@ private void updateChapterChooserEnglish(){
                 testamentChooserActionPerformed(evt);
             }
         });
+
+        jLabel1.setText("jLabel1");
+        bibleTab.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(470, 70, -1, -1));
 
         tabs.addTab("Home", bibleTab);
 
@@ -6987,6 +7025,7 @@ private void updateChapterChooserEnglish(){
     private javax.swing.JLabel homeBtnLabel;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel14;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JLabel jan;
