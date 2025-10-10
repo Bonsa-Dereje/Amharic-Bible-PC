@@ -46,7 +46,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 
-import com.ebma.bibleapp.DBManager;
+import com.ebma.bibleapp.DBManagerEng;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -178,6 +178,7 @@ public class mainWindow extends javax.swing.JFrame {
     
     private String langChosen = "amh";
     private boolean isAmh = true;
+    //public String dbSwitch = "highlights"; 
     
     
     public mainWindow() {
@@ -231,7 +232,8 @@ public class mainWindow extends javax.swing.JFrame {
         //SwingUtilities.invokeLater(() -> updateReadingStatus());
 
         englishDropDownUpdater();
-
+        
+        wrapper();
 
 
            // updateChapterChooserEnglish();
@@ -916,17 +918,21 @@ public void updateStatusLabels() {
 
 private void englishDropDownUpdater() {
     boolean isEnglish = langChooser.getSelectedIndex() == 1;
-
     int scrollTo = mainTextScrollPanel.getVerticalScrollBar().getValue();
     int openBook = bookChooser.getSelectedIndex();
     int openChapter = chapterChooser.getSelectedIndex();
+    
+    if(!isAmh){
+
+
 
     int fontStyle = isEnglish ? Font.PLAIN : Font.BOLD;
     testamentChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
+    
     bookChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
     chapterChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
     langChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
-
+}
     if(isEnglish) {
         // Save current testament before replacing model
         int selectedTestament = testamentChooser.getSelectedIndex();
@@ -956,6 +962,7 @@ private void englishDropDownUpdater() {
 
     // Restore scroll position
     mainTextScrollPanel.getVerticalScrollBar().setValue(scrollTo);
+    
 }
 
 private void updateChapterChooserEnglish(){
@@ -1010,12 +1017,181 @@ private void langSwitch(){
         String text = stripper.getText(doc);
         mainTextArea.setText(text.trim());
         mainTextArea.setCaretPosition(0); // scroll to top
+        /*
+            if (!isAmh) {
+        mainTextArea.setLineWrap(true);        // Enable line wrapping
+        mainTextArea.setWrapStyleWord(true);   // Wrap at word boundaries
+        
+        
+
+    }*/
+        //mainTextArea.setBackground(Color.WHITE);
+        mainTextArea.setLineWrap(true); 
+        mainTextArea.setWrapStyleWord(true);
+        mainTextScrollPanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
     } catch (IOException ex) {
         ex.printStackTrace();
         mainTextArea.setText("Error reading: " + pdfFile.getName());
     }
 
 }
+
+private void wrapper() {
+    if (!isAmh) {
+        mainTextArea.setLineWrap(true);        // Enable line wrapping
+        mainTextArea.setWrapStyleWord(true);   // Wrap at word boundaries
+        
+        mainTextScrollPanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+    }
+}
+
+
+        private void saveHighlightEng(String text, Color color) {
+            if(!isAmh){
+            try (Connection conn = DBManagerEng.getConnection()) {
+
+                int selectionStart = mainTextArea.getSelectionStart();
+                int selectionEnd = mainTextArea.getSelectionEnd();
+
+                String insert = """
+                        INSERT INTO highlights 
+                        (bookIndex, chapterIndex, line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """;
+
+                try (PreparedStatement ps = conn.prepareStatement(insert)) {
+
+                    int startLine = mainTextArea.getLineOfOffset(selectionStart);
+                    int endLine   = mainTextArea.getLineOfOffset(selectionEnd);
+
+                    for (int line = startLine; line <= endLine; line++) {
+                        int lineStartOffset = mainTextArea.getLineStartOffset(line);
+                        int lineEndOffset   = mainTextArea.getLineEndOffset(line);
+
+                        // Clamp selection to this line
+                        int lineSelStart = Math.max(selectionStart, lineStartOffset);
+                        int lineSelEnd   = Math.min(selectionEnd, lineEndOffset);
+
+                        // Offset within line
+                        int selectionStartInLine = lineSelStart - lineStartOffset;
+
+                        // Grab text for this line
+                        String lineText = mainTextArea.getText(lineSelStart, lineSelEnd - lineSelStart);
+
+                        for (int i = 0; i < lineText.length(); i++) {
+                            char c = lineText.charAt(i);
+
+                            // Remove existing character at same position if exists
+                            String delete = """
+                                    DELETE FROM highlights 
+                                    WHERE bookIndex=? AND chapterIndex=? AND line=? AND wordDistIndex=?
+                                    """;
+                            try (PreparedStatement del = conn.prepareStatement(delete)) {
+                                del.setInt(1, currentBookIndex);
+                                del.setInt(2, currentChapterIndex);
+                                del.setInt(3, line);
+                                del.setInt(4, selectionStartInLine + i);
+                                del.executeUpdate();
+                            }
+
+                            // Store highlight
+                            ps.setInt(1, currentBookIndex);
+                            ps.setInt(2, currentChapterIndex);
+                            ps.setInt(3, line);
+                            ps.setInt(4, selectionStartInLine + i);
+                            ps.setString(5, String.valueOf(c));
+                            ps.setInt(6, color.getRed());
+                            ps.setInt(7, color.getGreen());
+                            ps.setInt(8, color.getBlue());
+                            ps.setInt(9, 0); // no post-space
+                            ps.addBatch();
+                        }
+                    }
+
+                    ps.executeBatch();
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            }
+        }
+
+
+
+        private void restoreHighlightsEng() {
+
+                if (tabs.getSelectedIndex() != 0) {
+                    return; 
+                }
+            try (Connection conn = DBManagerEng.getConnection()) {
+
+                // Remove old highlights
+                mainTextArea.getHighlighter().removeAllHighlights();
+
+                // Fetch all highlights for the current book and chapter
+                String query = """
+                    SELECT line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength 
+                    FROM highlights 
+                    WHERE bookIndex=? AND chapterIndex=? 
+                    ORDER BY line, wordDistIndex
+                    """;
+
+                try (PreparedStatement ps = conn.prepareStatement(query)) {
+                    ps.setInt(1, currentBookIndex);
+                    ps.setInt(2, currentChapterIndex);
+
+                    try (ResultSet rs = ps.executeQuery()) {
+                        Map<Integer, List<HighlightWord>> lineMap = new HashMap<>();
+
+                        // Group highlights by line
+                        while (rs.next()) {
+                            int lineNumber = rs.getInt("line");
+                            int wordDistIndex = rs.getInt("wordDistIndex");
+                            String text = rs.getString("text");
+                            Color color = new Color(
+                                    rs.getInt("colorR"),
+                                    rs.getInt("colorG"),
+                                    rs.getInt("colorB")
+                            );
+                            int postSpaceLength = rs.getInt("postSpaceLength");
+
+                            lineMap.computeIfAbsent(lineNumber, k -> new ArrayList<>())
+                                   .add(new HighlightWord(wordDistIndex, text, color, postSpaceLength));
+                        }
+
+                        // Apply highlights per line
+                        for (Map.Entry<Integer, List<HighlightWord>> entry : lineMap.entrySet()) {
+                            int lineNumber = entry.getKey();
+                            List<HighlightWord> words = entry.getValue();
+                            words.sort(Comparator.comparingInt(w -> w.wordDistIndex));
+
+                            int lineStartOffset = mainTextArea.getLineStartOffset(lineNumber);
+
+                            for (HighlightWord hw : words) {
+                                // Use saved wordDistIndex directly
+                                int start = lineStartOffset + hw.wordDistIndex;
+                                int end = Math.min(start + hw.text.length(), mainTextArea.getText().length());
+
+                                mainTextArea.getHighlighter().addHighlight(
+                                    start,
+                                    end,
+                                    new DefaultHighlighter.DefaultHighlightPainter(hw.color)
+                                );
+                            }
+                        }
+                    }
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            
+        }
+
+        
+        
 
 
     @SuppressWarnings("unchecked")
@@ -1071,7 +1247,6 @@ private void langSwitch(){
         bookChooser = new javax.swing.JComboBox<>();
         chapterChooser = new javax.swing.JComboBox<>();
         testamentChooser = new javax.swing.JComboBox<>();
-        jLabel1 = new javax.swing.JLabel();
         libraryTab = new javax.swing.JPanel();
         libraryContent = new javax.swing.JPanel();
         bookDescriptionSideBar1 = new javax.swing.JPanel();
@@ -1790,30 +1965,18 @@ private void langSwitch(){
                     mainTextArea.getHighlighter().addHighlight(start, end, painter);
 
                     // Save highlight immediately into SQLite
-                    saveHighlight(selectedText, currentHighlightColor);
+                    if (!isAmh) {
+                        saveHighlightEng(selectedText, currentHighlightColor);
+                    } else {
+                        saveHighlight(selectedText, currentHighlightColor);
+                    }
 
                     // Live reload after saving to ensure latest highlights are displayed
-
-                    restoreHighlights();
-
-                    /*           // Optional: simulate actual mouse click
-                    new Thread(() -> {
-                        try {
-                            Thread.sleep(150); // wait 150ms
-                            Rectangle2D caretRect2D = mainTextArea.modelToView2D(start);
-                            Point textAreaOnScreen = mainTextArea.getLocationOnScreen();
-                            int mouseX = textAreaOnScreen.x + (int) caretRect2D.getX() + 1;
-                            int mouseY = textAreaOnScreen.y + (int) caretRect2D.getY() + 1;
-
-                            Robot robot = new Robot();
-                            robot.mouseMove(mouseX, mouseY);
-                            robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-                            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
-                    }).start();
-                    */
+                    if (!isAmh) {
+                        restoreHighlightsEng();
+                    } else {
+                        restoreHighlights();
+                    }
 
                 } catch (BadLocationException ex) {
                     ex.printStackTrace();
@@ -1825,20 +1988,22 @@ private void langSwitch(){
         mainTextArea.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                restoreHighlights(); // live reload on insertion
+                if (!isAmh) restoreHighlightsEng(); else restoreHighlights();
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                restoreHighlights(); // live reload on deletion
+                if (!isAmh) restoreHighlightsEng(); else restoreHighlights();
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                restoreHighlights(); // live reload on style changes
+                if (!isAmh) restoreHighlightsEng(); else restoreHighlights();
             }
         });
+
         langSwitch();
+        wrapper();
 
         bibleTab.add(mainTextScrollPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 110, 870, 860));
 
@@ -2059,9 +2224,14 @@ private void langSwitch(){
         fontSizeSlider.setFocusable(false);
         fontSizeSlider.setOpaque(true);
         bibleTab.add(fontSizeSlider, new org.netbeans.lib.awtextra.AbsoluteConstraints(721, 67, 104, 27));
-        fontSizeSlider.setMinimum(18);
+        if (!isAmh) {
+            fontSizeSlider.setMinimum(20);  // English minimum
+        } else {
+            fontSizeSlider.setMinimum(18);  // Amharic minimum
+        }
+
         fontSizeSlider.setMaximum(48);
-        fontSizeSlider.setValue(16);   // default starting value
+        fontSizeSlider.setValue(fontSizeSlider.getMinimum());  // Start at the minimum
 
         fontSizeSlider.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
@@ -2098,7 +2268,7 @@ private void langSwitch(){
             if (selectedIndex == 1) {
                 isAmh = false;
                 langChosen = "eng";
-                mainTextArea.setFont(new java.awt.Font("Times New Roman", java.awt.Font.PLAIN, 20));
+                mainTextArea.setFont(new java.awt.Font("Times New Roman", java.awt.Font.PLAIN, 19));
                 langSwitch();
             }
             if (selectedIndex == 0) {
@@ -2107,6 +2277,15 @@ private void langSwitch(){
                 langChosen = "amh";
                 langSwitch();
                 System.out.println(langChosen);
+            }
+        });
+        langChooser.addActionListener(e -> {
+            if (langChooser.getSelectedIndex() == 0) { // Amharic selected
+                int fontStyle = Font.BOLD;
+                testamentChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
+                bookChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
+                chapterChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
+                langChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
             }
         });
 
@@ -2142,13 +2321,14 @@ private void langSwitch(){
 
             currentChapterIndex = selectedChapterIndex;
             currentBookIndex = selectedBookIndex;
-
+            /*
             // --- Notes DB check ---
             if (NotesDatabase.noteExists(currentBookIndex, currentChapterIndex)) {
                 notesInput.setText(NotesDatabase.loadNote(currentBookIndex, currentChapterIndex));
                 addNoteBtn.setVisible(false); // hide the add button if note exists
                 eyeHide.setVisible(true);
                 saveNote.setVisible(true);
+                writeYourReflection.setVisible(true);
             } else {
                 notesInput.setText(""); // new note
                 addNoteBtn.setVisible(true);
@@ -2156,7 +2336,9 @@ private void langSwitch(){
                 eyeHide.setVisible(false);
                 saveNote.setVisible(false);
                 saveTick.setVisible(false);// show the add button if no note exists
+                writeYourReflection.setVisible(false);
             }
+            */
         });
 
         chapterChooser.addActionListener(e -> {
@@ -2223,9 +2405,6 @@ private void langSwitch(){
                 testamentChooserActionPerformed(evt);
             }
         });
-
-        jLabel1.setText("jLabel1");
-        bibleTab.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(470, 70, -1, -1));
 
         tabs.addTab("Home", bibleTab);
 
@@ -6113,65 +6292,68 @@ private void langSwitch(){
     }//GEN-LAST:event_eyeHideActionPerformed
 
     private void saveNoteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveNoteActionPerformed
-        saveTick.setVisible(true);
-        saveNote.setVisible(false);
+                                       
+    saveTick.setVisible(true);
+    saveNote.setVisible(false);
 
-        // Get note text
-        String noteText = notesInput.getText();
-        if (noteText == null || noteText.trim().isEmpty()) return;
+    // Get note text
+    String noteText = notesInput.getText();
+    if (noteText == null || noteText.trim().isEmpty()) return;
 
-        // Get current selections (0-based indices)
-        int testamentNum = testamentChooser.getSelectedIndex(); 
-        int bookNum = bookChooser.getSelectedIndex();
-        int chapterNum = chapterChooser.getSelectedIndex();
+    // Get current selections (0-based indices)
+    int testamentNum = testamentChooser.getSelectedIndex(); 
+    int bookNum = bookChooser.getSelectedIndex();
+    int chapterNum = chapterChooser.getSelectedIndex();
 
-        // Combine with dashes
-        String bookChapterIndex = testamentNum + "-" + bookNum + "-" + chapterNum;
+    // Combine with dashes
+    String bookChapterIndex = testamentNum + "-" + bookNum + "-" + chapterNum;
 
-        // Save to database with upsert logic
-        String dbPath = "notesNJournals.db"; // database in project folder
-        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
-            // Check if entry exists
-            String checkSql = "SELECT COUNT(*) FROM notesReflections WHERE bookChapterIndex = ?";
-            boolean exists = false;
-            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-                checkStmt.setString(1, bookChapterIndex);
-                try (ResultSet rs = checkStmt.executeQuery()) {
-                    if (rs.next() && rs.getInt(1) > 0) {
-                        exists = true;
-                    }
+    // Save to database with upsert logic
+    String dbPath = "notesNJournals.db"; // database in project folder
+    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
+        // Check if entry exists
+        String checkSql = "SELECT COUNT(*) FROM notesReflections WHERE bookChapterIndex = ?";
+        boolean exists = false;
+        try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+            checkStmt.setString(1, bookChapterIndex);
+            try (ResultSet rs = checkStmt.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    exists = true;
                 }
             }
-
-            if (exists) {
-                // Update existing note
-                String updateSql = "UPDATE notesReflections SET note = ? WHERE bookChapterIndex = ?";
-                try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
-                    updateStmt.setString(1, noteText);
-                    updateStmt.setString(2, bookChapterIndex);
-                    updateStmt.executeUpdate();
-                }
-            } else {
-                // Insert new note
-                String insertSql = "INSERT INTO notesReflections (bookChapterIndex, note) VALUES (?, ?)";
-                try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
-                    insertStmt.setString(1, bookChapterIndex);
-                    insertStmt.setString(2, noteText);
-                    insertStmt.executeUpdate();
-                }
-            }
-
-        } catch (SQLException ex) {
-            ex.printStackTrace();
         }
 
-        // Change text color to light gray after saving
-        notesInput.setForeground(new Color(100, 100, 100));
+        if (exists) {
+            // Update existing note
+            String updateSql = "UPDATE notesReflections SET note = ? WHERE bookChapterIndex = ?";
+            try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                updateStmt.setString(1, noteText);
+                updateStmt.setString(2, bookChapterIndex);
+                updateStmt.executeUpdate();
+            }
+        } else {
+            // Insert new note
+            String insertSql = "INSERT INTO notesReflections (bookChapterIndex, note) VALUES (?, ?)";
+            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                insertStmt.setString(1, bookChapterIndex);
+                insertStmt.setString(2, noteText);
+                insertStmt.executeUpdate();
+            }
+        }
 
-        // Keep notesInput editable for new notes
-        notesInput.setFocusable(true);
-        notesInput.setEditable(true);
-        notesInput.requestFocusInWindow();
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+    }
+
+    // Change text color to light gray after saving
+    notesInput.setForeground(new Color(100, 100, 100));
+
+    // Keep notesInput editable for new notes
+    notesInput.setFocusable(true);
+    notesInput.setEditable(true);
+    notesInput.requestFocusInWindow();
+    
+
         
     }//GEN-LAST:event_saveNoteActionPerformed
 
@@ -7025,7 +7207,6 @@ private void langSwitch(){
     private javax.swing.JLabel homeBtnLabel;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel14;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JLabel jan;
