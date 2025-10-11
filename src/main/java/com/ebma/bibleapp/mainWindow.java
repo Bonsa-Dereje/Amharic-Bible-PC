@@ -180,6 +180,18 @@ public class mainWindow extends javax.swing.JFrame {
     private boolean isAmh = true;
     //public String dbSwitch = "highlights"; 
     
+    private int tResumeE;
+    private int bResumeE;
+    private int cResumeE;
+    
+    private int tResumeA;
+    private int bResumeA;
+    private int cResumeA;
+    
+    public int b;
+    
+    private boolean firstLoad = true;
+    
     
     public mainWindow() {
         
@@ -196,10 +208,15 @@ public class mainWindow extends javax.swing.JFrame {
 
         
 
+    if (firstLoad) {
         testamentChooser.setSelectedIndex(0);
         bookChooser.setSelectedIndex(0);
         chapterChooser.setSelectedIndex(0);
-        updateBookChooser();
+
+        firstLoad = false;
+    }
+                updateBookChooser();
+        updateVerseChooser();
         updateVerseChooser();
         
         selectedBookUnderline1.setContentAreaFilled(false);
@@ -685,12 +702,12 @@ private void startScrollLogger(JScrollPane scrollPane) {
                     pstmtUpdate.setInt(1, loadedBook);
                     pstmtUpdate.setInt(2, currentScrollState);
                     pstmtUpdate.executeUpdate();
-                    System.out.println("Updated DB with scroll index: " + currentScrollState);
+                    //System.out.println("Updated DB with scroll index: " + currentScrollState);
                 }
 
                 firstScrollWrite = false; // reset flag after first write
             } else {
-                System.out.println("No update needed. DB scroll index is higher or equal: " + overhead);
+                //System.out.println("No update needed. DB scroll index is higher or equal: " + overhead);
             }
 
         } catch (SQLException ex) {
@@ -698,9 +715,9 @@ private void startScrollLogger(JScrollPane scrollPane) {
         }
 
         // Debug prints
-        System.out.println("Current Scroll Index: " + currentScrollState);
-        System.out.println("Current Book Index: " + loadedBook);
-        System.out.println("DB Overhead: " + overhead);
+        //System.out.println("Current Scroll Index: " + currentScrollState);
+        //System.out.println("Current Book Index: " + loadedBook);
+        //System.out.println("DB Overhead: " + overhead);
 
     }).start();
 }
@@ -1191,8 +1208,66 @@ private void wrapper() {
         }
 
         
-        
+        private void readIndex(){
+            
+            //if(isAmh){
 
+                tResumeE = testamentChooser.getSelectedIndex();
+                bResumeE = bookChooser.getSelectedIndex();
+                cResumeE = chapterChooser.getSelectedIndex();
+                b = bResumeE; 
+                System.out.println("drop clicked :" + bResumeE);
+               
+            //}
+     
+
+        }
+
+        
+        private void hotReload(){
+           //if(!isAmh){
+               testamentChooser.setSelectedIndex(tResumeE);
+               bookChooser.setSelectedIndex(bResumeE);
+               chapterChooser.setSelectedIndex(cResumeE);
+           //}
+          /*
+           if(isAmh){
+               testamentChooser.setSelectedIndex(tResumeA);
+               bookChooser.setSelectedIndex(bResumeA);
+               chapterChooser.setSelectedIndex(bResumeA);
+           }  
+
+           */
+        }
+        
+       private void readIndexAmh(){
+            
+            //if(!isAmh){
+
+                tResumeA = testamentChooser.getSelectedIndex();
+                bResumeA = bookChooser.getSelectedIndex();
+                cResumeA = chapterChooser.getSelectedIndex();
+                b = bResumeA; 
+                System.out.println("drop clicked :" + bResumeA);
+               
+            //}
+    
+        }
+ /*      
+               private void hotReloadAmh(){
+           //if(!isAmh){
+               testamentChooser.setSelectedIndex(tResumeA);
+               bookChooser.setSelectedIndex(bResumeA);
+               chapterChooser.setSelectedIndex(cResumeA);
+           }
+ /*          
+           if(isAmh){
+               testamentChooser.setSelectedIndex(tResumeA);
+               bookChooser.setSelectedIndex(bResumeA);
+               chapterChooser.setSelectedIndex(bResumeA);
+           }  
+*/
+        
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -1247,6 +1322,7 @@ private void wrapper() {
         bookChooser = new javax.swing.JComboBox<>();
         chapterChooser = new javax.swing.JComboBox<>();
         testamentChooser = new javax.swing.JComboBox<>();
+        jButton1 = new javax.swing.JButton();
         libraryTab = new javax.swing.JPanel();
         libraryContent = new javax.swing.JPanel();
         bookDescriptionSideBar1 = new javax.swing.JPanel();
@@ -2254,6 +2330,29 @@ private void wrapper() {
             }
         });
         bibleTab.add(langChooser, new org.netbeans.lib.awtextra.AbsoluteConstraints(630, 70, 90, 20));
+        // --- Detect dropdown click for langChooser ---
+        langChooser.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
+                //if(!isAmh){
+                    readIndex();
+
+                    hotReload();
+
+                    /*}
+                if(isAmh){
+                    readIndexAmh();
+                    hotReloadAmh();
+                }
+                */
+                b = bResumeE;
+                System.out.println("drop clicked :" + bResumeE);
+            }
+
+            @Override public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {}
+            @Override public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) {}
+        });
+
         langChooser.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 langChooserActionPerformed(evt);
@@ -2266,16 +2365,19 @@ private void wrapper() {
 
             // Only change font when English is selected
             if (selectedIndex == 1) {
+                //bookChooser.setSelectedIndex(10);
                 isAmh = false;
+                //readIndex();
                 langChosen = "eng";
                 mainTextArea.setFont(new java.awt.Font("Times New Roman", java.awt.Font.PLAIN, 19));
                 langSwitch();
             }
             if (selectedIndex == 0) {
-                mainTextArea.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", java.awt.Font.BOLD, 20));
+                mainTextArea.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", java.awt.Font.BOLD, 19));
                 isAmh = true;
                 langChosen = "amh";
                 langSwitch();
+
                 System.out.println(langChosen);
             }
         });
@@ -2286,6 +2388,17 @@ private void wrapper() {
                 bookChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
                 chapterChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
                 langChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
+            }
+        });
+        // --- Hot Reload after language change (delayed 1 second) ---
+        javax.swing.Timer hotReloadTimer = new javax.swing.Timer(1, e -> hotReload());
+        hotReloadTimer.setRepeats(false); // run only once per change
+
+        langChooser.addActionListener(e -> {
+            if (hotReloadTimer.isRunning()) {
+                hotReloadTimer.restart(); // reset if user toggles quickly
+            } else {
+                hotReloadTimer.start();
             }
         });
 
@@ -2398,13 +2511,22 @@ private void wrapper() {
                     bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(subsetEng));
 
                     // Optionally reset chapter selection to first chapter
-                    chapterChooser.setSelectedIndex(0);
+                    //chapterChooser.setSelectedIndex(0);
+                    //bResumeE = chapterChooser.setSelectedIndex();
                 }
 
                 // Call your existing handler if needed
                 testamentChooserActionPerformed(evt);
             }
         });
+
+        jButton1.setText("jButton1");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+        bibleTab.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(500, 80, -1, -1));
 
         tabs.addTab("Home", bibleTab);
 
@@ -7102,6 +7224,12 @@ private void wrapper() {
         // TODO add your handling code here:
     }//GEN-LAST:event_testamentChooserActionPerformed
 
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+ bResumeE = bookChooser.getSelectedIndex();
+b = bResumeE;
+System.out.println("drop clicked :" + bResumeE);
+    }//GEN-LAST:event_jButton1ActionPerformed
+
     
    
  
@@ -7207,6 +7335,7 @@ private void wrapper() {
     private javax.swing.JLabel homeBtnLabel;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
+    private javax.swing.JButton jButton1;
     private javax.swing.JPanel jPanel14;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JLabel jan;
