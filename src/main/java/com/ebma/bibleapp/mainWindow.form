@@ -395,7 +395,15 @@
                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                   <Border info="null"/>
                 </Property>
+                <Property name="contentAreaFilled" type="boolean" value="false"/>
+                <Property name="focusPainted" type="boolean" value="false"/>
+                <Property name="focusable" type="boolean" value="false"/>
+                <Property name="requestFocusEnabled" type="boolean" value="false"/>
+                <Property name="rolloverEnabled" type="boolean" value="false"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="searchBtnActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="bookmarkBtn">
               <Properties>
@@ -541,6 +549,9 @@
                       <Font name="Roboto" size="12" style="0"/>
                     </Property>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="cmtryTabbedPanel.addChangeListener(e -&gt; {&#xa;    int selectedIndex = cmtryTabbedPanel.getSelectedIndex();&#xa;    if (selectedIndex == 1) {&#xa;        cmtryName.setVisible(true);&#xa;    } else {&#xa;        cmtryName.setVisible(false);&#xa;    }&#xa;});&#xa;/*&#xa;cmtryTabbedPanel.addChangeListener(e -&gt; {&#xa;    int selectedTab = cmtryTabbedPanel.getSelectedIndex();&#xa;&#xa;    // Only trigger when first tab is selected (index 0 or 1 &#x2014; adjust as needed)&#xa;    if (selectedTab == 1) {  &#xa;        int bookIndex = bookChooser.getSelectedIndex();&#xa;        if (bookIndex &lt; 0) return;&#xa;&#xa;        // Build relative path (from project root)&#xa;        String basePath = &quot;src/main/resources/commentaries&quot;;&#xa;        Path bookFolder = Paths.get(basePath, String.valueOf(bookIndex + 1));&#xa;&#xa;        try (Stream&lt;Path&gt; files = Files.list(bookFolder)) {&#xa;            Optional&lt;Path&gt; firstPdf = files&#xa;                    .filter(p -&gt; p.toString().toLowerCase().endsWith(&quot;.pdf&quot;))&#xa;                    .findFirst();&#xa;&#xa;            if (firstPdf.isPresent()) {&#xa;                Path pdfFile = firstPdf.get();&#xa;&#xa;                // Set the commentary name label (or text)&#xa;                cmtryName.setText(pdfFile.getFileName().toString());&#xa;&#xa;                // Load PDF content into text area (as text)&#xa;                try (PDDocument document = PDDocument.load(pdfFile.toFile())) {&#xa;                    PDFTextStripper stripper = new PDFTextStripper();&#xa;                    String text = stripper.getText(document);&#xa;                    cmtryLoad.setText(text);&#xa;                }&#xa;&#xa;                // Disable horizontal scroll bar&#xa;                JScrollPane scrollPane = (JScrollPane) cmtryLoad.getParent().getParent();&#xa;                scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);&#xa;            } else {&#xa;                cmtryName.setText(&quot;No PDF found in folder &quot; + (bookIndex + 1));&#xa;                cmtryLoad.setText(&quot;&quot;);&#xa;            }&#xa;&#xa;        } catch (IOException ex) {&#xa;            ex.printStackTrace();&#xa;            cmtryName.setText(&quot;Error loading commentary&quot;);&#xa;            cmtryLoad.setText(&quot;&quot;);&#xa;        }&#xa;    }&#xa;});&#xa;*/"/>
+                  </AuxValues>
                   <Constraints>
                     <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
                       <AbsoluteConstraints x="910" y="110" width="650" height="860"/>
@@ -721,33 +732,6 @@
                         </Container>
                       </SubComponents>
                     </Container>
-                    <Container class="javax.swing.JPanel" name="nodesTabPanel">
-                      <Properties>
-                        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                          <Color blue="ff" green="ff" red="ff" type="rgb"/>
-                        </Property>
-                      </Properties>
-                      <Constraints>
-                        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-                          <JTabbedPaneConstraints tabName="Nodes">
-                            <Property name="tabTitle" type="java.lang.String" value="Nodes"/>
-                          </JTabbedPaneConstraints>
-                        </Constraint>
-                      </Constraints>
-
-                      <Layout>
-                        <DimensionLayout dim="0">
-                          <Group type="103" groupAlignment="0" attributes="0">
-                              <EmptySpace min="0" pref="650" max="32767" attributes="0"/>
-                          </Group>
-                        </DimensionLayout>
-                        <DimensionLayout dim="1">
-                          <Group type="103" groupAlignment="0" attributes="0">
-                              <EmptySpace min="0" pref="825" max="32767" attributes="0"/>
-                          </Group>
-                        </DimensionLayout>
-                      </Layout>
-                    </Container>
                     <Container class="javax.swing.JPanel" name="cmtrsTabPanel">
                       <Properties>
                         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
@@ -765,15 +749,27 @@
                       <Layout>
                         <DimensionLayout dim="0">
                           <Group type="103" groupAlignment="0" attributes="0">
-                              <EmptySpace min="0" pref="650" max="32767" attributes="0"/>
+                              <Group type="102" alignment="0" attributes="0">
+                                  <EmptySpace max="-2" attributes="0"/>
+                                  <Component id="cmtryLoad" pref="638" max="32767" attributes="0"/>
+                                  <EmptySpace max="-2" attributes="0"/>
+                              </Group>
                           </Group>
                         </DimensionLayout>
                         <DimensionLayout dim="1">
                           <Group type="103" groupAlignment="0" attributes="0">
-                              <EmptySpace min="0" pref="825" max="32767" attributes="0"/>
+                              <Group type="102" alignment="0" attributes="0">
+                                  <EmptySpace max="-2" attributes="0"/>
+                                  <Component id="cmtryLoad" pref="813" max="32767" attributes="0"/>
+                                  <EmptySpace max="-2" attributes="0"/>
+                              </Group>
                           </Group>
                         </DimensionLayout>
                       </Layout>
+                      <SubComponents>
+                        <Component class="javax.swing.JTextField" name="cmtryLoad">
+                        </Component>
+                      </SubComponents>
                     </Container>
                   </SubComponents>
                 </Container>
@@ -832,6 +828,19 @@
                   <Constraints>
                     <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
                       <AbsoluteConstraints x="721" y="67" width="104" height="27"/>
+                    </Constraint>
+                  </Constraints>
+                </Component>
+                <Component class="javax.swing.JLabel" name="cmtryName">
+                  <Properties>
+                    <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                      <Font name="Nokia Pure Headline Ultra Light" size="14" style="0"/>
+                    </Property>
+                    <Property name="text" type="java.lang.String" value="Commentary Name"/>
+                  </Properties>
+                  <Constraints>
+                    <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
+                      <AbsoluteConstraints x="1077" y="110" width="480" height="30"/>
                     </Constraint>
                   </Constraints>
                 </Component>
@@ -925,19 +934,6 @@
                   <Constraints>
                     <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
                       <AbsoluteConstraints x="17" y="67" width="105" height="-1"/>
-                    </Constraint>
-                  </Constraints>
-                </Component>
-                <Component class="javax.swing.JButton" name="jButton1">
-                  <Properties>
-                    <Property name="text" type="java.lang.String" value="jButton1"/>
-                  </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton1ActionPerformed"/>
-                  </Events>
-                  <Constraints>
-                    <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-                      <AbsoluteConstraints x="500" y="80" width="-1" height="-1"/>
                     </Constraint>
                   </Constraints>
                 </Component>
@@ -8976,7 +8972,7 @@
                 </Container>
               </SubComponents>
             </Container>
-            <Container class="javax.swing.JPanel" name="jPanel14">
+            <Container class="javax.swing.JPanel" name="searchTab">
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
                   <JTabbedPaneConstraints tabName="Settings">
@@ -8988,15 +8984,40 @@
               <Layout>
                 <DimensionLayout dim="0">
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <EmptySpace min="0" pref="1580" max="32767" attributes="0"/>
+                      <Group type="102" alignment="1" attributes="0">
+                          <EmptySpace pref="499" max="32767" attributes="0"/>
+                          <Component id="jLabel1" min="-2" pref="523" max="-2" attributes="0"/>
+                          <EmptySpace min="-2" pref="558" max="-2" attributes="0"/>
+                      </Group>
                   </Group>
                 </DimensionLayout>
                 <DimensionLayout dim="1">
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <EmptySpace min="0" pref="975" max="32767" attributes="0"/>
+                      <Group type="102" alignment="0" attributes="0">
+                          <EmptySpace min="-2" pref="87" max="-2" attributes="0"/>
+                          <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace pref="859" max="32767" attributes="0"/>
+                      </Group>
                   </Group>
                 </DimensionLayout>
               </Layout>
+              <SubComponents>
+                <Component class="javax.swing.JLabel" name="jLabel1">
+                  <Properties>
+                    <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                      <Font name="Nokia Pure Headline Ultra Light" size="18" style="0"/>
+                    </Property>
+                    <Property name="text" type="java.lang.String" value="   Search for verses"/>
+                    <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+                      <Border info="org.netbeans.modules.form.compat2.border.LineBorderInfo">
+                        <LineBorder roundedCorners="true" thickness="2">
+                          <Color PropertyName="color" blue="cc" green="cc" red="cc" type="rgb"/>
+                        </LineBorder>
+                      </Border>
+                    </Property>
+                  </Properties>
+                </Component>
+              </SubComponents>
             </Container>
             <Container class="javax.swing.JPanel" name="jPanel2">
               <Constraints>

@@ -99,6 +99,14 @@ import java.time.LocalDate;
 import java.awt.geom.Rectangle2D;
 
 
+//import io.documentnode.epub4j.domain.Book;
+//import io.documentnode.epub4j.epub.EpubReader;
+//import org.apache.tika.Tika;
+
+
+import java.util.stream.Stream;
+import java.util.Optional;
+
 
 
 public class mainWindow extends javax.swing.JFrame {
@@ -193,6 +201,7 @@ public class mainWindow extends javax.swing.JFrame {
     private boolean firstLoad = true;
     
     
+    
     public mainWindow() {
         
         setUndecorated(true);  
@@ -255,7 +264,7 @@ public class mainWindow extends javax.swing.JFrame {
 
            // updateChapterChooserEnglish();
         
-
+        cmtryName.setVisible(false);    
       
     }
     
@@ -1312,17 +1321,17 @@ private void wrapper() {
         addNoteBtn = new javax.swing.JButton();
         notesInput = new javax.swing.JTextArea();
         writeYourReflection = new javax.swing.JLabel();
-        nodesTabPanel = new javax.swing.JPanel();
         cmtrsTabPanel = new javax.swing.JPanel();
+        cmtryLoad = new javax.swing.JTextField();
         biblestudyTitle = new javax.swing.JLabel();
         highlightBtn = new javax.swing.JButton();
         boldBtn = new javax.swing.JButton();
         fontSizeSlider = new javax.swing.JSlider();
+        cmtryName = new javax.swing.JLabel();
         langChooser = new javax.swing.JComboBox<>();
         bookChooser = new javax.swing.JComboBox<>();
         chapterChooser = new javax.swing.JComboBox<>();
         testamentChooser = new javax.swing.JComboBox<>();
-        jButton1 = new javax.swing.JButton();
         libraryTab = new javax.swing.JPanel();
         libraryContent = new javax.swing.JPanel();
         bookDescriptionSideBar1 = new javax.swing.JPanel();
@@ -1759,7 +1768,8 @@ private void wrapper() {
         pdfDisplay = new javax.swing.JTextArea();
         themer = new javax.swing.JLabel();
         spacer = new javax.swing.JButton();
-        jPanel14 = new javax.swing.JPanel();
+        searchTab = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -1885,6 +1895,16 @@ private void wrapper() {
         searchBtn.setBackground(new java.awt.Color(40, 43, 45));
         searchBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/search.png"))); // NOI18N
         searchBtn.setBorder(null);
+        searchBtn.setContentAreaFilled(false);
+        searchBtn.setFocusPainted(false);
+        searchBtn.setFocusable(false);
+        searchBtn.setRequestFocusEnabled(false);
+        searchBtn.setRolloverEnabled(false);
+        searchBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchBtnActionPerformed(evt);
+            }
+        });
 
         bookmarkBtn.setBackground(new java.awt.Color(40, 43, 45));
         bookmarkBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/bookmark.png"))); // NOI18N
@@ -2244,37 +2264,83 @@ private void wrapper() {
 
         cmtryTabbedPanel.addTab("Notes", notesTabPanel);
 
-        nodesTabPanel.setBackground(new java.awt.Color(255, 255, 255));
-
-        javax.swing.GroupLayout nodesTabPanelLayout = new javax.swing.GroupLayout(nodesTabPanel);
-        nodesTabPanel.setLayout(nodesTabPanelLayout);
-        nodesTabPanelLayout.setHorizontalGroup(
-            nodesTabPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 650, Short.MAX_VALUE)
-        );
-        nodesTabPanelLayout.setVerticalGroup(
-            nodesTabPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 825, Short.MAX_VALUE)
-        );
-
-        cmtryTabbedPanel.addTab("Nodes", nodesTabPanel);
-
         cmtrsTabPanel.setBackground(new java.awt.Color(255, 255, 255));
 
         javax.swing.GroupLayout cmtrsTabPanelLayout = new javax.swing.GroupLayout(cmtrsTabPanel);
         cmtrsTabPanel.setLayout(cmtrsTabPanelLayout);
         cmtrsTabPanelLayout.setHorizontalGroup(
             cmtrsTabPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 650, Short.MAX_VALUE)
+            .addGroup(cmtrsTabPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(cmtryLoad, javax.swing.GroupLayout.DEFAULT_SIZE, 638, Short.MAX_VALUE)
+                .addContainerGap())
         );
         cmtrsTabPanelLayout.setVerticalGroup(
             cmtrsTabPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 825, Short.MAX_VALUE)
+            .addGroup(cmtrsTabPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(cmtryLoad, javax.swing.GroupLayout.DEFAULT_SIZE, 813, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         cmtryTabbedPanel.addTab("Commentaries", cmtrsTabPanel);
 
         bibleTab.add(cmtryTabbedPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(910, 110, 650, 860));
+        cmtryTabbedPanel.addChangeListener(e -> {
+            int selectedIndex = cmtryTabbedPanel.getSelectedIndex();
+            if (selectedIndex == 1) {
+                cmtryName.setVisible(true);
+            } else {
+                cmtryName.setVisible(false);
+            }
+        });
+        /*
+        cmtryTabbedPanel.addChangeListener(e -> {
+            int selectedTab = cmtryTabbedPanel.getSelectedIndex();
+
+            // Only trigger when first tab is selected (index 0 or 1 — adjust as needed)
+            if (selectedTab == 1) {
+                int bookIndex = bookChooser.getSelectedIndex();
+                if (bookIndex < 0) return;
+
+                // Build relative path (from project root)
+                String basePath = "src/main/resources/commentaries";
+                Path bookFolder = Paths.get(basePath, String.valueOf(bookIndex + 1));
+
+                try (Stream<Path> files = Files.list(bookFolder)) {
+                    Optional<Path> firstPdf = files
+                    .filter(p -> p.toString().toLowerCase().endsWith(".pdf"))
+                    .findFirst();
+
+                    if (firstPdf.isPresent()) {
+                        Path pdfFile = firstPdf.get();
+
+                        // Set the commentary name label (or text)
+                        cmtryName.setText(pdfFile.getFileName().toString());
+
+                        // Load PDF content into text area (as text)
+                        try (PDDocument document = PDDocument.load(pdfFile.toFile())) {
+                            PDFTextStripper stripper = new PDFTextStripper();
+                            String text = stripper.getText(document);
+                            cmtryLoad.setText(text);
+                        }
+
+                        // Disable horizontal scroll bar
+                        JScrollPane scrollPane = (JScrollPane) cmtryLoad.getParent().getParent();
+                        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+                    } else {
+                        cmtryName.setText("No PDF found in folder " + (bookIndex + 1));
+                        cmtryLoad.setText("");
+                    }
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    cmtryName.setText("Error loading commentary");
+                    cmtryLoad.setText("");
+                }
+            }
+        });
+        */
 
         biblestudyTitle.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 18)); // NOI18N
         biblestudyTitle.setText("Bible Study");
@@ -2320,6 +2386,10 @@ private void wrapper() {
                 ));
             }
         });
+
+        cmtryName.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        cmtryName.setText("Commentary Name");
+        bibleTab.add(cmtryName, new org.netbeans.lib.awtextra.AbsoluteConstraints(1077, 110, 480, 30));
 
         langChooser.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 1, 14)); // NOI18N
         langChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "አማርኛ", "English" }));
@@ -2519,14 +2589,6 @@ private void wrapper() {
                 testamentChooserActionPerformed(evt);
             }
         });
-
-        jButton1.setText("jButton1");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-        bibleTab.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(500, 80, -1, -1));
 
         tabs.addTab("Home", bibleTab);
 
@@ -6068,18 +6130,28 @@ private void wrapper() {
             }
         });
 
-        javax.swing.GroupLayout jPanel14Layout = new javax.swing.GroupLayout(jPanel14);
-        jPanel14.setLayout(jPanel14Layout);
-        jPanel14Layout.setHorizontalGroup(
-            jPanel14Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1580, Short.MAX_VALUE)
+        jLabel1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
+        jLabel1.setText("   Search for verses");
+        jLabel1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(204, 204, 204), 2, true));
+
+        javax.swing.GroupLayout searchTabLayout = new javax.swing.GroupLayout(searchTab);
+        searchTab.setLayout(searchTabLayout);
+        searchTabLayout.setHorizontalGroup(
+            searchTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchTabLayout.createSequentialGroup()
+                .addContainerGap(499, Short.MAX_VALUE)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 523, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(558, 558, 558))
         );
-        jPanel14Layout.setVerticalGroup(
-            jPanel14Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 975, Short.MAX_VALUE)
+        searchTabLayout.setVerticalGroup(
+            searchTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(searchTabLayout.createSequentialGroup()
+                .addGap(87, 87, 87)
+                .addComponent(jLabel1)
+                .addContainerGap(859, Short.MAX_VALUE))
         );
 
-        tabs.addTab("Settings", jPanel14);
+        tabs.addTab("Settings", searchTab);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -7224,11 +7296,9 @@ private void wrapper() {
         // TODO add your handling code here:
     }//GEN-LAST:event_testamentChooserActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
- bResumeE = bookChooser.getSelectedIndex();
-b = bResumeE;
-System.out.println("drop clicked :" + bResumeE);
-    }//GEN-LAST:event_jButton1ActionPerformed
+    private void searchBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBtnActionPerformed
+        tabs.setSelectedIndex(4);
+    }//GEN-LAST:event_searchBtnActionPerformed
 
     
    
@@ -7321,6 +7391,8 @@ System.out.println("drop clicked :" + bResumeE);
     private javax.swing.JButton cmntrsBtn;
     private javax.swing.JLabel cmntrsBtnLabel;
     private javax.swing.JPanel cmtrsTabPanel;
+    private javax.swing.JTextField cmtryLoad;
+    private javax.swing.JLabel cmtryName;
     private javax.swing.JTabbedPane cmtryTabbedPanel;
     private javax.swing.JButton continueReading;
     private javax.swing.JLabel dec;
@@ -7335,8 +7407,7 @@ System.out.println("drop clicked :" + bResumeE);
     private javax.swing.JLabel homeBtnLabel;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JPanel jPanel14;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JLabel jan;
     private javax.swing.JButton journalBtn;
@@ -7358,7 +7429,6 @@ System.out.println("drop clicked :" + bResumeE);
     private javax.swing.JButton minimizeBtn;
     private javax.swing.JButton mute;
     private javax.swing.JPanel navBar;
-    private javax.swing.JPanel nodesTabPanel;
     private javax.swing.JLabel notesBtnLabel;
     private javax.swing.JTextArea notesInput;
     private javax.swing.JLayeredPane notesTabLayers;
@@ -7375,6 +7445,7 @@ System.out.println("drop clicked :" + bResumeE);
     private javax.swing.JButton saveTick;
     private javax.swing.JButton searchBtn;
     private javax.swing.JLabel searchBtnLabel;
+    private javax.swing.JPanel searchTab;
     private javax.swing.JButton selectedBook;
     private javax.swing.JButton selectedBookUnderline1;
     private javax.swing.JButton selectedBookUnderline10;
