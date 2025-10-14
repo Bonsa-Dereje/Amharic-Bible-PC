@@ -104,8 +104,8 @@ import java.awt.geom.Rectangle2D;
 //import org.apache.tika.Tika;
 
 
-import java.util.stream.Stream;
-import java.util.Optional;
+//import java.util.stream.Stream;
+//import java.util.Optional;
 
 
 
@@ -2138,6 +2138,8 @@ private void wrapper() {
         addNoteBtn.setForeground(new java.awt.Color(102, 102, 102));
         addNoteBtn.setText("Create a new note");
         addNoteBtn.setAlignmentY(0.0F);
+        addNoteBtn.setFocusCycleRoot(true);
+        addNoteBtn.setFocusTraversalPolicyProvider(true);
         addNoteBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 addNoteBtnActionPerformed(evt);
@@ -2171,9 +2173,6 @@ private void wrapper() {
             .addGroup(notesTabLayersLayout.createSequentialGroup()
                 .addGroup(notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(notesTabLayersLayout.createSequentialGroup()
-                        .addGap(260, 260, 260)
-                        .addComponent(addNoteBtn))
-                    .addGroup(notesTabLayersLayout.createSequentialGroup()
                         .addGap(12, 12, 12)
                         .addGroup(notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(notesTabLayersLayout.createSequentialGroup()
@@ -2186,8 +2185,11 @@ private void wrapper() {
                                 .addGroup(notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(eyeShow, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(eyeHide, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                            .addComponent(notesInput, javax.swing.GroupLayout.PREFERRED_SIZE, 618, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addGap(20, 20, 20))
+                            .addComponent(notesInput, javax.swing.GroupLayout.PREFERRED_SIZE, 618, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(notesTabLayersLayout.createSequentialGroup()
+                        .addGap(236, 236, 236)
+                        .addComponent(addNoteBtn)))
+                .addContainerGap())
         );
         notesTabLayersLayout.setVerticalGroup(
             notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -2199,12 +2201,10 @@ private void wrapper() {
                     .addComponent(saveNote, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(eyeShow, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(eyeHide, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(10, 10, 10)
-                .addGroup(notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(notesTabLayersLayout.createSequentialGroup()
-                        .addGap(350, 350, 350)
-                        .addComponent(addNoteBtn))
-                    .addComponent(notesInput, javax.swing.GroupLayout.PREFERRED_SIZE, 770, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(360, 360, 360)
+                .addComponent(addNoteBtn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(notesInput, javax.swing.GroupLayout.PREFERRED_SIZE, 770, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         notesInput.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {

@@ -591,10 +591,6 @@
                                   <Group type="102" attributes="0">
                                       <Group type="103" groupAlignment="0" attributes="0">
                                           <Group type="102" attributes="0">
-                                              <EmptySpace min="-2" pref="260" max="-2" attributes="0"/>
-                                              <Component id="addNoteBtn" min="-2" max="-2" attributes="0"/>
-                                          </Group>
-                                          <Group type="102" alignment="0" attributes="0">
                                               <EmptySpace min="-2" pref="12" max="-2" attributes="0"/>
                                               <Group type="103" groupAlignment="0" attributes="0">
                                                   <Group type="102" attributes="0">
@@ -613,8 +609,12 @@
                                                   <Component id="notesInput" min="-2" pref="618" max="-2" attributes="0"/>
                                               </Group>
                                           </Group>
+                                          <Group type="102" alignment="0" attributes="0">
+                                              <EmptySpace min="-2" pref="236" max="-2" attributes="0"/>
+                                              <Component id="addNoteBtn" min="-2" max="-2" attributes="0"/>
+                                          </Group>
                                       </Group>
-                                      <EmptySpace min="-2" pref="20" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
                                   </Group>
                               </Group>
                             </DimensionLayout>
@@ -629,14 +629,10 @@
                                           <Component id="eyeShow" min="-2" pref="20" max="-2" attributes="0"/>
                                           <Component id="eyeHide" min="-2" pref="20" max="-2" attributes="0"/>
                                       </Group>
-                                      <EmptySpace min="10" pref="10" max="-2" attributes="0"/>
-                                      <Group type="103" groupAlignment="0" attributes="0">
-                                          <Group type="102" attributes="0">
-                                              <EmptySpace min="350" pref="350" max="-2" attributes="0"/>
-                                              <Component id="addNoteBtn" min="-2" max="-2" attributes="0"/>
-                                          </Group>
-                                          <Component id="notesInput" min="-2" pref="770" max="-2" attributes="0"/>
-                                      </Group>
+                                      <EmptySpace min="-2" pref="360" max="-2" attributes="0"/>
+                                      <Component id="addNoteBtn" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="notesInput" min="-2" pref="770" max="-2" attributes="0"/>
                                   </Group>
                               </Group>
                             </DimensionLayout>
@@ -695,6 +691,8 @@
                                 </Property>
                                 <Property name="text" type="java.lang.String" value="Create a new note"/>
                                 <Property name="alignmentY" type="float" value="0.0"/>
+                                <Property name="focusCycleRoot" type="boolean" value="true"/>
+                                <Property name="focusTraversalPolicyProvider" type="boolean" value="true"/>
                               </Properties>
                               <Events>
                                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="addNoteBtnActionPerformed"/>
