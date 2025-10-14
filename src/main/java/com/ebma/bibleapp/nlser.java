@@ -41,34 +41,47 @@ public class nlser {
         try {
             File[] bookFolders = sourceDir.listFiles(File::isDirectory);
             if (bookFolders == null) {
-                System.out.println(" No folders found in: " + sourceBase);
+                System.out.println("  No folders found in: " + sourceBase);
                 return;
             }
 
-            // Sort folders numerically (in case folder names are 1, 2, 3...)
-            Arrays.sort(bookFolders, Comparator.comparing(File::getName, Comparator.naturalOrder()));
+            // Sort folders numerically (1, 2, 3...)
+            Arrays.sort(bookFolders, Comparator.comparingInt(f -> Integer.parseInt(f.getName())));
 
             for (int i = 0; i < bookFolders.length && i < allBooksEnglish.length; i++) {
                 File folder = bookFolders[i];
                 String bookName = allBooksEnglish[i];
-                System.out.println(" Processing " + bookName + " (" + folder.getName() + ")");
+                int bookNumber = i + 1;
+                System.out.println(" Processing " + bookNumber + " - " + bookName + " (" + folder.getName() + ")");
 
                 List<Map<String, String>> bookChapters = new ArrayList<>();
 
-                for (File pdf : FileUtils.listFiles(folder, new String[]{"pdf"}, true)) {
-                    String chapterName = pdf.getName().replace(".pdf", "");
-                    String text = extractTextFromPDF(pdf);
+                // Sort chapter PDFs by number (1.pdf, 2.pdf...)
+                File[] pdfFiles = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
+                if (pdfFiles != null) {
+                    Arrays.sort(pdfFiles, Comparator.comparingInt(f -> {
+                        try {
+                            return Integer.parseInt(f.getName().replace(".pdf", ""));
+                        } catch (NumberFormatException e) {
+                            return Integer.MAX_VALUE;
+                        }
+                    }));
 
-                    Map<String, String> entry = new LinkedHashMap<>();
-                    entry.put("book", bookName);
-                    entry.put("chapter", chapterName);
-                    entry.put("text", text);
-                    bookChapters.add(entry);
-                    allChapters.add(entry);
+                    for (File pdf : pdfFiles) {
+                        String chapterName = pdf.getName().replace(".pdf", "");
+                        String text = extractTextFromPDF(pdf);
+
+                        Map<String, String> entry = new LinkedHashMap<>();
+                        entry.put("book", bookName);
+                        entry.put("chapter", chapterName);
+                        entry.put("text", text);
+                        bookChapters.add(entry);
+                        allChapters.add(entry);
+                    }
                 }
 
-                // Save individual book JSON
-                saveBookJson(bookChapters, bookName, outputDir);
+                // Save individual book JSON with number prefix
+                saveBookJson(bookChapters, bookNumber, bookName, outputDir);
             }
 
             // Save combined JSON (all books)
@@ -90,19 +103,20 @@ public class nlser {
             PDFTextStripper stripper = new PDFTextStripper();
             return stripper.getText(doc).trim();
         } catch (Exception e) {
-            System.err.println("⚠️ Error reading " + file.getName() + ": " + e.getMessage());
+            System.err.println(" Error reading " + file.getName() + ": " + e.getMessage());
             return "";
         }
     }
 
-    private static void saveBookJson(List<Map<String, String>> bookData, String bookName, File outputDir) {
+    private static void saveBookJson(List<Map<String, String>> bookData, int bookNumber, String bookName, File outputDir) {
         try {
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            File outFile = new File(outputDir, bookName.replace(" ", "_") + ".json");
+            String cleanBookName = bookName.replace(" ", "_");
+            File outFile = new File(outputDir, bookNumber + "_" + cleanBookName + ".json");
             try (FileWriter writer = new FileWriter(outFile)) {
                 gson.toJson(bookData, writer);
             }
-            System.out.println("    Saved " + bookName + ".json");
+            System.out.println(" Saved " + outFile.getName());
         } catch (Exception e) {
             System.err.println(" Failed to save JSON for " + bookName);
         }

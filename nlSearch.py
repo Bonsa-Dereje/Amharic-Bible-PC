@@ -1,41 +1,62 @@
-# nlSearch.py
+from sentence_transformers import SentenceTransformer
+import faiss
+import numpy as np
 import json
 import sys
-import numpy as np
-from sentence_transformers import SentenceTransformer
+import os
 
-# --- Configuration ---
-VECTORS_JSON = "nlsVectors.json"  # Make sure this is in your project root
-TOP_K = 5  # number of results to show
+# -----------------------------
+# Config paths
+# -----------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+VECTOR_FILE = os.path.join(BASE_DIR, "nlsVectors.json")  # merged vector file
 
-# --- Load vectors from JSON ---
-with open(VECTORS_JSON, "r", encoding="utf-8") as f:
-    chapters = json.load(f)  # expect list of dicts: {"book":..., "chapter":..., "vector": [...]}
+# -----------------------------
+# Load model
+# -----------------------------
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
-# Convert vectors to NumPy array for fast computation
-vectors = np.array([np.array(chap["vector"]) for chap in chapters])
+# -----------------------------
+# Load precomputed vectors and metadata
+# -----------------------------
+with open(VECTOR_FILE, "r", encoding="utf-8") as f:
+    entries = json.load(f)
 
-# --- Load model ---
-model = SentenceTransformer('all-MiniLM-L6-v2')  # or whichever model you used for vectorization
+# Convert vectors to numpy array
+vectors = np.array([e["vector"] for e in entries], dtype=np.float32)
+dim = vectors.shape[1]
 
-# --- Get query from command-line argument ---
+# Build FAISS index
+index = faiss.IndexFlatIP(dim)  # Inner product = cosine similarity if vectors are normalized
+faiss.normalize_L2(vectors)     # normalize for cosine similarity
+index.add(vectors)
+
+# -----------------------------
+# Get query
+# -----------------------------
 if len(sys.argv) < 2:
-    print("Usage: python nlSearch.py \"search query here\"")
+    print("⚠️  Please provide a search query.")
     sys.exit(1)
 
 query = sys.argv[1]
-query_vector = model.encode(query)
+query_vec = model.encode(query, convert_to_numpy=True).reshape(1, -1).astype(np.float32)
+faiss.normalize_L2(query_vec)
 
-# --- Cosine similarity function ---
-def cosine_sim(a, b):
-    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+# -----------------------------
+# Search top 5 matches
+# -----------------------------
+k = 5
+scores, indices = index.search(query_vec, k)
 
-# --- Compute similarities ---
-sims = np.array([cosine_sim(query_vector, v) for v in vectors])
-top_indexes = sims.argsort()[::-1][:TOP_K]
+# -----------------------------
+# Print results
+# -----------------------------
+print(f"\n🔍 Top {k} matches for query: \"{query}\"\n")
 
-# --- Print top results ---
-print(f"Top {TOP_K} chapters for query: \"{query}\"")
-for idx in top_indexes:
-    chap = chapters[idx]
-    print(f"{chap['book']} {chap['chapter']}  (score: {sims[idx]:.4f})")
+for rank, (idx, score) in enumerate(zip(indices[0], scores[0]), start=1):
+    entry = entries[idx]
+    book = entry["book"]
+    chapter = entry["chapter"]
+    text = entry["text"].replace("\r", " ").replace("\n", " ")
+    snippet = text[:150] + "..." if len(text) > 150 else text
+    print(f"{rank}. {book} — Chapter {chapter} — {snippet} (score: {score:.4f})")
