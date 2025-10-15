@@ -1,4 +1,3 @@
-from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
 import json
@@ -9,54 +8,63 @@ import os
 # Config paths
 # -----------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-VECTOR_FILE = os.path.join(BASE_DIR, "nlsVectors.json")  # merged vector file
-
-# -----------------------------
-# Load model
-# -----------------------------
-model = SentenceTransformer("all-MiniLM-L6-v2")
+VECTOR_FILE = os.path.join(BASE_DIR, "nlsVectors.json")  # verse-level vector file
 
 # -----------------------------
 # Load precomputed vectors and metadata
 # -----------------------------
+if not os.path.exists(VECTOR_FILE):
+    print("❌ nlsVectors.json not found.")
+    sys.exit(1)
+
 with open(VECTOR_FILE, "r", encoding="utf-8") as f:
     entries = json.load(f)
 
-# Convert vectors to numpy array
+# Convert vectors to NumPy array
 vectors = np.array([e["vector"] for e in entries], dtype=np.float32)
 dim = vectors.shape[1]
 
 # Build FAISS index
-index = faiss.IndexFlatIP(dim)  # Inner product = cosine similarity if vectors are normalized
-faiss.normalize_L2(vectors)     # normalize for cosine similarity
+index = faiss.IndexFlatIP(dim)  # Inner product similarity
+faiss.normalize_L2(vectors)
 index.add(vectors)
 
 # -----------------------------
-# Get query
+# Parse command-line arguments
 # -----------------------------
 if len(sys.argv) < 2:
-    print("⚠️  Please provide a search query.")
+    print("Usage: nlSearch <query> [num_matches]")
     sys.exit(1)
 
-query = sys.argv[1]
-query_vec = model.encode(query, convert_to_numpy=True).reshape(1, -1).astype(np.float32)
+query_arg = sys.argv[1]
+k = int(sys.argv[2]) if len(sys.argv) > 2 else 5  # Default top 5 matches
+
+# -----------------------------
+# Find query vector
+# -----------------------------
+# Use a verse containing the query text as the query vector
+found = next((e for e in entries if query_arg.lower() in e["text"].lower()), None)
+if not found:
+    print(f"❌ Could not find any verse containing \"{query_arg}\" to use as a query vector.")
+    sys.exit(1)
+
+query_vec = np.array(found["vector"], dtype=np.float32).reshape(1, -1)
 faiss.normalize_L2(query_vec)
 
 # -----------------------------
-# Search top 5 matches
+# Search top k matches
 # -----------------------------
-k = 5
 scores, indices = index.search(query_vec, k)
 
 # -----------------------------
 # Print results
 # -----------------------------
-print(f"\n🔍 Top {k} matches for query: \"{query}\"\n")
-
+print(f"\nTop {k} matches for query: \"{query_arg}\"\n")
 for rank, (idx, score) in enumerate(zip(indices[0], scores[0]), start=1):
     entry = entries[idx]
-    book = entry["book"]
-    chapter = entry["chapter"]
-    text = entry["text"].replace("\r", " ").replace("\n", " ")
+    book = entry.get("book", "Unknown")
+    chapter = entry.get("chapter", "N/A")
+    verse = entry.get("verse", "N/A")
+    text = entry.get("text", "").replace("\r", " ").replace("\n", " ")
     snippet = text[:150] + "..." if len(text) > 150 else text
-    print(f"{rank}. {book} — Chapter {chapter} — {snippet} (score: {score:.4f})")
+    print(f"{rank}. {book} {chapter}:{verse} — {snippet} (score: {score:.4f})")

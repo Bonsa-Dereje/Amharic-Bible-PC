@@ -1769,7 +1769,11 @@ private void wrapper() {
         themer = new javax.swing.JLabel();
         spacer = new javax.swing.JButton();
         searchTab = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
+        searchBar = new javax.swing.JTextField();
+        search = new javax.swing.JButton();
+        noSearchHistory = new javax.swing.JLabel();
+        nlsRadio = new javax.swing.JRadioButton();
+        nlsResult = new javax.swing.JTextField();
         jPanel2 = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -2109,12 +2113,15 @@ private void wrapper() {
         notesTabPanel.setBackground(new java.awt.Color(255, 255, 255));
         notesTabPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        notesTabLayers.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
         eyeHide.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/icons8-invisible-15.png"))); // NOI18N
         eyeHide.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 eyeHideActionPerformed(evt);
             }
         });
+        notesTabLayers.add(eyeHide, new org.netbeans.lib.awtextra.AbsoluteConstraints(604, 10, 30, 20));
 
         eyeShow.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/icons8-eye-15.png"))); // NOI18N
         eyeShow.addActionListener(new java.awt.event.ActionListener() {
@@ -2122,6 +2129,7 @@ private void wrapper() {
                 eyeShowActionPerformed(evt);
             }
         });
+        notesTabLayers.add(eyeShow, new org.netbeans.lib.awtextra.AbsoluteConstraints(604, 10, 30, 20));
 
         saveNote.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/save15.png"))); // NOI18N
         saveNote.addActionListener(new java.awt.event.ActionListener() {
@@ -2129,9 +2137,11 @@ private void wrapper() {
                 saveNoteActionPerformed(evt);
             }
         });
+        notesTabLayers.add(saveNote, new org.netbeans.lib.awtextra.AbsoluteConstraints(564, 10, 30, 20));
 
         saveTick.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/tick15.png"))); // NOI18N
         saveTick.setBorder(null);
+        notesTabLayers.add(saveTick, new org.netbeans.lib.awtextra.AbsoluteConstraints(564, 10, 30, 20));
 
         addNoteBtn.setBackground(new java.awt.Color(204, 204, 204));
         addNoteBtn.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
@@ -2145,6 +2155,7 @@ private void wrapper() {
                 addNoteBtnActionPerformed(evt);
             }
         });
+        notesTabLayers.add(addNoteBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(236, 390, -1, -1));
 
         notesInput.setColumns(20);
         notesInput.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
@@ -2153,60 +2164,7 @@ private void wrapper() {
         notesInput.setOpaque(false);
         notesInput.setLineWrap(true);           // enable line wrapping
         notesInput.setWrapStyleWord(true);      // wrap at word boundaries, not mid-word
-
-        writeYourReflection.setFont(new java.awt.Font("Godana", 0, 14)); // NOI18N
-        writeYourReflection.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/write15.png"))); // NOI18N
-        writeYourReflection.setText("Write your reflection on this chapter");
-
-        notesTabLayers.setLayer(eyeHide, javax.swing.JLayeredPane.DEFAULT_LAYER);
-        notesTabLayers.setLayer(eyeShow, javax.swing.JLayeredPane.DEFAULT_LAYER);
-        notesTabLayers.setLayer(saveNote, javax.swing.JLayeredPane.DEFAULT_LAYER);
-        notesTabLayers.setLayer(saveTick, javax.swing.JLayeredPane.DEFAULT_LAYER);
-        notesTabLayers.setLayer(addNoteBtn, javax.swing.JLayeredPane.DEFAULT_LAYER);
-        notesTabLayers.setLayer(notesInput, javax.swing.JLayeredPane.DEFAULT_LAYER);
-        notesTabLayers.setLayer(writeYourReflection, javax.swing.JLayeredPane.DEFAULT_LAYER);
-
-        javax.swing.GroupLayout notesTabLayersLayout = new javax.swing.GroupLayout(notesTabLayers);
-        notesTabLayers.setLayout(notesTabLayersLayout);
-        notesTabLayersLayout.setHorizontalGroup(
-            notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(notesTabLayersLayout.createSequentialGroup()
-                .addGroup(notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(notesTabLayersLayout.createSequentialGroup()
-                        .addGap(12, 12, 12)
-                        .addGroup(notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(notesTabLayersLayout.createSequentialGroup()
-                                .addComponent(writeYourReflection, javax.swing.GroupLayout.PREFERRED_SIZE, 255, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(297, 297, 297)
-                                .addGroup(notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(saveTick, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(saveNote, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(10, 10, 10)
-                                .addGroup(notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(eyeShow, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(eyeHide, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                            .addComponent(notesInput, javax.swing.GroupLayout.PREFERRED_SIZE, 618, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(notesTabLayersLayout.createSequentialGroup()
-                        .addGap(236, 236, 236)
-                        .addComponent(addNoteBtn)))
-                .addContainerGap())
-        );
-        notesTabLayersLayout.setVerticalGroup(
-            notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(notesTabLayersLayout.createSequentialGroup()
-                .addGap(10, 10, 10)
-                .addGroup(notesTabLayersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(writeYourReflection)
-                    .addComponent(saveTick, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(saveNote, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(eyeShow, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(eyeHide, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(360, 360, 360)
-                .addComponent(addNoteBtn)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(notesInput, javax.swing.GroupLayout.PREFERRED_SIZE, 770, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
-
+        notesTabLayers.add(notesInput, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 38, 618, 1160));
         notesInput.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             private void handleChange() {
                 if (saveTick.isVisible() && notesInput.getText().length() > 0) {
@@ -2259,6 +2217,11 @@ private void wrapper() {
                 }
             }
         });
+
+        writeYourReflection.setFont(new java.awt.Font("Godana", 0, 14)); // NOI18N
+        writeYourReflection.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/write15.png"))); // NOI18N
+        writeYourReflection.setText("Write your reflection on this chapter");
+        notesTabLayers.add(writeYourReflection, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 10, 255, -1));
 
         notesTabPanel.add(notesTabLayers, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 660, 820));
 
@@ -6130,25 +6093,70 @@ private void wrapper() {
             }
         });
 
-        jLabel1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
-        jLabel1.setText("   Search for verses");
-        jLabel1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(204, 204, 204), 2, true));
+        searchBar.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
+        searchBar.setForeground(new java.awt.Color(153, 153, 153));
+        searchBar.setText("Search for verses");
+        searchBar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchBarActionPerformed(evt);
+            }
+        });
+
+        search.setBackground(new java.awt.Color(40, 43, 45));
+        search.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        search.setForeground(new java.awt.Color(255, 255, 255));
+        search.setText("Search");
+        search.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchActionPerformed(evt);
+            }
+        });
+
+        noSearchHistory.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        noSearchHistory.setForeground(new java.awt.Color(204, 204, 204));
+        noSearchHistory.setText("No Search History");
+
+        nlsRadio.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        nlsRadio.setText("NL Search");
+
+        nlsResult.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
 
         javax.swing.GroupLayout searchTabLayout = new javax.swing.GroupLayout(searchTab);
         searchTab.setLayout(searchTabLayout);
         searchTabLayout.setHorizontalGroup(
             searchTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchTabLayout.createSequentialGroup()
-                .addContainerGap(499, Short.MAX_VALUE)
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 523, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(558, 558, 558))
+            .addGroup(searchTabLayout.createSequentialGroup()
+                .addGroup(searchTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(searchTabLayout.createSequentialGroup()
+                        .addGap(463, 463, 463)
+                        .addComponent(searchBar, javax.swing.GroupLayout.PREFERRED_SIZE, 523, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(search, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(searchTabLayout.createSequentialGroup()
+                        .addGap(695, 695, 695)
+                        .addComponent(noSearchHistory))
+                    .addGroup(searchTabLayout.createSequentialGroup()
+                        .addGap(714, 714, 714)
+                        .addComponent(nlsRadio))
+                    .addGroup(searchTabLayout.createSequentialGroup()
+                        .addGap(198, 198, 198)
+                        .addComponent(nlsResult, javax.swing.GroupLayout.PREFERRED_SIZE, 1158, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(224, Short.MAX_VALUE))
         );
         searchTabLayout.setVerticalGroup(
             searchTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(searchTabLayout.createSequentialGroup()
-                .addGap(87, 87, 87)
-                .addComponent(jLabel1)
-                .addContainerGap(859, Short.MAX_VALUE))
+                .addGap(122, 122, 122)
+                .addGroup(searchTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(searchBar, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(search, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nlsRadio)
+                .addGap(274, 274, 274)
+                .addComponent(noSearchHistory)
+                .addGap(18, 18, 18)
+                .addComponent(nlsResult, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(189, Short.MAX_VALUE))
         );
 
         tabs.addTab("Settings", searchTab);
@@ -7300,6 +7308,54 @@ private void wrapper() {
         tabs.setSelectedIndex(4);
     }//GEN-LAST:event_searchBtnActionPerformed
 
+    private void searchBarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBarActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_searchBarActionPerformed
+
+    private void searchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchActionPerformed
+    if (!nlsRadio.isSelected()) {
+        nlsResult.setText("Please select 'NL Search' first.");
+        return;
+    }
+
+    String query = searchBar.getText().trim();
+    if (query.isEmpty() || query.equals("Search for verses")) {
+        nlsResult.setText("Please enter a search query.");
+        return;
+    }
+
+    // Run in background thread to avoid UI freezing
+    new Thread(() -> {
+        try {
+            // Load search engine (reads from your nlsVectors.txt)
+            nlSearchEngine engine = new nlSearchEngine("nlsVectors.txt");
+
+            // Get top 10 results
+            List<String> results = engine.search(query, 10);
+
+            // Format results: each result on new line with numbering
+            StringBuilder formatted = new StringBuilder();
+            for (int i = 0; i < results.size(); i++) {
+                formatted.append((i + 1)).append(". ").append(results.get(i)).append("\n\n");
+            }
+
+            // Update text area on UI thread
+            SwingUtilities.invokeLater(() -> {
+                if (results.isEmpty()) {
+                    nlsResult.setText("No results found.");
+                } else {
+                    nlsResult.setText(formatted.toString().trim());
+                }
+            });
+
+        } catch (Exception e) {
+            SwingUtilities.invokeLater(() ->
+                nlsResult.setText("Error: " + e.getMessage())
+            );
+        }
+    }).start();
+    }//GEN-LAST:event_searchActionPerformed
+
     
    
  
@@ -7407,7 +7463,6 @@ private void wrapper() {
     private javax.swing.JLabel homeBtnLabel;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JLabel jan;
     private javax.swing.JButton journalBtn;
@@ -7429,6 +7484,9 @@ private void wrapper() {
     private javax.swing.JButton minimizeBtn;
     private javax.swing.JButton mute;
     private javax.swing.JPanel navBar;
+    private javax.swing.JRadioButton nlsRadio;
+    private javax.swing.JTextField nlsResult;
+    private javax.swing.JLabel noSearchHistory;
     private javax.swing.JLabel notesBtnLabel;
     private javax.swing.JTextArea notesInput;
     private javax.swing.JLayeredPane notesTabLayers;
@@ -7443,6 +7501,8 @@ private void wrapper() {
     private javax.swing.JButton restoreBtn;
     private javax.swing.JButton saveNote;
     private javax.swing.JButton saveTick;
+    private javax.swing.JButton search;
+    private javax.swing.JTextField searchBar;
     private javax.swing.JButton searchBtn;
     private javax.swing.JLabel searchBtnLabel;
     private javax.swing.JPanel searchTab;

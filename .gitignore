@@ -5,3 +5,7 @@
 /src/main/resources/commentaries/
 /nlser/
 /venv/
+/nlsVectors.json
+/nlsVectors.txt
+/build/
+src/main/resources/files/books/
