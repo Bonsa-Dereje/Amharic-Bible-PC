@@ -1770,12 +1770,16 @@ private void wrapper() {
         themer = new javax.swing.JLabel();
         spacer = new javax.swing.JButton();
         searchTabNoHistory = new javax.swing.JPanel();
+        searchBarNoHistory = new javax.swing.JTextField();
+        searchNoHistory = new javax.swing.JButton();
+        noSearchHistory = new javax.swing.JLabel();
+        nlsRadioNoHistory = new javax.swing.JRadioButton();
+        normalSearchNoHistory = new javax.swing.JRadioButton();
+        searchTabResults = new javax.swing.JPanel();
         searchBar = new javax.swing.JTextField();
         search = new javax.swing.JButton();
-        noSearchHistory = new javax.swing.JLabel();
         nlsRadio = new javax.swing.JRadioButton();
         normalSearch = new javax.swing.JRadioButton();
-        jPanel2 = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -6094,22 +6098,22 @@ private void wrapper() {
             }
         });
 
-        searchBar.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
-        searchBar.setForeground(new java.awt.Color(204, 204, 204));
-        searchBar.setText("Search for verses");
-        searchBar.addActionListener(new java.awt.event.ActionListener() {
+        searchBarNoHistory.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
+        searchBarNoHistory.setForeground(new java.awt.Color(204, 204, 204));
+        searchBarNoHistory.setText("Search for verses");
+        searchBarNoHistory.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                searchBarActionPerformed(evt);
+                searchBarNoHistoryActionPerformed(evt);
             }
         });
 
-        search.setBackground(new java.awt.Color(40, 43, 45));
-        search.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        search.setForeground(new java.awt.Color(255, 255, 255));
-        search.setText("Search");
-        search.addActionListener(new java.awt.event.ActionListener() {
+        searchNoHistory.setBackground(new java.awt.Color(40, 43, 45));
+        searchNoHistory.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        searchNoHistory.setForeground(new java.awt.Color(255, 255, 255));
+        searchNoHistory.setText("Search");
+        searchNoHistory.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                searchActionPerformed(evt);
+                searchNoHistoryActionPerformed(evt);
             }
         });
 
@@ -6117,11 +6121,11 @@ private void wrapper() {
         noSearchHistory.setForeground(new java.awt.Color(204, 204, 204));
         noSearchHistory.setText("No Search History");
 
-        nlsRadio.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        nlsRadio.setText("NL Search");
+        nlsRadioNoHistory.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        nlsRadioNoHistory.setText("NL Search");
 
-        normalSearch.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        normalSearch.setText("Normal Search");
+        normalSearchNoHistory.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        normalSearchNoHistory.setText("Normal Search");
 
         javax.swing.GroupLayout searchTabNoHistoryLayout = new javax.swing.GroupLayout(searchTabNoHistory);
         searchTabNoHistory.setLayout(searchTabNoHistoryLayout);
@@ -6129,17 +6133,17 @@ private void wrapper() {
             searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchTabNoHistoryLayout.createSequentialGroup()
                 .addGap(0, 373, Short.MAX_VALUE)
-                .addComponent(searchBar, javax.swing.GroupLayout.PREFERRED_SIZE, 705, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(searchBarNoHistory, javax.swing.GroupLayout.PREFERRED_SIZE, 705, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(search, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(searchNoHistory, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(368, 368, 368))
             .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
                 .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
                         .addGap(667, 667, 667)
-                        .addComponent(normalSearch)
+                        .addComponent(normalSearchNoHistory)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(nlsRadio))
+                        .addComponent(nlsRadioNoHistory))
                     .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
                         .addGap(707, 707, 707)
                         .addComponent(noSearchHistory)))
@@ -6150,49 +6154,112 @@ private void wrapper() {
             .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
                 .addGap(385, 385, 385)
                 .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(search, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(searchBar, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(searchNoHistory, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(searchBarNoHistory, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(normalSearch)
-                    .addComponent(nlsRadio))
+                    .addComponent(normalSearchNoHistory)
+                    .addComponent(nlsRadioNoHistory))
                 .addGap(176, 176, 176)
                 .addComponent(noSearchHistory)
                 .addContainerGap(309, Short.MAX_VALUE))
         );
 
-        searchBar.addFocusListener(new java.awt.event.FocusAdapter() {
+        searchBarNoHistory.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override
             public void focusGained(java.awt.event.FocusEvent evt) {
-                if (searchBar.getText().equals("Search for verses")) {
-                    searchBar.setText("");
-                    searchBar.setForeground(new java.awt.Color(0, 0, 0)); // optional: set text color to black
+                if (searchBarNoHistory.getText().equals("Search for verses")) {
+                    searchBarNoHistory.setText("");
+                    searchBarNoHistory.setForeground(new java.awt.Color(0, 0, 0)); // optional: set text color to black
                 }
             }
 
             @Override
             public void focusLost(java.awt.event.FocusEvent evt) {
-                if (searchBar.getText().trim().isEmpty()) {
-                    searchBar.setText("Search for verses");
-                    searchBar.setForeground(new java.awt.Color(204, 204, 204)); // gray placeholder color
+                if (searchBarNoHistory.getText().trim().isEmpty()) {
+                    searchBarNoHistory.setText("Search for verses");
+                    searchBarNoHistory.setForeground(new java.awt.Color(204, 204, 204)); // gray placeholder color
                 }
             }
         });
 
         tabs.addTab("Settings", searchTabNoHistory);
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1580, Short.MAX_VALUE)
+        searchBar.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
+        searchBar.setForeground(new java.awt.Color(204, 204, 204));
+        searchBar.setText("Search for verses");
+        searchBar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchBarActionPerformed(evt);
+            }
+        });
+
+        search.setBackground(new java.awt.Color(40, 43, 45));
+        search.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        search.setForeground(new java.awt.Color(255, 255, 255));
+        search.setText("Search");
+        search.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchActionPerformed(evt);
+            }
+        });
+
+        nlsRadio.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        nlsRadio.setText("NL Search");
+
+        normalSearch.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        normalSearch.setText("Normal Search");
+
+        javax.swing.GroupLayout searchTabResultsLayout = new javax.swing.GroupLayout(searchTabResults);
+        searchTabResults.setLayout(searchTabResultsLayout);
+        searchTabResultsLayout.setHorizontalGroup(
+            searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchTabResultsLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(searchBar, javax.swing.GroupLayout.PREFERRED_SIZE, 705, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(search, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(355, 355, 355))
+            .addGroup(searchTabResultsLayout.createSequentialGroup()
+                .addGap(652, 652, 652)
+                .addComponent(normalSearch)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nlsRadio)
+                .addContainerGap(730, Short.MAX_VALUE))
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 975, Short.MAX_VALUE)
+        searchTabResultsLayout.setVerticalGroup(
+            searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(searchTabResultsLayout.createSequentialGroup()
+                .addGap(75, 75, 75)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(search, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(searchBar))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(normalSearch)
+                    .addComponent(nlsRadio))
+                .addContainerGap(838, Short.MAX_VALUE))
         );
 
-        tabs.addTab("tab6", jPanel2);
+        searchBarNoHistory.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                if (searchBarNoHistory.getText().equals("Search for verses")) {
+                    searchBarNoHistory.setText("");
+                    searchBarNoHistory.setForeground(new java.awt.Color(0, 0, 0)); // optional: set text color to black
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                if (searchBarNoHistory.getText().trim().isEmpty()) {
+                    searchBarNoHistory.setText("Search for verses");
+                    searchBarNoHistory.setForeground(new java.awt.Color(204, 204, 204)); // gray placeholder color
+                }
+            }
+        });
+
+        tabs.addTab("tab6", searchTabResults);
 
         mainPanel_layered.add(tabs, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, -50, 1580, 1010));
         tabs.addChangeListener(e -> {
@@ -7328,12 +7395,20 @@ private void wrapper() {
         tabs.setSelectedIndex(4);
     }//GEN-LAST:event_searchBtnActionPerformed
 
+    private void searchBarNoHistoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBarNoHistoryActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_searchBarNoHistoryActionPerformed
+
+    private void searchNoHistoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchNoHistoryActionPerformed
+        tabs.setSelectedIndex(5);
+    }//GEN-LAST:event_searchNoHistoryActionPerformed
+
     private void searchBarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBarActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_searchBarActionPerformed
 
     private void searchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchActionPerformed
- 
+        // TODO add your handling code here:
     }//GEN-LAST:event_searchActionPerformed
 
     
@@ -7443,7 +7518,6 @@ private void wrapper() {
     private javax.swing.JLabel homeBtnLabel;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
-    private javax.swing.JPanel jPanel2;
     private javax.swing.JLabel jan;
     private javax.swing.JButton journalBtn;
     private javax.swing.JLabel jul;
@@ -7465,8 +7539,10 @@ private void wrapper() {
     private javax.swing.JButton mute;
     private javax.swing.JPanel navBar;
     private javax.swing.JRadioButton nlsRadio;
+    private javax.swing.JRadioButton nlsRadioNoHistory;
     private javax.swing.JLabel noSearchHistory;
     private javax.swing.JRadioButton normalSearch;
+    private javax.swing.JRadioButton normalSearchNoHistory;
     private javax.swing.JLabel notesBtnLabel;
     private javax.swing.JTextArea notesInput;
     private javax.swing.JLayeredPane notesTabLayers;
@@ -7483,9 +7559,12 @@ private void wrapper() {
     private javax.swing.JButton saveTick;
     private javax.swing.JButton search;
     private javax.swing.JTextField searchBar;
+    private javax.swing.JTextField searchBarNoHistory;
     private javax.swing.JButton searchBtn;
     private javax.swing.JLabel searchBtnLabel;
+    private javax.swing.JButton searchNoHistory;
     private javax.swing.JPanel searchTabNoHistory;
+    private javax.swing.JPanel searchTabResults;
     private javax.swing.JButton selectedBook;
     private javax.swing.JButton selectedBookUnderline1;
     private javax.swing.JButton selectedBookUnderline10;
