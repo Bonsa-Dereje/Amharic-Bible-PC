@@ -6,6 +6,7 @@ package com.ebma.bibleapp;
 
 import com.formdev.flatlaf.FlatLightLaf;
 
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -6140,7 +6141,7 @@ private void wrapper() {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(nlsRadio))
                     .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                        .addGap(705, 705, 705)
+                        .addGap(707, 707, 707)
                         .addComponent(noSearchHistory)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -6155,9 +6156,9 @@ private void wrapper() {
                 .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(normalSearch)
                     .addComponent(nlsRadio))
-                .addGap(128, 128, 128)
+                .addGap(176, 176, 176)
                 .addComponent(noSearchHistory)
-                .addContainerGap(357, Short.MAX_VALUE))
+                .addContainerGap(309, Short.MAX_VALUE))
         );
 
         searchBar.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -7332,59 +7333,7 @@ private void wrapper() {
     }//GEN-LAST:event_searchBarActionPerformed
 
     private void searchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchActionPerformed
-        if (!nlsRadio.isSelected()) {
-            //nlsResult.setText("Please select 'NL Search' first.");
-            return;
-        }
-
-        String query = searchBar.getText().trim();
-        if (query.isEmpty() || query.equals("Search for verses")) {
-            //nlsResult.setText("Please enter a search query.");
-            return;
-        }
-
-        new Thread(() -> {
-            try {
-                // -----------------------------
-                // Build relative path to exe
-                // -----------------------------
-                // Assuming nlSearch.exe is in a subfolder called "nlsEngine" next to your jar
-                String exePath = new File("nlsEngine/nlSearch.exe").getAbsolutePath();
-
-                // Number of matches to return
-                String numMatches = "10";
-
-                // Command to execute: [exe, query, num_matches]
-                ProcessBuilder pb = new ProcessBuilder(exePath, query, numMatches);
-                pb.redirectErrorStream(true);
-
-                // Start process
-                Process process = pb.start();
-
-                // Capture output
-                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                StringBuilder output = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    output.append(line).append("\n");
-                }
-
-                int exitCode = process.waitFor();
-
-                SwingUtilities.invokeLater(() -> {
-                    if (exitCode != 0) {
-                        //nlsResult.setText("Error running search engine:\n" + output.toString());
-                    } else {
-                        //nlsResult.setText(output.toString().trim());
-                    }
-                });
-
-            } catch (Exception e) {
-                SwingUtilities.invokeLater(() ->
-                    //nlsResult.setText("Error: " + e.getMessage())
-                );
-            }
-        }).start();
+ 
     }//GEN-LAST:event_searchActionPerformed
 
     

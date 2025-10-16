@@ -8984,7 +8984,7 @@
                                   <Component id="nlsRadio" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <Group type="102" alignment="0" attributes="0">
-                                  <EmptySpace min="-2" pref="705" max="-2" attributes="0"/>
+                                  <EmptySpace min="-2" pref="707" max="-2" attributes="0"/>
                                   <Component id="noSearchHistory" min="-2" max="-2" attributes="0"/>
                               </Group>
                           </Group>
@@ -9005,9 +9005,9 @@
                               <Component id="normalSearch" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="nlsRadio" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <EmptySpace min="-2" pref="128" max="-2" attributes="0"/>
+                          <EmptySpace min="-2" pref="176" max="-2" attributes="0"/>
                           <Component id="noSearchHistory" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace pref="357" max="32767" attributes="0"/>
+                          <EmptySpace pref="309" max="32767" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
