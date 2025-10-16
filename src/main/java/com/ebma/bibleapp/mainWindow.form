@@ -8956,7 +8956,7 @@
                 </Container>
               </SubComponents>
             </Container>
-            <Container class="javax.swing.JPanel" name="searchTab">
+            <Container class="javax.swing.JPanel" name="searchTabNoHistory">
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
                   <JTabbedPaneConstraints tabName="Settings">
@@ -8968,46 +8968,46 @@
               <Layout>
                 <DimensionLayout dim="0">
                   <Group type="103" groupAlignment="0" attributes="0">
+                      <Group type="102" alignment="1" attributes="0">
+                          <EmptySpace min="0" pref="373" max="32767" attributes="0"/>
+                          <Component id="searchBar" min="-2" pref="705" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="search" min="-2" pref="128" max="-2" attributes="0"/>
+                          <EmptySpace min="-2" pref="368" max="-2" attributes="0"/>
+                      </Group>
                       <Group type="102" attributes="0">
                           <Group type="103" groupAlignment="0" attributes="0">
-                              <Group type="102" alignment="0" attributes="0">
-                                  <EmptySpace min="-2" pref="463" max="-2" attributes="0"/>
-                                  <Component id="searchBar" min="-2" pref="523" max="-2" attributes="0"/>
+                              <Group type="102" attributes="0">
+                                  <EmptySpace min="-2" pref="667" max="-2" attributes="0"/>
+                                  <Component id="normalSearch" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
-                                  <Component id="search" min="-2" pref="89" max="-2" attributes="0"/>
-                              </Group>
-                              <Group type="102" alignment="0" attributes="0">
-                                  <EmptySpace min="-2" pref="695" max="-2" attributes="0"/>
-                                  <Component id="noSearchHistory" min="-2" max="-2" attributes="0"/>
-                              </Group>
-                              <Group type="102" alignment="0" attributes="0">
-                                  <EmptySpace min="-2" pref="714" max="-2" attributes="0"/>
                                   <Component id="nlsRadio" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <Group type="102" alignment="0" attributes="0">
-                                  <EmptySpace min="-2" pref="198" max="-2" attributes="0"/>
-                                  <Component id="nlsResult" min="-2" pref="1158" max="-2" attributes="0"/>
+                                  <EmptySpace min="-2" pref="705" max="-2" attributes="0"/>
+                                  <Component id="noSearchHistory" min="-2" max="-2" attributes="0"/>
                               </Group>
                           </Group>
-                          <EmptySpace pref="224" max="32767" attributes="0"/>
+                          <EmptySpace max="32767" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
                 <DimensionLayout dim="1">
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="0" attributes="0">
-                          <EmptySpace min="-2" pref="122" max="-2" attributes="0"/>
+                          <EmptySpace min="-2" pref="385" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                              <Component id="searchBar" min="-2" pref="30" max="-2" attributes="0"/>
-                              <Component id="search" min="-2" pref="30" max="-2" attributes="0"/>
+                              <Component id="search" max="32767" attributes="0"/>
+                              <Component id="searchBar" min="-2" pref="49" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="nlsRadio" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace min="-2" pref="274" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="normalSearch" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="nlsRadio" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace min="-2" pref="128" max="-2" attributes="0"/>
                           <Component id="noSearchHistory" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace type="separate" max="-2" attributes="0"/>
-                          <Component id="nlsResult" min="-2" pref="286" max="-2" attributes="0"/>
-                          <EmptySpace pref="189" max="32767" attributes="0"/>
+                          <EmptySpace pref="357" max="32767" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
@@ -9019,13 +9019,16 @@
                       <Font name="Nokia Pure Headline Ultra Light" size="18" style="0"/>
                     </Property>
                     <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                      <Color blue="99" green="99" red="99" type="rgb"/>
+                      <Color blue="cc" green="cc" red="cc" type="rgb"/>
                     </Property>
                     <Property name="text" type="java.lang.String" value="Search for verses"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="searchBarActionPerformed"/>
                   </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="searchBar.addFocusListener(new java.awt.event.FocusAdapter() {&#xa;    @Override&#xa;    public void focusGained(java.awt.event.FocusEvent evt) {&#xa;        if (searchBar.getText().equals(&quot;Search for verses&quot;)) {&#xa;            searchBar.setText(&quot;&quot;);&#xa;            searchBar.setForeground(new java.awt.Color(0, 0, 0)); // optional: set text color to black&#xa;        }&#xa;    }&#xa;&#xa;    @Override&#xa;    public void focusLost(java.awt.event.FocusEvent evt) {&#xa;        if (searchBar.getText().trim().isEmpty()) {&#xa;            searchBar.setText(&quot;Search for verses&quot;);&#xa;            searchBar.setForeground(new java.awt.Color(204, 204, 204)); // gray placeholder color&#xa;        }&#xa;    }&#xa;});"/>
+                  </AuxValues>
                 </Component>
                 <Component class="javax.swing.JButton" name="search">
                   <Properties>
@@ -9033,7 +9036,7 @@
                       <Color blue="2d" green="2b" red="28" type="rgb"/>
                     </Property>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                      <Font name="Segoe UI" size="14" style="0"/>
+                      <Font name="Segoe UI" size="18" style="0"/>
                     </Property>
                     <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                       <Color blue="ff" green="ff" red="ff" type="rgb"/>
@@ -9063,11 +9066,12 @@
                     <Property name="text" type="java.lang.String" value="NL Search"/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JTextField" name="nlsResult">
+                <Component class="javax.swing.JRadioButton" name="normalSearch">
                   <Properties>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Nokia Pure Headline Ultra Light" size="14" style="0"/>
                     </Property>
+                    <Property name="text" type="java.lang.String" value="Normal Search"/>
                   </Properties>
                 </Component>
               </SubComponents>
