@@ -202,6 +202,7 @@ public class mainWindow extends javax.swing.JFrame {
     private boolean firstLoad = true;
     
     private boolean nlsOn = false;
+    //private boolean iconEnabled = true; 
     
     
     
@@ -1786,8 +1787,63 @@ private void wrapper() {
         search = new javax.swing.JButton();
         nlsRadio = new javax.swing.JRadioButton();
         normalSearch = new javax.swing.JRadioButton();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        searchResult = new javax.swing.JEditorPane();
+        scroll1 = new javax.swing.JScrollPane();
+        searchResult1 = new javax.swing.JEditorPane();
+        matchRate1 = new javax.swing.JLabel();
+        goto1 = new javax.swing.JButton();
+        scroll2 = new javax.swing.JScrollPane();
+        searchResult2 = new javax.swing.JEditorPane();
+        matchRate2 = new javax.swing.JLabel();
+        goto2 = new javax.swing.JButton();
+        goto3 = new javax.swing.JButton();
+        scroll3 = new javax.swing.JScrollPane();
+        searchResult3 = new javax.swing.JEditorPane();
+        matchRate3 = new javax.swing.JLabel();
+        goto4 = new javax.swing.JButton();
+        matchRate4 = new javax.swing.JLabel();
+        scroll4 = new javax.swing.JScrollPane();
+        searchResult4 = new javax.swing.JEditorPane();
+        goto5 = new javax.swing.JButton();
+        matchRate5 = new javax.swing.JLabel();
+        scroll5 = new javax.swing.JScrollPane();
+        searchResult5 = new javax.swing.JEditorPane();
+        scroll6 = new javax.swing.JScrollPane();
+        searchResult6 = new javax.swing.JEditorPane();
+        matchRate6 = new javax.swing.JLabel();
+        goto6 = new javax.swing.JButton();
+        scroll7 = new javax.swing.JScrollPane();
+        searchResult7 = new javax.swing.JEditorPane();
+        matchRate7 = new javax.swing.JLabel();
+        goto7 = new javax.swing.JButton();
+        goto8 = new javax.swing.JButton();
+        scroll8 = new javax.swing.JScrollPane();
+        searchResult8 = new javax.swing.JEditorPane();
+        matchRate8 = new javax.swing.JLabel();
+        goto9 = new javax.swing.JButton();
+        matchRate9 = new javax.swing.JLabel();
+        scroll9 = new javax.swing.JScrollPane();
+        searchResult9 = new javax.swing.JEditorPane();
+        goto10 = new javax.swing.JButton();
+        matchRate10 = new javax.swing.JLabel();
+        scroll10 = new javax.swing.JScrollPane();
+        searchResult10 = new javax.swing.JEditorPane();
+        scroll11 = new javax.swing.JScrollPane();
+        searchResult11 = new javax.swing.JEditorPane();
+        matchRate11 = new javax.swing.JLabel();
+        goto11 = new javax.swing.JButton();
+        scroll12 = new javax.swing.JScrollPane();
+        searchResult12 = new javax.swing.JEditorPane();
+        matchRate12 = new javax.swing.JLabel();
+        goto12 = new javax.swing.JButton();
+        goto13 = new javax.swing.JButton();
+        scroll13 = new javax.swing.JScrollPane();
+        searchResult13 = new javax.swing.JEditorPane();
+        matchRate13 = new javax.swing.JLabel();
+        goto14 = new javax.swing.JButton();
+        matchRate14 = new javax.swing.JLabel();
+        scroll14 = new javax.swing.JScrollPane();
+        searchResult14 = new javax.swing.JEditorPane();
+        showMore = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -6245,44 +6301,365 @@ private void wrapper() {
         normalSearch.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         normalSearch.setText("Normal Search");
 
-        searchResult.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        jScrollPane3.setViewportView(searchResult);
+        searchResult1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        searchResult1.setFocusable(false);
+        scroll1.setViewportView(searchResult1);
+
+        matchRate1.setBackground(new java.awt.Color(255, 255, 255));
+        matchRate1.setOpaque(true);
+
+        goto1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
+        goto1.setBorderPainted(false);
+        goto1.setContentAreaFilled(false);
+
+        searchResult2.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        searchResult2.setFocusable(false);
+        scroll2.setViewportView(searchResult2);
+
+        matchRate2.setBackground(new java.awt.Color(255, 255, 255));
+        matchRate2.setOpaque(true);
+
+        goto2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
+        goto2.setBorderPainted(false);
+        goto2.setContentAreaFilled(false);
+
+        goto3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
+        goto3.setBorderPainted(false);
+        goto3.setContentAreaFilled(false);
+
+        searchResult3.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        searchResult3.setFocusable(false);
+        scroll3.setViewportView(searchResult3);
+
+        matchRate3.setBackground(new java.awt.Color(255, 255, 255));
+        matchRate3.setOpaque(true);
+
+        goto4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
+        goto4.setBorderPainted(false);
+        goto4.setContentAreaFilled(false);
+
+        matchRate4.setBackground(new java.awt.Color(255, 255, 255));
+        matchRate4.setOpaque(true);
+
+        searchResult4.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        searchResult4.setFocusable(false);
+        scroll4.setViewportView(searchResult4);
+
+        goto5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
+        goto5.setBorderPainted(false);
+        goto5.setContentAreaFilled(false);
+
+        matchRate5.setBackground(new java.awt.Color(255, 255, 255));
+        matchRate5.setOpaque(true);
+
+        searchResult5.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        searchResult5.setFocusable(false);
+        scroll5.setViewportView(searchResult5);
+
+        searchResult6.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        searchResult6.setFocusable(false);
+        scroll6.setViewportView(searchResult6);
+
+        matchRate6.setBackground(new java.awt.Color(255, 255, 255));
+        matchRate6.setOpaque(true);
+
+        goto6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
+        goto6.setBorderPainted(false);
+        goto6.setContentAreaFilled(false);
+
+        searchResult7.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        searchResult7.setFocusable(false);
+        scroll7.setViewportView(searchResult7);
+
+        matchRate7.setBackground(new java.awt.Color(255, 255, 255));
+        matchRate7.setOpaque(true);
+
+        goto7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
+        goto7.setBorderPainted(false);
+        goto7.setContentAreaFilled(false);
+
+        goto8.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
+        goto8.setBorderPainted(false);
+        goto8.setContentAreaFilled(false);
+
+        searchResult8.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        searchResult8.setFocusable(false);
+        scroll8.setViewportView(searchResult8);
+
+        matchRate8.setBackground(new java.awt.Color(255, 255, 255));
+        matchRate8.setOpaque(true);
+
+        goto9.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
+        goto9.setBorderPainted(false);
+        goto9.setContentAreaFilled(false);
+
+        matchRate9.setBackground(new java.awt.Color(255, 255, 255));
+        matchRate9.setOpaque(true);
+
+        searchResult9.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        searchResult9.setFocusable(false);
+        scroll9.setViewportView(searchResult9);
+
+        goto10.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
+        goto10.setBorderPainted(false);
+        goto10.setContentAreaFilled(false);
+
+        matchRate10.setBackground(new java.awt.Color(255, 255, 255));
+        matchRate10.setOpaque(true);
+
+        searchResult10.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        searchResult10.setFocusable(false);
+        scroll10.setViewportView(searchResult10);
+
+        searchResult11.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        searchResult11.setFocusable(false);
+        scroll11.setViewportView(searchResult11);
+
+        matchRate11.setBackground(new java.awt.Color(255, 255, 255));
+        matchRate11.setOpaque(true);
+
+        goto11.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
+        goto11.setBorderPainted(false);
+        goto11.setContentAreaFilled(false);
+
+        searchResult12.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        searchResult12.setFocusable(false);
+        scroll12.setViewportView(searchResult12);
+
+        matchRate12.setBackground(new java.awt.Color(255, 255, 255));
+        matchRate12.setOpaque(true);
+
+        goto12.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
+        goto12.setBorderPainted(false);
+        goto12.setContentAreaFilled(false);
+
+        goto13.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
+        goto13.setBorderPainted(false);
+        goto13.setContentAreaFilled(false);
+
+        searchResult13.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        searchResult13.setFocusable(false);
+        scroll13.setViewportView(searchResult13);
+
+        matchRate13.setBackground(new java.awt.Color(255, 255, 255));
+        matchRate13.setOpaque(true);
+
+        goto14.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
+        goto14.setBorderPainted(false);
+        goto14.setContentAreaFilled(false);
+
+        matchRate14.setBackground(new java.awt.Color(255, 255, 255));
+        matchRate14.setOpaque(true);
+
+        searchResult14.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        searchResult14.setFocusable(false);
+        scroll14.setViewportView(searchResult14);
+
+        showMore.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        showMore.setIcon(new javax.swing.ImageIcon(getClass().getResource("/animatedIcons/loading30.gif"))); // NOI18N
+        showMore.setText("Show More");
+        showMore.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showMoreActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout searchTabResultsLayout = new javax.swing.GroupLayout(searchTabResults);
         searchTabResults.setLayout(searchTabResultsLayout);
         searchTabResultsLayout.setHorizontalGroup(
             searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(searchTabResultsLayout.createSequentialGroup()
-                .addGap(652, 652, 652)
-                .addComponent(normalSearch)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(nlsRadio)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchTabResultsLayout.createSequentialGroup()
-                .addGap(0, 115, Short.MAX_VALUE)
+                .addGap(69, 69, 69)
                 .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(searchTabResultsLayout.createSequentialGroup()
-                        .addGap(271, 271, 271)
-                        .addComponent(searchBar, javax.swing.GroupLayout.PREFERRED_SIZE, 705, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(matchRate14, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(search, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(121, 121, 121))
+                        .addComponent(scroll14, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(goto14, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(searchTabResultsLayout.createSequentialGroup()
+                        .addComponent(matchRate13, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(scroll13, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(goto13, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(searchTabResultsLayout.createSequentialGroup()
+                        .addComponent(matchRate12, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(scroll12, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(goto12, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(searchTabResultsLayout.createSequentialGroup()
+                        .addComponent(matchRate11, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(scroll11, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(goto11, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(searchTabResultsLayout.createSequentialGroup()
+                        .addComponent(matchRate10, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(scroll10, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(goto10, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(searchTabResultsLayout.createSequentialGroup()
+                        .addComponent(matchRate9, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(scroll9, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(goto9, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(searchTabResultsLayout.createSequentialGroup()
+                        .addComponent(matchRate8, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(scroll8, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(goto8, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(searchTabResultsLayout.createSequentialGroup()
+                        .addComponent(matchRate7, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(scroll7, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(goto7, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(searchTabResultsLayout.createSequentialGroup()
+                        .addComponent(matchRate6, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(scroll6, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(goto6, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(searchTabResultsLayout.createSequentialGroup()
+                        .addComponent(matchRate5, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(scroll5, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(goto5, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(searchTabResultsLayout.createSequentialGroup()
+                        .addComponent(matchRate4, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(scroll4, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(goto4, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(searchTabResultsLayout.createSequentialGroup()
+                        .addComponent(matchRate3, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(scroll3, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(goto3, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(searchTabResultsLayout.createSequentialGroup()
+                        .addComponent(matchRate2, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(scroll2, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(goto2, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(searchTabResultsLayout.createSequentialGroup()
+                        .addComponent(matchRate1, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(scroll1, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(goto1, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(70, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchTabResultsLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchTabResultsLayout.createSequentialGroup()
+                        .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(searchTabResultsLayout.createSequentialGroup()
+                                .addGap(266, 266, 266)
+                                .addComponent(normalSearch)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(nlsRadio)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 375, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchTabResultsLayout.createSequentialGroup()
+                                .addComponent(searchBar, javax.swing.GroupLayout.PREFERRED_SIZE, 705, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(search, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(357, 357, 357))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchTabResultsLayout.createSequentialGroup()
+                        .addComponent(showMore)
+                        .addGap(722, 722, 722))))
         );
         searchTabResultsLayout.setVerticalGroup(
             searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(searchTabResultsLayout.createSequentialGroup()
-                .addGap(75, 75, 75)
+                .addGap(92, 92, 92)
                 .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(search, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(searchBar))
+                    .addComponent(searchBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(normalSearch)
                     .addComponent(nlsRadio))
-                .addGap(36, 36, 36)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 674, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(128, Short.MAX_VALUE))
+                .addGap(26, 26, 26)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(scroll1, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(matchRate1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(goto1))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(scroll2, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(matchRate2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(goto2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(scroll3, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(matchRate3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(goto3))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(scroll4, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(matchRate4, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(goto4))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(scroll5, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(matchRate5, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(goto5))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(scroll6, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(matchRate6, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(goto6))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(scroll7, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(matchRate7, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(goto7))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(scroll8, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(matchRate8, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(goto8))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(scroll9, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(matchRate9, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(goto9))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(scroll10, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(matchRate10, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(goto10))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(scroll11, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(matchRate11, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(goto11))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(scroll12, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(matchRate12, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(goto12))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(scroll13, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(matchRate13, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(goto13))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(scroll14, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(matchRate14, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(goto14))
+                .addGap(18, 18, 18)
+                .addComponent(showMore)
+                .addContainerGap(66, Short.MAX_VALUE))
         );
 
         searchBarNoHistory.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -7446,72 +7823,138 @@ private void wrapper() {
     private void searchNoHistoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchNoHistoryActionPerformed
         //if(nlsOn) {
             // Show loading indicator
-            loading30BW.setVisible(true);
+        loading30BW.setVisible(true);
 
-            // Get the user's query
-            String query = searchBarNoHistory.getText().trim();
-            if (query.isEmpty() || query.equals("Search for verses")) {
-                searchResult.setText("Please enter a search query.");
-                loading30BW.setVisible(false);
-                return;
+        String query = searchBarNoHistory.getText().trim();
+        if (query.isEmpty() || query.equals("Search for verses")) {
+            loading30BW.setVisible(false);
+            return;
+        }
+
+        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                // Call exe with query and request 14 results
+                ProcessBuilder pb = new ProcessBuilder(
+                        "C:\\Users\\boni\\Desktop\\Files\\Projects\\BibleApp\\nlsEngine\\nlSearch.exe",
+                        query,
+                        "14"
+                );
+                pb.redirectErrorStream(true);
+                Process process = pb.start();
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                List<String> results = new ArrayList<>();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    results.add(line.trim());
+                }
+                process.waitFor();
+
+                // Arrays of editor panes and match rate labels
+                JEditorPane[] resultPanes = {searchResult1, searchResult2, searchResult3, searchResult4,
+                                             searchResult5, searchResult6, searchResult7, searchResult8,
+                                             searchResult9, searchResult10, searchResult11, searchResult12,
+                                             searchResult13, searchResult14};
+
+                JLabel[] matchLabels = {matchRate1, matchRate2, matchRate3, matchRate4,
+                                        matchRate5, matchRate6, matchRate7, matchRate8,
+                                        matchRate9, matchRate10, matchRate11, matchRate12,
+                                        matchRate13, matchRate14};
+
+                // Clear previous content
+                for (int i = 0; i < 14; i++) {
+                    resultPanes[i].setText("");
+                    matchLabels[i].setText("");
+                }
+
+                // Process each line from the exe
+                for (String raw : results) {
+                    // Extract leading number
+                    int dotIndex = raw.indexOf('.');
+                    if (dotIndex == -1) continue;
+
+                    int resultIndex;
+                    try {
+                        resultIndex = Integer.parseInt(raw.substring(0, dotIndex).trim()) - 1;
+                    } catch (NumberFormatException e) {
+                        continue;
+                    }
+                    if (resultIndex < 0 || resultIndex >= 14) continue;
+
+                    // Extract score
+                    double score = 0.0;
+                    int scoreIndex = raw.lastIndexOf("(score:");
+                    if (scoreIndex != -1) {
+                        String scoreStr = raw.substring(scoreIndex + 7).replace(")", "").trim();
+                        try { score = Double.parseDouble(scoreStr); } catch (NumberFormatException ignored) {}
+                        raw = raw.substring(dotIndex + 1, scoreIndex).trim();
+                    } else {
+                        raw = raw.substring(dotIndex + 1).trim();
+                    }
+
+                    // Split at "—" or "-" for formatting
+                    int dashIndex = raw.indexOf("—");
+                    if (dashIndex == -1) dashIndex = raw.indexOf("-");
+
+                    String textHtml;
+                    if (dashIndex != -1) {
+                        String beforeDash = raw.substring(0, dashIndex).trim();
+                        String afterDash = raw.substring(dashIndex + 1).trim();
+
+                        // Bold the part between first underscore and the end
+                        int underscoreIndex = beforeDash.indexOf('_');
+                        String startPart = beforeDash;
+                        String boldPart = "";
+                        if (underscoreIndex != -1 && underscoreIndex + 1 < beforeDash.length()) {
+                            startPart = beforeDash.substring(0, underscoreIndex + 1);
+                            boldPart = beforeDash.substring(underscoreIndex + 1);
+                        }
+
+                        textHtml = "<html><body style='font-family:\"Nokia Pure Headline Ultra Light\", sans-serif; font-size:14px; font-weight:100; line-height:1.4; color:#222;'>"
+                                + startPart + "<b>" + boldPart + "</b> - " + afterDash
+                                + "</body></html>";
+                    } else {
+                        textHtml = "<html><body style='font-family:\"Nokia Pure Headline Ultra Light\", sans-serif; font-size:14px; font-weight:100; line-height:1.4; color:#222;'>"
+                                + raw + "</body></html>";
+                    }
+
+                    // Set editor pane
+                    resultPanes[resultIndex].setContentType("text/html");
+                    resultPanes[resultIndex].setText(textHtml);
+                    resultPanes[resultIndex].setCaretPosition(0);
+
+                    // Set match rate label
+                    matchLabels[resultIndex].setText(String.format("%.0f%%", score * 100));
+                    matchLabels[resultIndex].setOpaque(true);
+                    matchLabels[resultIndex].setBackground(getScoreColor(score));
+                    matchLabels[resultIndex].setHorizontalAlignment(SwingConstants.CENTER);
+                    matchLabels[resultIndex].setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 12));
+                }
+
+                return null;
             }
 
-            // Ensure the editor pane is set up for HTML
-            searchResult.setContentType("text/html");
-            searchResult.setText("<html><i>Searching...</i></html>");
+            @Override
+            protected void done() {
+                tabs.setSelectedIndex(5);
+                loading30BW.setVisible(false);
+            }
+        };
 
-            // Run the search in a background thread
-            SwingWorker<String, Void> worker = new SwingWorker<>() {
-                @Override
-                protected String doInBackground() throws Exception {
-                    // Run the external exe
-                    ProcessBuilder pb = new ProcessBuilder("nlsEngine/nlSearch.exe", query);
-                    pb.redirectErrorStream(true);
-                    Process process = pb.start();
+        worker.execute();
+    }
 
-                    // Read its output
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                    StringBuilder output = new StringBuilder();
-                    String line;
+    // Color gradient: start green [86,211,100], fade to pink
+    private Color getScoreColor(double score) {
+        int startR = 86, startG = 211, startB = 100; // top score green
+        int endR = 255, endG = 150, endB = 150;      // low score pinkish
 
-                    while ((line = reader.readLine()) != null) {
-                        // Format each result with spacing and divider
-                        output.append("<div style='margin-bottom:8px;'>")
-                              .append(line)
-                              .append("</div>");
-                    }
+        int r = (int) (endR + (startR - endR) * score);
+        int g = (int) (endG + (startG - endG) * score);
+        int b = (int) (endB + (startB - endB) * score);
 
-                    process.waitFor();
-
-                    if (output.length() == 0) {
-                        return "<html><body>No results found.</body></html>";
-                    }
-
-                    // Return full HTML string with Nokia Pure Headline Ultra Light, size 14
-                    return """
-                        <html>
-                        <body style='font-family:\"Nokia Pure Headline Ultra Light\", sans-serif; font-size:14px; font-weight:100; line-height:1.6; color:#222;'>
-                        """ + output.toString() + "</body></html>";
-                }
-
-                @Override
-                protected void done() {
-                    try {
-                        // Switch to result tab and show results
-                        tabs.setSelectedIndex(5);
-                        String htmlResult = get(); // gets the HTML returned above
-                        searchResult.setText(htmlResult);
-                        searchResult.setCaretPosition(0); // scroll to top
-                    } catch (Exception e) {
-                        searchResult.setText("<html><body>Error running search:<br>" + e.getMessage() + "</body></html>");
-                        e.printStackTrace();
-                    } finally {
-                        loading30BW.setVisible(false);
-                    }
-                }
-            };
-
-            worker.execute();
+        return new Color(Math.min(255, r), Math.min(255, g), Math.min(255, b));
         //}
     }//GEN-LAST:event_searchNoHistoryActionPerformed
 
@@ -7526,6 +7969,10 @@ private void wrapper() {
     private void nlsRadioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nlsRadioActionPerformed
        nlsOn= true;
     }//GEN-LAST:event_nlsRadioActionPerformed
+
+    private void showMoreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showMoreActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_showMoreActionPerformed
 
     
    
@@ -7629,13 +8076,26 @@ private void wrapper() {
     private javax.swing.JButton eyeShow;
     private javax.swing.JLabel feb;
     private javax.swing.JSlider fontSizeSlider;
+    private javax.swing.JButton goto1;
+    private javax.swing.JButton goto10;
+    private javax.swing.JButton goto11;
+    private javax.swing.JButton goto12;
+    private javax.swing.JButton goto13;
+    private javax.swing.JButton goto14;
+    private javax.swing.JButton goto2;
+    private javax.swing.JButton goto3;
+    private javax.swing.JButton goto4;
+    private javax.swing.JButton goto5;
+    private javax.swing.JButton goto6;
+    private javax.swing.JButton goto7;
+    private javax.swing.JButton goto8;
+    private javax.swing.JButton goto9;
     private javax.swing.JButton highlightBtn;
     private javax.swing.JButton homeBtn;
     private javax.swing.JLabel homeBtnLabel;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
     private javax.swing.JButton jButton1;
-    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JLabel jan;
     private javax.swing.JButton journalBtn;
     private javax.swing.JLabel jul;
@@ -7653,6 +8113,20 @@ private void wrapper() {
     private javax.swing.JTextArea mainTextArea;
     private javax.swing.JScrollPane mainTextScrollPanel;
     private javax.swing.JLabel mar;
+    private javax.swing.JLabel matchRate1;
+    private javax.swing.JLabel matchRate10;
+    private javax.swing.JLabel matchRate11;
+    private javax.swing.JLabel matchRate12;
+    private javax.swing.JLabel matchRate13;
+    private javax.swing.JLabel matchRate14;
+    private javax.swing.JLabel matchRate2;
+    private javax.swing.JLabel matchRate3;
+    private javax.swing.JLabel matchRate4;
+    private javax.swing.JLabel matchRate5;
+    private javax.swing.JLabel matchRate6;
+    private javax.swing.JLabel matchRate7;
+    private javax.swing.JLabel matchRate8;
+    private javax.swing.JLabel matchRate9;
     private javax.swing.JLabel may;
     private javax.swing.JButton minimizeBtn;
     private javax.swing.JButton mute;
@@ -7676,6 +8150,20 @@ private void wrapper() {
     private javax.swing.JButton restoreBtn;
     private javax.swing.JButton saveNote;
     private javax.swing.JButton saveTick;
+    private javax.swing.JScrollPane scroll1;
+    private javax.swing.JScrollPane scroll10;
+    private javax.swing.JScrollPane scroll11;
+    private javax.swing.JScrollPane scroll12;
+    private javax.swing.JScrollPane scroll13;
+    private javax.swing.JScrollPane scroll14;
+    private javax.swing.JScrollPane scroll2;
+    private javax.swing.JScrollPane scroll3;
+    private javax.swing.JScrollPane scroll4;
+    private javax.swing.JScrollPane scroll5;
+    private javax.swing.JScrollPane scroll6;
+    private javax.swing.JScrollPane scroll7;
+    private javax.swing.JScrollPane scroll8;
+    private javax.swing.JScrollPane scroll9;
     private javax.swing.JButton search;
     private javax.swing.JTextField searchBar;
     private javax.swing.JTextField searchBarNoHistory;
@@ -7683,7 +8171,20 @@ private void wrapper() {
     private javax.swing.JLabel searchBtnLabel;
     private javax.swing.JButton searchNoHistory;
     private javax.swing.JPanel searchNoHistoryPanel;
-    private javax.swing.JEditorPane searchResult;
+    private javax.swing.JEditorPane searchResult1;
+    private javax.swing.JEditorPane searchResult10;
+    private javax.swing.JEditorPane searchResult11;
+    private javax.swing.JEditorPane searchResult12;
+    private javax.swing.JEditorPane searchResult13;
+    private javax.swing.JEditorPane searchResult14;
+    private javax.swing.JEditorPane searchResult2;
+    private javax.swing.JEditorPane searchResult3;
+    private javax.swing.JEditorPane searchResult4;
+    private javax.swing.JEditorPane searchResult5;
+    private javax.swing.JEditorPane searchResult6;
+    private javax.swing.JEditorPane searchResult7;
+    private javax.swing.JEditorPane searchResult8;
+    private javax.swing.JEditorPane searchResult9;
     private javax.swing.JPanel searchTabNoHistory;
     private javax.swing.JPanel searchTabResults;
     private javax.swing.JButton selectedBook;
@@ -7703,6 +8204,7 @@ private void wrapper() {
     private javax.swing.JLabel sep2;
     private javax.swing.JButton settingsBtn;
     private javax.swing.JLabel settingsLabel;
+    private javax.swing.JButton showMore;
     private javax.swing.JButton spacer;
     private javax.swing.JLabel statusDay1;
     private javax.swing.JLabel statusDay10;
