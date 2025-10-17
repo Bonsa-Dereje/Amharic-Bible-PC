@@ -201,6 +201,8 @@ public class mainWindow extends javax.swing.JFrame {
     
     private boolean firstLoad = true;
     
+    private boolean nlsOn = false;
+    
     
     
     public mainWindow() {
@@ -1784,7 +1786,8 @@ private void wrapper() {
         search = new javax.swing.JButton();
         nlsRadio = new javax.swing.JRadioButton();
         normalSearch = new javax.swing.JRadioButton();
-        searchResult = new javax.swing.JTextField();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        searchResult = new javax.swing.JEditorPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -6214,6 +6217,7 @@ private void wrapper() {
         searchBar.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
         searchBar.setForeground(new java.awt.Color(204, 204, 204));
         searchBar.setText("Search for verses");
+        searchBar.setFocusable(false);
         searchBar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 searchBarActionPerformed(evt);
@@ -6232,22 +6236,22 @@ private void wrapper() {
 
         nlsRadio.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         nlsRadio.setText("NL Search");
+        nlsRadio.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nlsRadioActionPerformed(evt);
+            }
+        });
 
         normalSearch.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         normalSearch.setText("Normal Search");
 
-        searchResult.setFocusable(false);
+        searchResult.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        jScrollPane3.setViewportView(searchResult);
 
         javax.swing.GroupLayout searchTabResultsLayout = new javax.swing.GroupLayout(searchTabResults);
         searchTabResults.setLayout(searchTabResultsLayout);
         searchTabResultsLayout.setHorizontalGroup(
             searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchTabResultsLayout.createSequentialGroup()
-                .addGap(0, 386, Short.MAX_VALUE)
-                .addComponent(searchBar, javax.swing.GroupLayout.PREFERRED_SIZE, 705, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(search, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(355, 355, 355))
             .addGroup(searchTabResultsLayout.createSequentialGroup()
                 .addGap(652, 652, 652)
                 .addComponent(normalSearch)
@@ -6255,8 +6259,14 @@ private void wrapper() {
                 .addComponent(nlsRadio)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchTabResultsLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(searchResult, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 115, Short.MAX_VALUE)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(searchTabResultsLayout.createSequentialGroup()
+                        .addGap(271, 271, 271)
+                        .addComponent(searchBar, javax.swing.GroupLayout.PREFERRED_SIZE, 705, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(search, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(121, 121, 121))
         );
         searchTabResultsLayout.setVerticalGroup(
@@ -6271,8 +6281,8 @@ private void wrapper() {
                     .addComponent(normalSearch)
                     .addComponent(nlsRadio))
                 .addGap(36, 36, 36)
-                .addComponent(searchResult, javax.swing.GroupLayout.PREFERRED_SIZE, 668, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(134, Short.MAX_VALUE))
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 674, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(128, Short.MAX_VALUE))
         );
 
         searchBarNoHistory.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -7434,59 +7444,75 @@ private void wrapper() {
     }//GEN-LAST:event_searchBarNoHistoryActionPerformed
 
     private void searchNoHistoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchNoHistoryActionPerformed
-        loading30BW.setVisible(true);
+        //if(nlsOn) {
+            // Show loading indicator
+            loading30BW.setVisible(true);
 
-        // Get the user's query
-        String query = searchBarNoHistory.getText().trim();
-        if (query.isEmpty() || query.equals("Search for verses")) {
-            searchResult.setText("Please enter a search query.");
-            loading30BW.setVisible(false);
-            return;
-        }
-
-        // Run the search in a background thread
-        SwingWorker<String, Void> worker = new SwingWorker<>() {
-            @Override
-            protected String doInBackground() throws Exception {
-                // Call external exe
-                ProcessBuilder pb = new ProcessBuilder("nlsEngine/nlSearch.exe", query);
-                pb.redirectErrorStream(true);
-                Process process = pb.start();
-
-                // Read output
-                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                StringBuilder output = new StringBuilder();
-                String line;
-                int count = 0;
-
-                while ((line = reader.readLine()) != null && count < 5) {
-                    output.append(line).append("<br>");
-                    count++;
-                }
-
-                process.waitFor();
-                return "<html>" + output.toString() + "</html>";
+            // Get the user's query
+            String query = searchBarNoHistory.getText().trim();
+            if (query.isEmpty() || query.equals("Search for verses")) {
+                searchResult.setText("Please enter a search query.");
+                loading30BW.setVisible(false);
+                return;
             }
 
-            @Override
-            protected void done() {
-                try {
-                    // Switch to result tab and display output
-                    tabs.setSelectedIndex(5);
-                    String htmlResult = get(); // get() retrieves doInBackground() return value
-                    searchResult.setText(htmlResult);
-                } catch (Exception e) {
-                    searchResult.setText("Error running search: " + e.getMessage());
-                    e.printStackTrace();
-                } finally {
-                    // Hide loading icon
-                    loading30BW.setVisible(false);
-                }
-            }
-        };
+            // Ensure the editor pane is set up for HTML
+            searchResult.setContentType("text/html");
+            searchResult.setText("<html><i>Searching...</i></html>");
 
-        // Start the worker
-        worker.execute();
+            // Run the search in a background thread
+            SwingWorker<String, Void> worker = new SwingWorker<>() {
+                @Override
+                protected String doInBackground() throws Exception {
+                    // Run the external exe
+                    ProcessBuilder pb = new ProcessBuilder("nlsEngine/nlSearch.exe", query);
+                    pb.redirectErrorStream(true);
+                    Process process = pb.start();
+
+                    // Read its output
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                    StringBuilder output = new StringBuilder();
+                    String line;
+
+                    while ((line = reader.readLine()) != null) {
+                        // Format each result with spacing and divider
+                        output.append("<div style='margin-bottom:8px;'>")
+                              .append(line)
+                              .append("</div>");
+                    }
+
+                    process.waitFor();
+
+                    if (output.length() == 0) {
+                        return "<html><body>No results found.</body></html>";
+                    }
+
+                    // Return full HTML string with Nokia Pure Headline Ultra Light, size 14
+                    return """
+                        <html>
+                        <body style='font-family:\"Nokia Pure Headline Ultra Light\", sans-serif; font-size:14px; font-weight:100; line-height:1.6; color:#222;'>
+                        """ + output.toString() + "</body></html>";
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        // Switch to result tab and show results
+                        tabs.setSelectedIndex(5);
+                        String htmlResult = get(); // gets the HTML returned above
+                        searchResult.setText(htmlResult);
+                        searchResult.setCaretPosition(0); // scroll to top
+                    } catch (Exception e) {
+                        searchResult.setText("<html><body>Error running search:<br>" + e.getMessage() + "</body></html>");
+                        e.printStackTrace();
+                    } finally {
+                        loading30BW.setVisible(false);
+                    }
+                }
+            };
+
+            worker.execute();
+        //}
     }//GEN-LAST:event_searchNoHistoryActionPerformed
 
     private void searchBarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBarActionPerformed
@@ -7496,6 +7522,10 @@ private void wrapper() {
     private void searchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_searchActionPerformed
+
+    private void nlsRadioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nlsRadioActionPerformed
+       nlsOn= true;
+    }//GEN-LAST:event_nlsRadioActionPerformed
 
     
    
@@ -7605,6 +7635,7 @@ private void wrapper() {
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
     private javax.swing.JButton jButton1;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JLabel jan;
     private javax.swing.JButton journalBtn;
     private javax.swing.JLabel jul;
@@ -7652,7 +7683,7 @@ private void wrapper() {
     private javax.swing.JLabel searchBtnLabel;
     private javax.swing.JButton searchNoHistory;
     private javax.swing.JPanel searchNoHistoryPanel;
-    private javax.swing.JTextField searchResult;
+    private javax.swing.JEditorPane searchResult;
     private javax.swing.JPanel searchTabNoHistory;
     private javax.swing.JPanel searchTabResults;
     private javax.swing.JButton selectedBook;
