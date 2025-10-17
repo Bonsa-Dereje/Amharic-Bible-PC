@@ -206,6 +206,10 @@ public class mainWindow extends javax.swing.JFrame {
     
     
     
+    private List<String> rawResults = new ArrayList<>();
+
+    
+    
     public mainWindow() {
         
         setUndecorated(true);  
@@ -1282,6 +1286,44 @@ private void wrapper() {
            }  
 */
         
+
+       
+       
+       // --- Add this method in your class ---
+    private void saveSearchResults(String searchTerm, List<String> rawResults) {
+        SwingWorker<Void, Void> dbWorker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                // Check if the results contain the "could not find" message
+                boolean noResults = rawResults.stream()
+                        .anyMatch(line -> line.toLowerCase().contains("could not find any verse"));
+
+                if (noResults) {
+                    // Skip saving to DB
+                    return null;
+                }
+
+                String dbPath = "searchResults.db"; // in project folder
+                String url = "jdbc:sqlite:" + dbPath;
+
+                try (Connection conn = DriverManager.getConnection(url)) {
+                    String sql = "INSERT INTO searchResults(searchTerm, searchResult) VALUES (?, ?)";
+                    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                        // Join all results into one string separated by newlines
+                        String allResults = String.join("\n", rawResults);
+                        pstmt.setString(1, searchTerm);
+                        pstmt.setString(2, allResults);
+                        pstmt.executeUpdate();
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        };
+        dbWorker.execute(); // run in background
+    }
+
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -7844,10 +7886,12 @@ private void wrapper() {
                 Process process = pb.start();
 
                 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                rawResults.clear();
                 List<String> results = new ArrayList<>();
                 String line;
                 while ((line = reader.readLine()) != null) {
                     results.add(line.trim());
+                    rawResults.add(line.trim());
                 }
                 process.waitFor();
 
@@ -7939,6 +7983,7 @@ private void wrapper() {
             protected void done() {
                 tabs.setSelectedIndex(5);
                 loading30BW.setVisible(false);
+                saveSearchResults(query, rawResults);
             }
         };
 
@@ -7946,15 +7991,36 @@ private void wrapper() {
     }
 
     // Color gradient: start green [86,211,100], fade to pink
-    private Color getScoreColor(double score) {
-        int startR = 86, startG = 211, startB = 100; // top score green
-        int endR = 255, endG = 150, endB = 150;      // low score pinkish
+private Color getScoreColor(double score) {
+    score = Math.max(0.0, Math.min(1.0, score));
 
-        int r = (int) (endR + (startR - endR) * score);
-        int g = (int) (endG + (startG - endG) * score);
-        int b = (int) (endB + (startB - endB) * score);
+    int r, g, b;
 
-        return new Color(Math.min(255, r), Math.min(255, g), Math.min(255, b));
+    if (score >= 0.65) {
+        // Full green for 65% and above
+        r = 86;
+        g = 211;
+        b = 100;
+    } else if (score <= 0.60) {
+        // Solid red below 60%
+        r = 217;
+        g = 56;
+        b = 72;
+        //217, 56, 72
+    } else {
+        // Quick fade between 0.65 → 0.60
+        double t = (0.65 - score) / 0.05; // 0 → 1 in the small range
+        t = Math.pow(t, 1.5);             // exponent >1 = sharper transition
+
+        int startR = 86, startG = 211, startB = 100;
+        int endR = 255, endG = 80, endB = 80;
+
+        r = (int) (startR + t * (endR - startR));
+        g = (int) (startG + t * (endG - startG));
+        b = (int) (startB + t * (endB - startB));
+    }
+
+    return new Color(r, g, b);
         //}
     }//GEN-LAST:event_searchNoHistoryActionPerformed
 
