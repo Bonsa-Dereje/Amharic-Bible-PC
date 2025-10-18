@@ -59,7 +59,7 @@ for file in os.listdir(NLSER_FOLDER):
 
             total_verses += len(verses)
 
-        print(f"📘 Encoded {book_name} ({total_verses} verses)")
+        print(f" Encoded {book_name} ({total_verses} verses)")
 
 # -----------------------------
 # Save final merged vector JSON
