@@ -3,6 +3,7 @@ import numpy as np
 import json
 import sys
 import os
+import re
 
 # -----------------------------
 # Config paths
@@ -20,7 +21,7 @@ VECTOR_FILE = os.path.join(BASE_DIR, "nlsVectors.json")  # verse-level vector fi
 # Load precomputed vectors and metadata
 # -----------------------------
 if not os.path.exists(VECTOR_FILE):
-    print(f" nlsVectors.json not found in:\n{BASE_DIR}")
+    print(f"❌ nlsVectors.json not found in:\n{BASE_DIR}")
     sys.exit(1)
 
 with open(VECTOR_FILE, "r", encoding="utf-8") as f:
@@ -51,7 +52,7 @@ k = int(sys.argv[2]) if len(sys.argv) > 2 else 5  # Default top 5 matches
 # Use a verse containing the query text as the query vector
 found = next((e for e in entries if query_arg.lower() in e["text"].lower()), None)
 if not found:
-    print(f" Could not find any verse containing \"{query_arg}\" to use as a query vector.")
+    print(f"❌ Could not find any verse containing \"{query_arg}\" to use as a query vector.")
     sys.exit(1)
 
 query_vec = np.array(found["vector"], dtype=np.float32).reshape(1, -1)
@@ -71,6 +72,11 @@ for rank, (idx, score) in enumerate(zip(indices[0], scores[0]), start=1):
     book = entry.get("book", "Unknown")
     chapter = entry.get("chapter", "N/A")
     verse = entry.get("verse", "N/A")
-    text = entry.get("text", "").replace("\r", " ").replace("\n", " ")
+    
+    # Clean up the verse text
+    text = entry.get("text", "")
+    text = text.replace("\r", " ").replace("\n", " ")
+    text = re.sub(r'\s+', ' ', text).strip()  # Shrink multiple spaces/tabs/newlines to one space
+    
     snippet = text[:150] + "..." if len(text) > 150 else text
     print(f"{rank}. {book} {chapter}:{verse} — {snippet} (score: {score:.4f})")
