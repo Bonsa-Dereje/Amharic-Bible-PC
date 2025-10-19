@@ -221,6 +221,12 @@ public class mainWindow extends javax.swing.JFrame {
     
     public boolean toSearch = false;
     
+    public int currentSearchResultIndex;
+    
+    
+    
+    
+    
     public mainWindow() {
         
         setUndecorated(true);  
@@ -1301,39 +1307,59 @@ private void wrapper() {
        
        
        
-    private void saveSearchResults(String searchTerm, List<String> rawResults) {
-        SwingWorker<Void, Void> dbWorker = new SwingWorker<>() {
-            @Override
-            protected Void doInBackground() throws Exception {
-                // Check if the results contain the "could not find" message
-                boolean noResults = rawResults.stream()
-                        .anyMatch(line -> line.toLowerCase().contains("could not find any verse"));
-
-                if (noResults) {
-                    // Skip saving to DB
-                    return null;
-                }
-
-                String dbPath = "searchResults.db"; // in project folder
-                String url = "jdbc:sqlite:" + dbPath;
-
-                try (Connection conn = DriverManager.getConnection(url)) {
-                    String sql = "INSERT INTO searchResults(searchTerm, searchResult) VALUES (?, ?)";
-                    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                        // Join all results into one string separated by newlines
-                        String allResults = String.join("\n", rawResults);
-                        pstmt.setString(1, searchTerm);
-                        pstmt.setString(2, allResults);
-                        pstmt.executeUpdate();
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-                return null;
+private void saveSearchResults(String searchTerm, List<String> rawResults) {
+    SwingWorker<Void, Void> dbWorker = new SwingWorker<>() {
+        @Override
+        protected Void doInBackground() throws Exception {
+            // Check if the results contain the "could not find" message
+            boolean noResults = rawResults.stream()
+                    .anyMatch(line -> line.toLowerCase().contains("could not find any verse"));
+            if (noResults) {
+                return null; // Skip saving to DB
             }
-        };
-        dbWorker.execute(); // run in background
-    }
+
+            String dbPath = "searchResults.db"; // in project folder
+            String url = "jdbc:sqlite:" + dbPath;
+
+            try (Connection conn = DriverManager.getConnection(url)) {
+                // Check if this searchTerm already exists
+                String checkSql = "SELECT id FROM searchResults WHERE searchTerm = ?";
+                try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                    checkStmt.setString(1, searchTerm);
+                    try (ResultSet rs = checkStmt.executeQuery()) {
+                        if (rs.next()) {
+                            // Already exists, assign existing ID
+                            currentSearchResultIndex = rs.getInt("id");
+                            //System.out.println("Search term '" + searchTerm + "' already exists. ID: " + currentSearchResultIndex);
+                            return null;
+                        }
+                    }
+                }
+
+                // If not found, insert new entry and get generated ID
+                String insertSql = "INSERT INTO searchResults(searchTerm, searchResult) VALUES (?, ?)";
+                try (PreparedStatement pstmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
+                    String allResults = String.join("\n", rawResults);
+                    pstmt.setString(1, searchTerm);
+                    pstmt.setString(2, allResults);
+                    pstmt.executeUpdate();
+
+                    try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            currentSearchResultIndex = generatedKeys.getInt(1);
+                            System.out.println("Saved new search results for: " + searchTerm + " (ID: " + currentSearchResultIndex + ")");
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+    };
+    dbWorker.execute(); // run in background
+}
 
 public void gotoVerse(int index) {
     try {
@@ -1437,6 +1463,152 @@ private void highlightVerseInTextArea(int verseNumber) {
     } catch (Exception ex) {
         ex.printStackTrace();
     }
+}
+
+
+private void searchHistoryNav(int id) {
+    SwingWorker<Void, Void> dbWorker = new SwingWorker<>() {
+        @Override
+        protected Void doInBackground() throws Exception {
+            String dbPath = "searchResults.db"; // relative path in project folder
+            String url = "jdbc:sqlite:" + dbPath;
+            String query = null;
+            List<String> results = new ArrayList<>();
+
+            try (Connection conn = DriverManager.getConnection(url)) {
+                String sql = "SELECT searchTerm, searchResult FROM searchResults WHERE id = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setInt(1, id);
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        if (rs.next()) {
+                            query = rs.getString("searchTerm");
+                            String allResults = rs.getString("searchResult");
+                            if (allResults != null && !allResults.isEmpty()) {
+                                results = Arrays.asList(allResults.split("\n"));
+                            }
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            if (query == null || results.isEmpty()) {
+                System.err.println("No results found for ID: " + id);
+                return null;
+            }
+
+            rawResults.clear();
+            rawResults.addAll(results);
+
+            // Arrays of editor panes and match rate labels
+            JEditorPane[] resultPanes = {
+                searchResult1, searchResult2, searchResult3, searchResult4,
+                searchResult5, searchResult6, searchResult7, searchResult8,
+                searchResult9, searchResult10, searchResult11, searchResult12,
+                searchResult13, searchResult14
+            };
+
+            JLabel[] matchLabels = {
+                matchRate1, matchRate2, matchRate3, matchRate4,
+                matchRate5, matchRate6, matchRate7, matchRate8,
+                matchRate9, matchRate10, matchRate11, matchRate12,
+                matchRate13, matchRate14
+            };
+
+            // Clear previous results
+            for (int i = 0; i < 14; i++) {
+                resultPanes[i].setText("");
+                matchLabels[i].setText("");
+            }
+
+            // Parse each result line (same logic as before)
+            for (String raw : results) {
+                int dotIndex = raw.indexOf('.');
+                if (dotIndex == -1) continue;
+
+                int resultIndex;
+                try {
+                    resultIndex = Integer.parseInt(raw.substring(0, dotIndex).trim()) - 1;
+                } catch (NumberFormatException e) {
+                    continue;
+                }
+                if (resultIndex < 0 || resultIndex >= 14) continue;
+
+                // Extract score
+                double score = 0.0;
+                int scoreIndex = raw.lastIndexOf("(score:");
+                if (scoreIndex != -1) {
+                    String scoreStr = raw.substring(scoreIndex + 7).replace(")", "").trim();
+                    try {
+                        score = Double.parseDouble(scoreStr);
+                    } catch (NumberFormatException ignored) {}
+                    raw = raw.substring(dotIndex + 1, scoreIndex).trim();
+                } else {
+                    raw = raw.substring(dotIndex + 1).trim();
+                }
+
+                // Extract the reference and verse text
+                int dashIndex = raw.indexOf("—");
+                if (dashIndex == -1) dashIndex = raw.indexOf("-");
+                String reference = (dashIndex != -1) ? raw.substring(0, dashIndex).trim() : "";
+                String verseText = (dashIndex != -1) ? raw.substring(dashIndex + 1).trim() : raw;
+
+                // Highlight the query word inside verseText (optional)
+                String highlighted = verseText.replaceAll("(?i)" + Pattern.quote(query),
+                    "<span style='color:#2b7b2b;'>" + query + "</span>"); 
+
+                // HTML render
+                String textHtml = "<html><body style='font-family:\"Nokia Pure Headline Ultra Light\", sans-serif;"
+                        + "font-size:14px; font-weight:100; line-height:1.4; color:#222;'>"
+                        + reference + " — " + highlighted + "</body></html>";
+
+                // Set editor pane
+                resultPanes[resultIndex].setContentType("text/html");
+                resultPanes[resultIndex].setText(textHtml);
+                resultPanes[resultIndex].setCaretPosition(0);
+
+                // Match rate label
+                matchLabels[resultIndex].setText(String.format("%.0f%%", score * 100));
+                matchLabels[resultIndex].setOpaque(true);
+                matchLabels[resultIndex].setBackground(getScoreColorNav(score));
+                matchLabels[resultIndex].setHorizontalAlignment(SwingConstants.CENTER);
+                matchLabels[resultIndex].setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 12));
+            }
+
+            return null; 
+        }
+
+        @Override
+        protected void done() {
+            //tabs.setSelectedIndex(5);
+            //loading30BW.setVisible(false);
+            //System.out.println("Loaded search results from DB for ID: " + id);
+        }
+    };
+
+    //loading30BW.setVisible(true);
+    dbWorker.execute();
+}
+
+// Keep your color function the same
+private Color getScoreColorNav(double score) {
+    score = Math.max(0.0, Math.min(1.0, score));
+    int r, g, b;
+    if (score >= 0.65) {
+        r = 86; g = 211; b = 100;
+    } else if (score <= 0.60) {
+        r = 217; g = 56; b = 72;
+    } else {
+        double t = (0.65 - score) / 0.05;
+        t = Math.pow(t, 1.5);
+        int startR = 86, startG = 211, startB = 100;
+        int endR = 255, endG = 80, endB = 80;
+        r = (int) (startR + t * (endR - startR));
+        g = (int) (startG + t * (endG - startG));
+        b = (int) (startB + t * (endB - startB));
+    }
+    return new Color(r, g, b);
 }
 
     @SuppressWarnings("unchecked")
@@ -6713,6 +6885,11 @@ private void highlightVerseInTextArea(int verseNumber) {
         lastSearch.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/backCircle25.png"))); // NOI18N
         lastSearch.setBorderPainted(false);
         lastSearch.setContentAreaFilled(false);
+        lastSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                lastSearchActionPerformed(evt);
+            }
+        });
 
         backToSearch.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/home25.png"))); // NOI18N
         backToSearch.setBorderPainted(false);
@@ -8393,6 +8570,11 @@ private void highlightVerseInTextArea(int verseNumber) {
         tabs.setSelectedIndex(4);
         
     }//GEN-LAST:event_backToSearchActionPerformed
+
+    private void lastSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lastSearchActionPerformed
+        searchHistoryNav(currentSearchResultIndex - 1);
+        currentSearchResultIndex--;
+    }//GEN-LAST:event_lastSearchActionPerformed
 
     
    
