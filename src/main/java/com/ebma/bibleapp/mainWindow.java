@@ -141,6 +141,8 @@ public class mainWindow extends javax.swing.JFrame {
     
     public int currentBookIndex;
     public int currentChapterIndex;
+    
+
     private List<Integer> randomNums = get12RandomBookNumbers();
     
     private int currentSelected;
@@ -210,6 +212,10 @@ public class mainWindow extends javax.swing.JFrame {
     private List<String> rawResults = new ArrayList<>();
 
     private String searchQuery;
+    
+    public int currentBookIndexPointer; 
+    public int currentChapterIndexPointer;    
+    public int versePointer;   
     
     
     public mainWindow() {
@@ -1326,6 +1332,109 @@ private void wrapper() {
         dbWorker.execute(); // run in background
     }
 
+public void gotoVerse(int index) {
+    try {
+        // 1️⃣ Get all 14 search result panes
+        JEditorPane[] resultPanes = {
+            searchResult1, searchResult2, searchResult3, searchResult4,
+            searchResult5, searchResult6, searchResult7, searchResult8,
+            searchResult9, searchResult10, searchResult11, searchResult12,
+            searchResult13, searchResult14
+        };
+
+        // 2️⃣ Make sure index is valid
+        if (index < 1 || index > resultPanes.length) {
+            System.err.println("Invalid goto index: " + index);
+            return;
+        }
+
+        // 3️⃣ Get text from the corresponding result pane
+        String text = resultPanes[index - 1].getText().trim();
+        if (text.isEmpty()) return;
+
+        // 🔍 Extract "Book Chapter:Verse"
+        // Handles multi-word books (e.g. "1 Chronicles 3:4")
+        Pattern pattern = Pattern.compile("([1-3]?\\s?[A-Za-z]+(?:\\s+[A-Za-z]+)*)\\s+(\\d+):(\\d+)");
+        Matcher matcher = pattern.matcher(text);
+        if (!matcher.find()) {
+            System.err.println("Could not parse verse reference: " + text);
+            return;
+        }
+
+        String bookName = matcher.group(1).trim();
+        int chapterNumber = Integer.parseInt(matcher.group(2));
+        int verseNumber = Integer.parseInt(matcher.group(3));
+
+        // 4️⃣ Find the book index in your allBooksEnglish[]
+        currentBookIndexPointer = -1;
+        for (int i = 0; i < allBooksEnglish.length; i++) {
+            if (allBooksEnglish[i].equalsIgnoreCase(bookName)) {
+                currentBookIndexPointer = i;
+                break;
+            }
+        }
+        if (currentBookIndexPointer == -1) {
+            System.err.println("Book not found: " + bookName);
+            return;
+        }
+
+        currentChapterIndexPointer = chapterNumber;
+        versePointer = verseNumber;
+
+        // 5️⃣ Switch to Bible tab
+        tabs.setSelectedIndex(0);
+
+        // 6️⃣ Wait a bit for tab to render, then select book/chapter
+        javax.swing.Timer delayTimer = new javax.swing.Timer(1200, e -> {
+            try {
+                // Select testament
+                if (currentBookIndexPointer < 39) {
+                    testamentChooser.setSelectedIndex(0); // Old Testament
+                } else {
+                    testamentChooser.setSelectedIndex(1); // New Testament
+                }
+
+                // Select book and chapter
+                bookChooser.setSelectedIndex(currentBookIndexPointer);
+                chapterChooser.setSelectedIndex(currentChapterIndexPointer - 1);
+
+                // Highlight verse
+                highlightVerseInTextArea(versePointer);
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+        delayTimer.setRepeats(false);
+        delayTimer.start();
+
+    } catch (Exception ex) {
+        ex.printStackTrace();
+    }
+}
+
+
+private void highlightVerseInTextArea(int verseNumber) {
+    try {
+        Highlighter highlighter = mainTextArea.getHighlighter();
+        highlighter.removeAllHighlights();
+
+        String text = mainTextArea.getText();
+        String currentVerse = verseNumber + " ";
+        String nextVerse = (verseNumber + 1) + " ";
+
+        int start = text.indexOf(currentVerse);
+        int end = text.indexOf(nextVerse, start + currentVerse.length());
+
+        if (start >= 0) {
+            if (end < 0) end = text.length();
+            highlighter.addHighlight(start, end, 
+                new DefaultHighlighter.DefaultHighlightPainter(new Color(173, 216, 230))); // light blue
+        }
+    } catch (Exception ex) {
+        ex.printStackTrace();
+    }
+}
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -6331,7 +6440,7 @@ private void wrapper() {
         tabs.addTab("Settings", searchTabNoHistory);
 
         searchBar.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
-        searchBar.setForeground(new java.awt.Color(204, 204, 204));
+        searchBar.setForeground(new java.awt.Color(102, 102, 102));
         searchBar.setText("Search for verses");
         searchBar.setFocusable(false);
         searchBar.addActionListener(new java.awt.event.ActionListener() {
@@ -6371,6 +6480,11 @@ private void wrapper() {
         goto1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
         goto1.setBorderPainted(false);
         goto1.setContentAreaFilled(false);
+        goto1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goto1ActionPerformed(evt);
+            }
+        });
 
         searchResult2.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         searchResult2.setFocusable(false);
@@ -6382,10 +6496,20 @@ private void wrapper() {
         goto2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
         goto2.setBorderPainted(false);
         goto2.setContentAreaFilled(false);
+        goto2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goto2ActionPerformed(evt);
+            }
+        });
 
         goto3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
         goto3.setBorderPainted(false);
         goto3.setContentAreaFilled(false);
+        goto3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goto3ActionPerformed(evt);
+            }
+        });
 
         searchResult3.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         searchResult3.setFocusable(false);
@@ -6397,6 +6521,11 @@ private void wrapper() {
         goto4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
         goto4.setBorderPainted(false);
         goto4.setContentAreaFilled(false);
+        goto4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goto4ActionPerformed(evt);
+            }
+        });
 
         matchRate4.setBackground(new java.awt.Color(255, 255, 255));
         matchRate4.setOpaque(true);
@@ -6408,6 +6537,11 @@ private void wrapper() {
         goto5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
         goto5.setBorderPainted(false);
         goto5.setContentAreaFilled(false);
+        goto5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goto5ActionPerformed(evt);
+            }
+        });
 
         matchRate5.setBackground(new java.awt.Color(255, 255, 255));
         matchRate5.setOpaque(true);
@@ -6426,6 +6560,11 @@ private void wrapper() {
         goto6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
         goto6.setBorderPainted(false);
         goto6.setContentAreaFilled(false);
+        goto6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goto6ActionPerformed(evt);
+            }
+        });
 
         searchResult7.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         searchResult7.setFocusable(false);
@@ -6437,10 +6576,20 @@ private void wrapper() {
         goto7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
         goto7.setBorderPainted(false);
         goto7.setContentAreaFilled(false);
+        goto7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goto7ActionPerformed(evt);
+            }
+        });
 
         goto8.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
         goto8.setBorderPainted(false);
         goto8.setContentAreaFilled(false);
+        goto8.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goto8ActionPerformed(evt);
+            }
+        });
 
         searchResult8.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         searchResult8.setFocusable(false);
@@ -6452,6 +6601,11 @@ private void wrapper() {
         goto9.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
         goto9.setBorderPainted(false);
         goto9.setContentAreaFilled(false);
+        goto9.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goto9ActionPerformed(evt);
+            }
+        });
 
         matchRate9.setBackground(new java.awt.Color(255, 255, 255));
         matchRate9.setOpaque(true);
@@ -6463,6 +6617,11 @@ private void wrapper() {
         goto10.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
         goto10.setBorderPainted(false);
         goto10.setContentAreaFilled(false);
+        goto10.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goto10ActionPerformed(evt);
+            }
+        });
 
         matchRate10.setBackground(new java.awt.Color(255, 255, 255));
         matchRate10.setOpaque(true);
@@ -6481,6 +6640,11 @@ private void wrapper() {
         goto11.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
         goto11.setBorderPainted(false);
         goto11.setContentAreaFilled(false);
+        goto11.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goto11ActionPerformed(evt);
+            }
+        });
 
         searchResult12.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         searchResult12.setFocusable(false);
@@ -6492,10 +6656,20 @@ private void wrapper() {
         goto12.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
         goto12.setBorderPainted(false);
         goto12.setContentAreaFilled(false);
+        goto12.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goto12ActionPerformed(evt);
+            }
+        });
 
         goto13.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
         goto13.setBorderPainted(false);
         goto13.setContentAreaFilled(false);
+        goto13.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goto13ActionPerformed(evt);
+            }
+        });
 
         searchResult13.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         searchResult13.setFocusable(false);
@@ -6507,6 +6681,11 @@ private void wrapper() {
         goto14.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/arrow30.png"))); // NOI18N
         goto14.setBorderPainted(false);
         goto14.setContentAreaFilled(false);
+        goto14.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goto14ActionPerformed(evt);
+            }
+        });
 
         matchRate14.setBackground(new java.awt.Color(255, 255, 255));
         matchRate14.setOpaque(true);
@@ -7897,7 +8076,11 @@ private void wrapper() {
     }//GEN-LAST:event_searchBarNoHistoryActionPerformed
 
     private void searchNoHistoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchNoHistoryActionPerformed
-        //if(nlsOn) {
+        if (!nlsOn) {
+            // Optional: you can show a message or just return silently
+            
+            return;
+        }
             // Show loading indicator
         loading30BW.setVisible(true);
         //searchNoHistory.setEnabled(false);
@@ -8082,6 +8265,62 @@ private void wrapper() {
        normalSearchNoHistory.setSelected(false);
        //nlsRadioNoHistory.setSelected(false);
     }//GEN-LAST:event_nlsRadioNoHistoryActionPerformed
+
+    private void goto1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto1ActionPerformed
+        gotoVerse(1);
+    }//GEN-LAST:event_goto1ActionPerformed
+
+    private void goto2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto2ActionPerformed
+        gotoVerse(2);
+    }//GEN-LAST:event_goto2ActionPerformed
+
+    private void goto3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto3ActionPerformed
+        gotoVerse(3);
+    }//GEN-LAST:event_goto3ActionPerformed
+
+    private void goto4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto4ActionPerformed
+        gotoVerse(4);
+    }//GEN-LAST:event_goto4ActionPerformed
+
+    private void goto5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto5ActionPerformed
+        gotoVerse(5);
+    }//GEN-LAST:event_goto5ActionPerformed
+
+    private void goto6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto6ActionPerformed
+        gotoVerse(6);
+    }//GEN-LAST:event_goto6ActionPerformed
+
+    private void goto7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto7ActionPerformed
+        gotoVerse(7);
+    }//GEN-LAST:event_goto7ActionPerformed
+
+    private void goto8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto8ActionPerformed
+        gotoVerse(8);
+    }//GEN-LAST:event_goto8ActionPerformed
+
+    private void goto9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto9ActionPerformed
+        gotoVerse(9);
+    }//GEN-LAST:event_goto9ActionPerformed
+
+    private void goto10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto10ActionPerformed
+        gotoVerse(10);
+    }//GEN-LAST:event_goto10ActionPerformed
+
+    private void goto11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto11ActionPerformed
+        gotoVerse(11);
+    }//GEN-LAST:event_goto11ActionPerformed
+
+    private void goto12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto12ActionPerformed
+        gotoVerse(12);
+    }//GEN-LAST:event_goto12ActionPerformed
+
+    private void goto13ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto13ActionPerformed
+        gotoVerse(13);
+    }//GEN-LAST:event_goto13ActionPerformed
+
+    private void goto14ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto14ActionPerformed
+        gotoVerse(14);
+    }//GEN-LAST:event_goto14ActionPerformed
 
     
    
