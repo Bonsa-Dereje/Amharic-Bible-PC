@@ -202,12 +202,14 @@ public class mainWindow extends javax.swing.JFrame {
     private boolean firstLoad = true;
     
     private boolean nlsOn = false;
+    private boolean normalSearchOn = false;
     //private boolean iconEnabled = true; 
     
     
     
     private List<String> rawResults = new ArrayList<>();
 
+    private String searchQuery;
     
     
     public mainWindow() {
@@ -6210,9 +6212,19 @@ private void wrapper() {
 
         nlsRadioNoHistory.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         nlsRadioNoHistory.setText("NL Search");
+        nlsRadioNoHistory.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nlsRadioNoHistoryActionPerformed(evt);
+            }
+        });
 
         normalSearchNoHistory.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         normalSearchNoHistory.setText("Normal Search");
+        normalSearchNoHistory.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                normalSearchNoHistoryActionPerformed(evt);
+            }
+        });
 
         jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/help20.png"))); // NOI18N
         jButton1.setBorderPainted(false);
@@ -6247,6 +6259,12 @@ private void wrapper() {
                     searchBarNoHistory.setText("Search for verses");
                     searchBarNoHistory.setForeground(new java.awt.Color(204, 204, 204)); // gray placeholder color
                 }
+            }
+        });
+        searchBarNoHistory.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                // Trigger the button click when ENTER is pressed
+                searchNoHistory.doClick();
             }
         });
 
@@ -6863,6 +6881,22 @@ private void wrapper() {
             if (tabs.getSelectedIndex() == 1) {
                 loadLastReadDirectly();
                 updateStatusLabels();
+            }
+        });
+        tabs.addChangeListener(e -> {
+            int selectedIndex = tabs.getSelectedIndex();
+
+            // Run your search mode logic when tab 5 is selected
+            if (selectedIndex == 5) {
+                if(nlsOn){
+                    nlsRadio.setSelected(true);
+                    normalSearch.setSelected(false);
+                }
+                if(normalSearchOn){
+                    nlsRadio.setSelected(false);
+                    normalSearch.setSelected(true);
+                }
+                searchBar.setText(searchQuery);
             }
         });
 
@@ -7866,6 +7900,13 @@ private void wrapper() {
         //if(nlsOn) {
             // Show loading indicator
         loading30BW.setVisible(true);
+        //searchNoHistory.setEnabled(false);
+        searchNoHistory.setBackground(new Color(150, 150, 150)); // gray background
+        searchNoHistory.setForeground(new Color(200, 200, 200)); // lighter gray text
+        searchQuery = searchBarNoHistory.getText();
+ 
+        
+        
 
         String query = searchBarNoHistory.getText().trim();
         if (query.isEmpty() || query.equals("Search for verses")) {
@@ -7876,11 +7917,11 @@ private void wrapper() {
         SwingWorker<Void, Void> worker = new SwingWorker<>() {
             @Override
             protected Void doInBackground() throws Exception {
-                // Call exe with query and request 14 results
+                // Call new FAISS-based exe
                 ProcessBuilder pb = new ProcessBuilder(
-                        "C:\\Users\\boni\\Desktop\\Files\\Projects\\BibleApp\\nlsEngine\\nlSearch.exe",
-                        query,
-                        "14"
+                    "C:\\Users\\boni\\Desktop\\Files\\Projects\\BibleApp\\nlsEngine\\nlSearch.exe",
+                    query,
+                    "14"
                 );
                 pb.redirectErrorStream(true);
                 Process process = pb.start();
@@ -7890,31 +7931,37 @@ private void wrapper() {
                 List<String> results = new ArrayList<>();
                 String line;
                 while ((line = reader.readLine()) != null) {
+                    // Skip headers or empty lines
+                    if (line.trim().isEmpty()) continue;
+                    if (line.startsWith("Top ") || line.startsWith("❌")) continue;
                     results.add(line.trim());
                     rawResults.add(line.trim());
                 }
                 process.waitFor();
 
                 // Arrays of editor panes and match rate labels
-                JEditorPane[] resultPanes = {searchResult1, searchResult2, searchResult3, searchResult4,
-                                             searchResult5, searchResult6, searchResult7, searchResult8,
-                                             searchResult9, searchResult10, searchResult11, searchResult12,
-                                             searchResult13, searchResult14};
+                JEditorPane[] resultPanes = {
+                    searchResult1, searchResult2, searchResult3, searchResult4,
+                    searchResult5, searchResult6, searchResult7, searchResult8,
+                    searchResult9, searchResult10, searchResult11, searchResult12,
+                    searchResult13, searchResult14
+                };
 
-                JLabel[] matchLabels = {matchRate1, matchRate2, matchRate3, matchRate4,
-                                        matchRate5, matchRate6, matchRate7, matchRate8,
-                                        matchRate9, matchRate10, matchRate11, matchRate12,
-                                        matchRate13, matchRate14};
+                JLabel[] matchLabels = {
+                    matchRate1, matchRate2, matchRate3, matchRate4,
+                    matchRate5, matchRate6, matchRate7, matchRate8,
+                    matchRate9, matchRate10, matchRate11, matchRate12,
+                    matchRate13, matchRate14
+                };
 
-                // Clear previous content
+                // Clear previous results
                 for (int i = 0; i < 14; i++) {
                     resultPanes[i].setText("");
                     matchLabels[i].setText("");
                 }
 
-                // Process each line from the exe
+                // Parse each result line
                 for (String raw : results) {
-                    // Extract leading number
                     int dotIndex = raw.indexOf('.');
                     if (dotIndex == -1) continue;
 
@@ -7931,44 +7978,35 @@ private void wrapper() {
                     int scoreIndex = raw.lastIndexOf("(score:");
                     if (scoreIndex != -1) {
                         String scoreStr = raw.substring(scoreIndex + 7).replace(")", "").trim();
-                        try { score = Double.parseDouble(scoreStr); } catch (NumberFormatException ignored) {}
+                        try {
+                            score = Double.parseDouble(scoreStr);
+                        } catch (NumberFormatException ignored) {}
                         raw = raw.substring(dotIndex + 1, scoreIndex).trim();
                     } else {
                         raw = raw.substring(dotIndex + 1).trim();
                     }
 
-                    // Split at "—" or "-" for formatting
+                    // Extract the reference and verse text
                     int dashIndex = raw.indexOf("—");
                     if (dashIndex == -1) dashIndex = raw.indexOf("-");
+                    String reference = (dashIndex != -1) ? raw.substring(0, dashIndex).trim() : "";
+                    String verseText = (dashIndex != -1) ? raw.substring(dashIndex + 1).trim() : raw;
 
-                    String textHtml;
-                    if (dashIndex != -1) {
-                        String beforeDash = raw.substring(0, dashIndex).trim();
-                        String afterDash = raw.substring(dashIndex + 1).trim();
+                    // Highlight the query word inside verseText (optional)
+                    String highlighted = verseText.replaceAll("(?i)" + Pattern.quote(query),
+                        "<span style='color:#2b7b2b;'>" + query + "</span>"); 
 
-                        // Bold the part between first underscore and the end
-                        int underscoreIndex = beforeDash.indexOf('_');
-                        String startPart = beforeDash;
-                        String boldPart = "";
-                        if (underscoreIndex != -1 && underscoreIndex + 1 < beforeDash.length()) {
-                            startPart = beforeDash.substring(0, underscoreIndex + 1);
-                            boldPart = beforeDash.substring(underscoreIndex + 1);
-                        }
-
-                        textHtml = "<html><body style='font-family:\"Nokia Pure Headline Ultra Light\", sans-serif; font-size:14px; font-weight:100; line-height:1.4; color:#222;'>"
-                                + startPart + "<b>" + boldPart + "</b> - " + afterDash
-                                + "</body></html>";
-                    } else {
-                        textHtml = "<html><body style='font-family:\"Nokia Pure Headline Ultra Light\", sans-serif; font-size:14px; font-weight:100; line-height:1.4; color:#222;'>"
-                                + raw + "</body></html>";
-                    }
+                    // HTML render
+                    String textHtml = "<html><body style='font-family:\"Nokia Pure Headline Ultra Light\", sans-serif;"
+                            + "font-size:14px; font-weight:100; line-height:1.4; color:#222;'>"
+                            + reference + " — " + highlighted + "</body></html>";
 
                     // Set editor pane
                     resultPanes[resultIndex].setContentType("text/html");
                     resultPanes[resultIndex].setText(textHtml);
                     resultPanes[resultIndex].setCaretPosition(0);
 
-                    // Set match rate label
+                    // Match rate label
                     matchLabels[resultIndex].setText(String.format("%.0f%%", score * 100));
                     matchLabels[resultIndex].setOpaque(true);
                     matchLabels[resultIndex].setBackground(getScoreColor(score));
@@ -7976,51 +8014,42 @@ private void wrapper() {
                     matchLabels[resultIndex].setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 12));
                 }
 
-                return null;
+                return null; 
             }
 
             @Override
             protected void done() {
                 tabs.setSelectedIndex(5);
                 loading30BW.setVisible(false);
-                saveSearchResults(query, rawResults);
+
+                // Only save if the exe actually found results
+                if (!rawResults.isEmpty() && !rawResults.get(0).contains("❌ Could not find any verse"))
+                    saveSearchResults(query, rawResults);
             }
         };
 
         worker.execute();
+        
     }
 
-    // Color gradient: start green [86,211,100], fade to pink
-private Color getScoreColor(double score) {
-    score = Math.max(0.0, Math.min(1.0, score));
-
-    int r, g, b;
-
-    if (score >= 0.65) {
-        // Full green for 65% and above
-        r = 86;
-        g = 211;
-        b = 100;
-    } else if (score <= 0.60) {
-        // Solid red below 60%
-        r = 217;
-        g = 56;
-        b = 72;
-        //217, 56, 72
-    } else {
-        // Quick fade between 0.65 → 0.60
-        double t = (0.65 - score) / 0.05; // 0 → 1 in the small range
-        t = Math.pow(t, 1.5);             // exponent >1 = sharper transition
-
-        int startR = 86, startG = 211, startB = 100;
-        int endR = 255, endG = 80, endB = 80;
-
-        r = (int) (startR + t * (endR - startR));
-        g = (int) (startG + t * (endG - startG));
-        b = (int) (startB + t * (endB - startB));
-    }
-
-    return new Color(r, g, b);
+    // Keep your color function as-is
+    private Color getScoreColor(double score) {
+        score = Math.max(0.0, Math.min(1.0, score));
+        int r, g, b;
+        if (score >= 0.65) {
+            r = 86; g = 211; b = 100;
+        } else if (score <= 0.60) {
+            r = 217; g = 56; b = 72;
+        } else {
+            double t = (0.65 - score) / 0.05;
+            t = Math.pow(t, 1.5);
+            int startR = 86, startG = 211, startB = 100;
+            int endR = 255, endG = 80, endB = 80;
+            r = (int) (startR + t * (endR - startR));
+            g = (int) (startG + t * (endG - startG));
+            b = (int) (startB + t * (endB - startB));
+        }
+        return new Color(r, g, b);
         //}
     }//GEN-LAST:event_searchNoHistoryActionPerformed
 
@@ -8033,12 +8062,26 @@ private Color getScoreColor(double score) {
     }//GEN-LAST:event_searchActionPerformed
 
     private void nlsRadioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nlsRadioActionPerformed
-       nlsOn= true;
+
     }//GEN-LAST:event_nlsRadioActionPerformed
 
     private void showMoreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showMoreActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_showMoreActionPerformed
+
+    private void normalSearchNoHistoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_normalSearchNoHistoryActionPerformed
+        normalSearchOn = true;
+        nlsOn = false;
+        nlsRadioNoHistory.setSelected(false);
+        //normalSearchNoHistory.setSelected(true);
+    }//GEN-LAST:event_normalSearchNoHistoryActionPerformed
+
+    private void nlsRadioNoHistoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nlsRadioNoHistoryActionPerformed
+       nlsOn= true;
+       normalSearchOn = false;
+       normalSearchNoHistory.setSelected(false);
+       //nlsRadioNoHistory.setSelected(false);
+    }//GEN-LAST:event_nlsRadioNoHistoryActionPerformed
 
     
    
