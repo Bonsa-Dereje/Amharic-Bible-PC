@@ -217,6 +217,9 @@ public class mainWindow extends javax.swing.JFrame {
     public int currentChapterIndexPointer;    
     public int versePointer;   
     
+    public boolean searched;
+    
+    public boolean toSearch = false;
     
     public mainWindow() {
         
@@ -1297,7 +1300,7 @@ private void wrapper() {
 
        
        
-       // --- Add this method in your class ---
+       
     private void saveSearchResults(String searchTerm, List<String> rawResults) {
         SwingWorker<Void, Void> dbWorker = new SwingWorker<>() {
             @Override
@@ -1334,7 +1337,7 @@ private void wrapper() {
 
 public void gotoVerse(int index) {
     try {
-        // 1️⃣ Get all 14 search result panes
+        
         JEditorPane[] resultPanes = {
             searchResult1, searchResult2, searchResult3, searchResult4,
             searchResult5, searchResult6, searchResult7, searchResult8,
@@ -1342,18 +1345,18 @@ public void gotoVerse(int index) {
             searchResult13, searchResult14
         };
 
-        // 2️⃣ Make sure index is valid
+       
         if (index < 1 || index > resultPanes.length) {
             System.err.println("Invalid goto index: " + index);
             return;
         }
 
-        // 3️⃣ Get text from the corresponding result pane
+        
         String text = resultPanes[index - 1].getText().trim();
         if (text.isEmpty()) return;
 
-        // 🔍 Extract "Book Chapter:Verse"
-        // Handles multi-word books (e.g. "1 Chronicles 3:4")
+        
+        
         Pattern pattern = Pattern.compile("([1-3]?\\s?[A-Za-z]+(?:\\s+[A-Za-z]+)*)\\s+(\\d+):(\\d+)");
         Matcher matcher = pattern.matcher(text);
         if (!matcher.find()) {
@@ -1365,7 +1368,7 @@ public void gotoVerse(int index) {
         int chapterNumber = Integer.parseInt(matcher.group(2));
         int verseNumber = Integer.parseInt(matcher.group(3));
 
-        // 4️⃣ Find the book index in your allBooksEnglish[]
+        
         currentBookIndexPointer = -1;
         for (int i = 0; i < allBooksEnglish.length; i++) {
             if (allBooksEnglish[i].equalsIgnoreCase(bookName)) {
@@ -1381,10 +1384,10 @@ public void gotoVerse(int index) {
         currentChapterIndexPointer = chapterNumber;
         versePointer = verseNumber;
 
-        // 5️⃣ Switch to Bible tab
+        
         tabs.setSelectedIndex(0);
 
-        // 6️⃣ Wait a bit for tab to render, then select book/chapter
+       
         javax.swing.Timer delayTimer = new javax.swing.Timer(1200, e -> {
             try {
                 // Select testament
@@ -1997,6 +2000,10 @@ private void highlightVerseInTextArea(int verseNumber) {
         scroll14 = new javax.swing.JScrollPane();
         searchResult14 = new javax.swing.JEditorPane();
         showMore = new javax.swing.JButton();
+        backAndHome = new javax.swing.JPanel();
+        lastSearch = new javax.swing.JButton();
+        backToSearch = new javax.swing.JButton();
+        nextSearch = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -6703,13 +6710,56 @@ private void highlightVerseInTextArea(int verseNumber) {
             }
         });
 
+        lastSearch.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/backCircle25.png"))); // NOI18N
+        lastSearch.setBorderPainted(false);
+        lastSearch.setContentAreaFilled(false);
+
+        backToSearch.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/home25.png"))); // NOI18N
+        backToSearch.setBorderPainted(false);
+        backToSearch.setContentAreaFilled(false);
+        backToSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                backToSearchActionPerformed(evt);
+            }
+        });
+
+        nextSearch.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/forwardCircle25.png"))); // NOI18N
+        nextSearch.setBorderPainted(false);
+        nextSearch.setContentAreaFilled(false);
+
+        javax.swing.GroupLayout backAndHomeLayout = new javax.swing.GroupLayout(backAndHome);
+        backAndHome.setLayout(backAndHomeLayout);
+        backAndHomeLayout.setHorizontalGroup(
+            backAndHomeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(backAndHomeLayout.createSequentialGroup()
+                .addComponent(lastSearch)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(backToSearch)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nextSearch)
+                .addGap(0, 90, Short.MAX_VALUE))
+        );
+        backAndHomeLayout.setVerticalGroup(
+            backAndHomeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(backAndHomeLayout.createSequentialGroup()
+                .addGroup(backAndHomeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lastSearch)
+                    .addComponent(backToSearch)
+                    .addComponent(nextSearch))
+                .addGap(0, 15, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout searchTabResultsLayout = new javax.swing.GroupLayout(searchTabResults);
         searchTabResults.setLayout(searchTabResultsLayout);
         searchTabResultsLayout.setHorizontalGroup(
             searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchTabResultsLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(showMore)
+                .addGap(722, 722, 722))
             .addGroup(searchTabResultsLayout.createSequentialGroup()
                 .addGap(69, 69, 69)
-                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(searchTabResultsLayout.createSequentialGroup()
                         .addComponent(matchRate14, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -6793,12 +6843,10 @@ private void highlightVerseInTextArea(int verseNumber) {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(scroll1, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(goto1, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(70, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchTabResultsLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(goto1, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchTabResultsLayout.createSequentialGroup()
+                        .addComponent(backAndHome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(searchTabResultsLayout.createSequentialGroup()
                                 .addGap(266, 266, 266)
@@ -6810,22 +6858,23 @@ private void highlightVerseInTextArea(int verseNumber) {
                                 .addComponent(searchBar, javax.swing.GroupLayout.PREFERRED_SIZE, 705, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(search, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(357, 357, 357))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchTabResultsLayout.createSequentialGroup()
-                        .addComponent(showMore)
-                        .addGap(722, 722, 722))))
+                        .addGap(287, 287, 287)))
+                .addContainerGap(70, Short.MAX_VALUE))
         );
         searchTabResultsLayout.setVerticalGroup(
             searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(searchTabResultsLayout.createSequentialGroup()
                 .addGap(92, 92, 92)
-                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(search, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(searchBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(normalSearch)
-                    .addComponent(nlsRadio))
+                .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(searchTabResultsLayout.createSequentialGroup()
+                        .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(search, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(searchBar))
+                        .addGap(7, 7, 7)
+                        .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(normalSearch)
+                            .addComponent(nlsRadio)))
+                    .addComponent(backAndHome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(26, 26, 26)
                 .addGroup(searchTabResultsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addComponent(scroll1, javax.swing.GroupLayout.Alignment.LEADING)
@@ -6898,7 +6947,7 @@ private void highlightVerseInTextArea(int verseNumber) {
                     .addComponent(goto14))
                 .addGap(18, 18, 18)
                 .addComponent(showMore)
-                .addContainerGap(66, Short.MAX_VALUE))
+                .addContainerGap(65, Short.MAX_VALUE))
         );
 
         searchBarNoHistory.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -7063,6 +7112,9 @@ private void highlightVerseInTextArea(int verseNumber) {
             }
         });
         tabs.addChangeListener(e -> {
+            if (!nlsOn) {
+                return;
+            }
             int selectedIndex = tabs.getSelectedIndex();
 
             // Run your search mode logic when tab 5 is selected
@@ -7076,6 +7128,18 @@ private void highlightVerseInTextArea(int verseNumber) {
                     normalSearch.setSelected(true);
                 }
                 searchBar.setText(searchQuery);
+            }
+        });
+
+        tabs.addChangeListener(e -> {
+            if (tabs.getSelectedIndex() == 4 && searched) {
+                toSearch = false;
+            }
+        });
+
+        tabs.addChangeListener(e -> {
+            if (searched && tabs.getSelectedIndex() == 4 && !toSearch) {
+                tabs.setSelectedIndex(5);
             }
         });
 
@@ -8081,6 +8145,8 @@ private void highlightVerseInTextArea(int verseNumber) {
             
             return;
         }
+        
+        searched = true;
             // Show loading indicator
         loading30BW.setVisible(true);
         //searchNoHistory.setEnabled(false);
@@ -8102,7 +8168,7 @@ private void highlightVerseInTextArea(int verseNumber) {
             protected Void doInBackground() throws Exception {
                 // Call new FAISS-based exe
                 ProcessBuilder pb = new ProcessBuilder(
-                    "C:\\Users\\boni\\Desktop\\Files\\Projects\\BibleApp\\nlsEngine\\nlSearch.exe",
+                    "nlsEngine/nlSearch.exe",
                     query,
                     "14"
                 );
@@ -8322,6 +8388,12 @@ private void highlightVerseInTextArea(int verseNumber) {
         gotoVerse(14);
     }//GEN-LAST:event_goto14ActionPerformed
 
+    private void backToSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backToSearchActionPerformed
+        toSearch = true;
+        tabs.setSelectedIndex(4);
+        
+    }//GEN-LAST:event_backToSearchActionPerformed
+
     
    
  
@@ -8382,6 +8454,8 @@ private void highlightVerseInTextArea(int verseNumber) {
     private javax.swing.JButton audiobookBtn;
     private javax.swing.JLabel audiobookLabel;
     private javax.swing.JLabel aug;
+    private javax.swing.JPanel backAndHome;
+    private javax.swing.JButton backToSearch;
     private javax.swing.JLabel bibleBtnLabel;
     private javax.swing.JPanel bibleTab;
     private javax.swing.JLabel biblestudyTitle;
@@ -8449,6 +8523,7 @@ private void highlightVerseInTextArea(int verseNumber) {
     private javax.swing.JLabel jul;
     private javax.swing.JLabel jun;
     private javax.swing.JComboBox<String> langChooser;
+    private javax.swing.JButton lastSearch;
     private javax.swing.JButton libraryBtn;
     private javax.swing.JPanel libraryContent;
     private javax.swing.JPanel libraryTab;
@@ -8479,6 +8554,7 @@ private void highlightVerseInTextArea(int verseNumber) {
     private javax.swing.JButton minimizeBtn;
     private javax.swing.JButton mute;
     private javax.swing.JPanel navBar;
+    private javax.swing.JButton nextSearch;
     private javax.swing.JRadioButton nlsRadio;
     private javax.swing.JRadioButton nlsRadioNoHistory;
     private javax.swing.JLabel noSearchHistory;
