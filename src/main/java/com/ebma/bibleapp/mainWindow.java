@@ -1328,9 +1328,15 @@ private void saveSearchResults(String searchTerm, List<String> rawResults) {
                     checkStmt.setString(1, searchTerm);
                     try (ResultSet rs = checkStmt.executeQuery()) {
                         if (rs.next()) {
-                            // Already exists, assign existing ID
-                            currentSearchResultIndex = rs.getInt("id");
-                            //System.out.println("Search term '" + searchTerm + "' already exists. ID: " + currentSearchResultIndex);
+                            // If already exists → assign the highest ID in DB
+                            String maxSql = "SELECT MAX(id) AS maxId FROM searchResults";
+                            try (Statement stmt = conn.createStatement();
+                                 ResultSet maxRs = stmt.executeQuery(maxSql)) {
+                                if (maxRs.next()) {
+                                    currentSearchResultIndex = maxRs.getInt("maxId");
+                                    System.out.println("Search term already exists. Assigned latest ID: " + currentSearchResultIndex);
+                                }
+                            }
                             return null;
                         }
                     }
@@ -1360,6 +1366,7 @@ private void saveSearchResults(String searchTerm, List<String> rawResults) {
     };
     dbWorker.execute(); // run in background
 }
+
 
 public void gotoVerse(int index) {
     try {
@@ -1482,6 +1489,7 @@ private void searchHistoryNav(int id) {
                     try (ResultSet rs = pstmt.executeQuery()) {
                         if (rs.next()) {
                             query = rs.getString("searchTerm");
+                            searchBar.setText(query);
                             String allResults = rs.getString("searchResult");
                             if (allResults != null && !allResults.isEmpty()) {
                                 results = Arrays.asList(allResults.split("\n"));
@@ -1609,6 +1617,29 @@ private Color getScoreColorNav(double score) {
         b = (int) (startB + t * (endB - startB));
     }
     return new Color(r, g, b);
+}
+
+
+private Integer getSearchResultIdIfExists(String query) {
+    String dbPath = "searchResults.db";
+    String url = "jdbc:sqlite:" + dbPath;
+    Integer foundId = null;
+
+    try (Connection conn = DriverManager.getConnection(url)) {
+        String sql = "SELECT id FROM searchResults WHERE LOWER(searchTerm) = LOWER(?) LIMIT 1";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, query.trim());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    foundId = rs.getInt("id");
+                }
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return foundId;
 }
 
     @SuppressWarnings("unchecked")
@@ -6903,6 +6934,11 @@ private Color getScoreColorNav(double score) {
         nextSearch.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/forwardCircle25.png"))); // NOI18N
         nextSearch.setBorderPainted(false);
         nextSearch.setContentAreaFilled(false);
+        nextSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nextSearchActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout backAndHomeLayout = new javax.swing.GroupLayout(backAndHome);
         backAndHome.setLayout(backAndHomeLayout);
@@ -8340,6 +8376,16 @@ private Color getScoreColorNav(double score) {
             return;
         }
 
+        Integer existingId = getSearchResultIdIfExists(query);
+        if (existingId != null) {
+            // Stop loading animation and load from DB instead
+            loading30BW.setVisible(true);
+            searchHistoryNav(existingId);
+            tabs.setSelectedIndex(5);
+            System.out.println("found in database...finna load from that now");
+            return; // Skip FAISS engine
+        }        
+        
         SwingWorker<Void, Void> worker = new SwingWorker<>() {
             @Override
             protected Void doInBackground() throws Exception {
@@ -8575,6 +8621,11 @@ private Color getScoreColorNav(double score) {
         searchHistoryNav(currentSearchResultIndex - 1);
         currentSearchResultIndex--;
     }//GEN-LAST:event_lastSearchActionPerformed
+
+    private void nextSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nextSearchActionPerformed
+        searchHistoryNav(currentSearchResultIndex + 1);
+        currentSearchResultIndex++;
+    }//GEN-LAST:event_nextSearchActionPerformed
 
     
    
