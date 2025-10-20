@@ -1642,6 +1642,32 @@ private Integer getSearchResultIdIfExists(String query) {
     return foundId;
 }
 
+
+private void maxId() {
+    if (currentSearchResultIndex != 0) {
+        return; // Only trigger when index is at the start
+    }
+
+    String dbPath = "searchResults.db";
+    String url = "jdbc:sqlite:" + dbPath;
+
+    try (Connection conn = DriverManager.getConnection(url)) {
+        String sql = "SELECT MAX(id) AS max_id FROM searchResults";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            if (rs.next()) {
+                int highestId = rs.getInt("max_id");
+                if (!rs.wasNull()) {
+                    currentSearchResultIndex = highestId; // ✅ set the global tracker
+                }
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -2141,6 +2167,43 @@ private Integer getSearchResultIdIfExists(String query) {
         loading30BW = new javax.swing.JLabel();
         searchBarNoHistory = new javax.swing.JTextField();
         searchNoHistory = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
+        lastSearches = new javax.swing.JPanel();
+        separator1 = new javax.swing.JProgressBar();
+        lastSearch1 = new javax.swing.JPanel();
+        recentSearchQuery1 = new javax.swing.JLabel();
+        recentSearchResult1 = new javax.swing.JLabel();
+        goToRecent1 = new javax.swing.JButton();
+        searchTime1 = new javax.swing.JLabel();
+        lastSearch2 = new javax.swing.JPanel();
+        recentSearchQuery2 = new javax.swing.JLabel();
+        recentSearchResult2 = new javax.swing.JLabel();
+        goToRecent2 = new javax.swing.JButton();
+        searchTime2 = new javax.swing.JLabel();
+        lastSearch3 = new javax.swing.JPanel();
+        recentSearchQuery3 = new javax.swing.JLabel();
+        recentSearchResult3 = new javax.swing.JLabel();
+        goToRecent3 = new javax.swing.JButton();
+        searchTime3 = new javax.swing.JLabel();
+        separator2 = new javax.swing.JProgressBar();
+        lastSearch4 = new javax.swing.JPanel();
+        recentSearchQuery4 = new javax.swing.JLabel();
+        recentSearchResult4 = new javax.swing.JLabel();
+        goToRecent4 = new javax.swing.JButton();
+        searchTime4 = new javax.swing.JLabel();
+        lastSearch5 = new javax.swing.JPanel();
+        recentSearchQuery5 = new javax.swing.JLabel();
+        recentSearchResult5 = new javax.swing.JLabel();
+        goToRecent5 = new javax.swing.JButton();
+        searchTime5 = new javax.swing.JLabel();
+        separator3 = new javax.swing.JProgressBar();
+        lastSearch6 = new javax.swing.JPanel();
+        recentSearchQuery6 = new javax.swing.JLabel();
+        recentSearchResult6 = new javax.swing.JLabel();
+        goToRecent6 = new javax.swing.JButton();
+        searchTime6 = new javax.swing.JLabel();
+        separator4 = new javax.swing.JProgressBar();
+        jLabel2 = new javax.swing.JLabel();
         searchTabResults = new javax.swing.JPanel();
         searchBar = new javax.swing.JTextField();
         search = new javax.swing.JButton();
@@ -6598,46 +6661,292 @@ private Integer getSearchResultIdIfExists(String query) {
         });
         searchNoHistoryPanel.add(searchNoHistory, new org.netbeans.lib.awtextra.AbsoluteConstraints(717, 16, 128, 49));
 
+        jLabel1.setFont(new java.awt.Font("Helvetica", 0, 48)); // NOI18N
+        jLabel1.setText("Verse Search");
+
+        separator1.setBackground(new java.awt.Color(204, 204, 204));
+
+        lastSearch1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        recentSearchQuery1.setFont(new java.awt.Font("Helvetica", 0, 18)); // NOI18N
+        recentSearchQuery1.setText("Search History1");
+        lastSearch1.add(recentSearchQuery1, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 6, -1, -1));
+
+        recentSearchResult1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        recentSearchResult1.setText("The first result shoud look something like this, willl be displayed here, it will reach to the end of the line here to the");
+        lastSearch1.add(recentSearchResult1, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 31, 670, -1));
+
+        goToRecent1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/slantArrow25.png"))); // NOI18N
+        goToRecent1.setBorderPainted(false);
+        goToRecent1.setContentAreaFilled(false);
+        goToRecent1.setFocusPainted(false);
+        goToRecent1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goToRecent1ActionPerformed(evt);
+            }
+        });
+        lastSearch1.add(goToRecent1, new org.netbeans.lib.awtextra.AbsoluteConstraints(680, 0, -1, 50));
+
+        searchTime1.setFont(new java.awt.Font("Helvetica", 0, 14)); // NOI18N
+        searchTime1.setText("2h Ago");
+        lastSearch1.add(searchTime1, new org.netbeans.lib.awtextra.AbsoluteConstraints(610, 10, -1, -1));
+
+        lastSearch2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        recentSearchQuery2.setFont(new java.awt.Font("Helvetica", 0, 18)); // NOI18N
+        recentSearchQuery2.setText("Search History1");
+        lastSearch2.add(recentSearchQuery2, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 6, -1, -1));
+
+        recentSearchResult2.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        recentSearchResult2.setText("The first result shoud look something like this, willl be displayed here, it will reach to the end of the line here to the");
+        lastSearch2.add(recentSearchResult2, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 31, 670, -1));
+
+        goToRecent2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/slantArrow25.png"))); // NOI18N
+        goToRecent2.setBorderPainted(false);
+        goToRecent2.setContentAreaFilled(false);
+        goToRecent2.setFocusPainted(false);
+        goToRecent2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goToRecent2ActionPerformed(evt);
+            }
+        });
+        lastSearch2.add(goToRecent2, new org.netbeans.lib.awtextra.AbsoluteConstraints(680, 0, -1, 50));
+
+        searchTime2.setFont(new java.awt.Font("Helvetica", 0, 14)); // NOI18N
+        searchTime2.setText("2h Ago");
+        lastSearch2.add(searchTime2, new org.netbeans.lib.awtextra.AbsoluteConstraints(610, 10, -1, -1));
+
+        lastSearch3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        recentSearchQuery3.setFont(new java.awt.Font("Helvetica", 0, 18)); // NOI18N
+        recentSearchQuery3.setText("Search History1");
+        lastSearch3.add(recentSearchQuery3, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 6, -1, -1));
+
+        recentSearchResult3.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        recentSearchResult3.setText("The first result shoud look something like this, willl be displayed here, it will reach to the end of the line here to the");
+        lastSearch3.add(recentSearchResult3, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 31, 670, -1));
+
+        goToRecent3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/slantArrow25.png"))); // NOI18N
+        goToRecent3.setBorderPainted(false);
+        goToRecent3.setContentAreaFilled(false);
+        goToRecent3.setFocusPainted(false);
+        goToRecent3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goToRecent3ActionPerformed(evt);
+            }
+        });
+        lastSearch3.add(goToRecent3, new org.netbeans.lib.awtextra.AbsoluteConstraints(680, 0, -1, 50));
+
+        searchTime3.setFont(new java.awt.Font("Helvetica", 0, 14)); // NOI18N
+        searchTime3.setText("2h Ago");
+        lastSearch3.add(searchTime3, new org.netbeans.lib.awtextra.AbsoluteConstraints(610, 10, -1, -1));
+
+        lastSearch2.add(lastSearch3, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
+
+        separator2.setBackground(new java.awt.Color(204, 204, 204));
+
+        lastSearch4.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        recentSearchQuery4.setFont(new java.awt.Font("Helvetica", 0, 18)); // NOI18N
+        recentSearchQuery4.setText("Search History1");
+        lastSearch4.add(recentSearchQuery4, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 6, -1, -1));
+
+        recentSearchResult4.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        recentSearchResult4.setText("The first result shoud look something like this, willl be displayed here, it will reach to the end of the line here to the");
+        lastSearch4.add(recentSearchResult4, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 31, 670, -1));
+
+        goToRecent4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/slantArrow25.png"))); // NOI18N
+        goToRecent4.setBorderPainted(false);
+        goToRecent4.setContentAreaFilled(false);
+        goToRecent4.setFocusPainted(false);
+        goToRecent4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goToRecent4ActionPerformed(evt);
+            }
+        });
+        lastSearch4.add(goToRecent4, new org.netbeans.lib.awtextra.AbsoluteConstraints(680, 0, -1, 50));
+
+        searchTime4.setFont(new java.awt.Font("Helvetica", 0, 14)); // NOI18N
+        searchTime4.setText("2h Ago");
+        lastSearch4.add(searchTime4, new org.netbeans.lib.awtextra.AbsoluteConstraints(610, 10, -1, -1));
+
+        lastSearch5.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        recentSearchQuery5.setFont(new java.awt.Font("Helvetica", 0, 18)); // NOI18N
+        recentSearchQuery5.setText("Search History1");
+        lastSearch5.add(recentSearchQuery5, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 6, -1, -1));
+
+        recentSearchResult5.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        recentSearchResult5.setText("The first result shoud look something like this, willl be displayed here, it will reach to the end of the line here to the");
+        lastSearch5.add(recentSearchResult5, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 31, 670, -1));
+
+        goToRecent5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/slantArrow25.png"))); // NOI18N
+        goToRecent5.setBorderPainted(false);
+        goToRecent5.setContentAreaFilled(false);
+        goToRecent5.setFocusPainted(false);
+        goToRecent5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goToRecent5ActionPerformed(evt);
+            }
+        });
+        lastSearch5.add(goToRecent5, new org.netbeans.lib.awtextra.AbsoluteConstraints(680, 0, -1, 50));
+
+        searchTime5.setFont(new java.awt.Font("Helvetica", 0, 14)); // NOI18N
+        searchTime5.setText("2h Ago");
+        lastSearch5.add(searchTime5, new org.netbeans.lib.awtextra.AbsoluteConstraints(610, 10, -1, -1));
+
+        lastSearch4.add(lastSearch5, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
+
+        separator3.setBackground(new java.awt.Color(204, 204, 204));
+
+        lastSearch6.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        recentSearchQuery6.setFont(new java.awt.Font("Helvetica", 0, 18)); // NOI18N
+        recentSearchQuery6.setText("Search History1");
+        lastSearch6.add(recentSearchQuery6, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 6, -1, -1));
+
+        recentSearchResult6.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        recentSearchResult6.setText("The first result shoud look something like this, willl be displayed here, it will reach to the end of the line here to the");
+        lastSearch6.add(recentSearchResult6, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 31, 670, -1));
+
+        goToRecent6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/slantArrow25.png"))); // NOI18N
+        goToRecent6.setBorderPainted(false);
+        goToRecent6.setContentAreaFilled(false);
+        goToRecent6.setFocusPainted(false);
+        goToRecent6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                goToRecent6ActionPerformed(evt);
+            }
+        });
+        lastSearch6.add(goToRecent6, new org.netbeans.lib.awtextra.AbsoluteConstraints(680, 0, -1, 50));
+
+        searchTime6.setFont(new java.awt.Font("Helvetica", 0, 14)); // NOI18N
+        searchTime6.setText("2h Ago");
+        lastSearch6.add(searchTime6, new org.netbeans.lib.awtextra.AbsoluteConstraints(610, 10, -1, -1));
+
+        separator4.setBackground(new java.awt.Color(204, 204, 204));
+
+        javax.swing.GroupLayout lastSearchesLayout = new javax.swing.GroupLayout(lastSearches);
+        lastSearches.setLayout(lastSearchesLayout);
+        lastSearchesLayout.setHorizontalGroup(
+            lastSearchesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(lastSearchesLayout.createSequentialGroup()
+                .addGroup(lastSearchesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(lastSearchesLayout.createSequentialGroup()
+                        .addGap(385, 385, 385)
+                        .addComponent(separator1, javax.swing.GroupLayout.PREFERRED_SIZE, 529, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(lastSearchesLayout.createSequentialGroup()
+                        .addGap(291, 291, 291)
+                        .addGroup(lastSearchesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lastSearch2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lastSearch1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lastSearch4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lastSearch6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(348, Short.MAX_VALUE))
+            .addGroup(lastSearchesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(lastSearchesLayout.createSequentialGroup()
+                    .addGap(386, 386, 386)
+                    .addComponent(separator2, javax.swing.GroupLayout.PREFERRED_SIZE, 528, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addContainerGap(436, Short.MAX_VALUE)))
+            .addGroup(lastSearchesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(lastSearchesLayout.createSequentialGroup()
+                    .addGap(385, 385, 385)
+                    .addComponent(separator3, javax.swing.GroupLayout.PREFERRED_SIZE, 527, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addContainerGap(438, Short.MAX_VALUE)))
+            .addGroup(lastSearchesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, lastSearchesLayout.createSequentialGroup()
+                    .addContainerGap(384, Short.MAX_VALUE)
+                    .addComponent(separator4, javax.swing.GroupLayout.PREFERRED_SIZE, 527, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(439, 439, 439)))
+        );
+        lastSearchesLayout.setVerticalGroup(
+            lastSearchesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(lastSearchesLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(lastSearch1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(separator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lastSearch2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(26, 26, 26)
+                .addComponent(lastSearch4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(lastSearch6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(74, Short.MAX_VALUE))
+            .addGroup(lastSearchesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(lastSearchesLayout.createSequentialGroup()
+                    .addGap(143, 143, 143)
+                    .addComponent(separator2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addContainerGap(203, Short.MAX_VALUE)))
+            .addGroup(lastSearchesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(lastSearchesLayout.createSequentialGroup()
+                    .addGap(217, 217, 217)
+                    .addComponent(separator3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addContainerGap(129, Short.MAX_VALUE)))
+            .addGroup(lastSearchesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, lastSearchesLayout.createSequentialGroup()
+                    .addContainerGap(283, Short.MAX_VALUE)
+                    .addComponent(separator4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(63, 63, 63)))
+        );
+
+        jLabel2.setFont(new java.awt.Font("Helvetica", 0, 24)); // NOI18N
+        jLabel2.setText("Search History");
+
         javax.swing.GroupLayout searchTabNoHistoryLayout = new javax.swing.GroupLayout(searchTabNoHistory);
         searchTabNoHistory.setLayout(searchTabNoHistoryLayout);
         searchTabNoHistoryLayout.setHorizontalGroup(
             searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                .addGap(351, 351, 351)
-                .addComponent(searchNoHistoryPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
                 .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
+                        .addGap(1548, 1548, 1548)
+                        .addComponent(jButton1))
+                    .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
+                        .addGap(130, 130, 130)
                         .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                                .addGap(667, 667, 667)
-                                .addComponent(normalSearchNoHistory)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(nlsRadioNoHistory))
+                                .addGap(577, 577, 577)
+                                .addComponent(noSearchHistory))
+                            .addComponent(lastSearches, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
+                        .addGap(343, 343, 343)
+                        .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                                .addGap(707, 707, 707)
-                                .addComponent(noSearchHistory)))
-                        .addGap(0, 709, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchTabNoHistoryLayout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButton1)))
-                .addContainerGap())
+                                .addGap(261, 261, 261)
+                                .addComponent(jLabel1))
+                            .addComponent(searchNoHistoryPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
+                                .addGap(323, 323, 323)
+                                .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
+                                        .addComponent(normalSearchNoHistory)
+                                        .addGap(6, 6, 6)
+                                        .addComponent(nlsRadioNoHistory)))))))
+                .addGap(6, 6, 6))
         );
         searchTabNoHistoryLayout.setVerticalGroup(
             searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
                 .addGap(53, 53, 53)
                 .addComponent(jButton1)
-                .addGap(310, 310, 310)
+                .addGap(207, 207, 207)
+                .addComponent(jLabel1)
+                .addGap(12, 12, 12)
                 .addComponent(searchNoHistoryPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGap(35, 35, 35)
+                .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(normalSearchNoHistory)
                     .addComponent(nlsRadioNoHistory))
-                .addGap(176, 176, 176)
-                .addComponent(noSearchHistory)
-                .addContainerGap(288, Short.MAX_VALUE))
+                .addGap(49, 49, 49)
+                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
+                        .addGap(114, 114, 114)
+                        .addComponent(noSearchHistory))
+                    .addComponent(lastSearches, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
 
         nlsRadioNoHistory.setToolTipText("<html>"
@@ -8345,6 +8654,9 @@ private Integer getSearchResultIdIfExists(String query) {
     }//GEN-LAST:event_testamentChooserActionPerformed
 
     private void searchBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBtnActionPerformed
+        if (tabs.getSelectedIndex() == 5) {
+            tabs.setSelectedIndex(4);
+        }        
         tabs.setSelectedIndex(4);
     }//GEN-LAST:event_searchBtnActionPerformed
 
@@ -8618,14 +8930,40 @@ private Integer getSearchResultIdIfExists(String query) {
     }//GEN-LAST:event_backToSearchActionPerformed
 
     private void lastSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lastSearchActionPerformed
+        maxId();
         searchHistoryNav(currentSearchResultIndex - 1);
         currentSearchResultIndex--;
     }//GEN-LAST:event_lastSearchActionPerformed
 
     private void nextSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nextSearchActionPerformed
+        maxId();
         searchHistoryNav(currentSearchResultIndex + 1);
         currentSearchResultIndex++;
     }//GEN-LAST:event_nextSearchActionPerformed
+
+    private void goToRecent1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goToRecent1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_goToRecent1ActionPerformed
+
+    private void goToRecent2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goToRecent2ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_goToRecent2ActionPerformed
+
+    private void goToRecent3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goToRecent3ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_goToRecent3ActionPerformed
+
+    private void goToRecent4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goToRecent4ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_goToRecent4ActionPerformed
+
+    private void goToRecent5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goToRecent5ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_goToRecent5ActionPerformed
+
+    private void goToRecent6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goToRecent6ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_goToRecent6ActionPerformed
 
     
    
@@ -8731,6 +9069,12 @@ private Integer getSearchResultIdIfExists(String query) {
     private javax.swing.JButton eyeShow;
     private javax.swing.JLabel feb;
     private javax.swing.JSlider fontSizeSlider;
+    private javax.swing.JButton goToRecent1;
+    private javax.swing.JButton goToRecent2;
+    private javax.swing.JButton goToRecent3;
+    private javax.swing.JButton goToRecent4;
+    private javax.swing.JButton goToRecent5;
+    private javax.swing.JButton goToRecent6;
     private javax.swing.JButton goto1;
     private javax.swing.JButton goto10;
     private javax.swing.JButton goto11;
@@ -8751,12 +9095,21 @@ private Integer getSearchResultIdIfExists(String query) {
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
     private javax.swing.JButton jButton1;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jan;
     private javax.swing.JButton journalBtn;
     private javax.swing.JLabel jul;
     private javax.swing.JLabel jun;
     private javax.swing.JComboBox<String> langChooser;
     private javax.swing.JButton lastSearch;
+    private javax.swing.JPanel lastSearch1;
+    private javax.swing.JPanel lastSearch2;
+    private javax.swing.JPanel lastSearch3;
+    private javax.swing.JPanel lastSearch4;
+    private javax.swing.JPanel lastSearch5;
+    private javax.swing.JPanel lastSearch6;
+    private javax.swing.JPanel lastSearches;
     private javax.swing.JButton libraryBtn;
     private javax.swing.JPanel libraryContent;
     private javax.swing.JPanel libraryTab;
@@ -8804,6 +9157,18 @@ private Integer getSearchResultIdIfExists(String query) {
     private javax.swing.JButton reRandomizer;
     private javax.swing.JButton readBtn;
     private javax.swing.JPanel readStatus;
+    private javax.swing.JLabel recentSearchQuery1;
+    private javax.swing.JLabel recentSearchQuery2;
+    private javax.swing.JLabel recentSearchQuery3;
+    private javax.swing.JLabel recentSearchQuery4;
+    private javax.swing.JLabel recentSearchQuery5;
+    private javax.swing.JLabel recentSearchQuery6;
+    private javax.swing.JLabel recentSearchResult1;
+    private javax.swing.JLabel recentSearchResult2;
+    private javax.swing.JLabel recentSearchResult3;
+    private javax.swing.JLabel recentSearchResult4;
+    private javax.swing.JLabel recentSearchResult5;
+    private javax.swing.JLabel recentSearchResult6;
     private javax.swing.JButton restoreBtn;
     private javax.swing.JButton saveNote;
     private javax.swing.JButton saveTick;
@@ -8844,6 +9209,12 @@ private Integer getSearchResultIdIfExists(String query) {
     private javax.swing.JEditorPane searchResult9;
     private javax.swing.JPanel searchTabNoHistory;
     private javax.swing.JPanel searchTabResults;
+    private javax.swing.JLabel searchTime1;
+    private javax.swing.JLabel searchTime2;
+    private javax.swing.JLabel searchTime3;
+    private javax.swing.JLabel searchTime4;
+    private javax.swing.JLabel searchTime5;
+    private javax.swing.JLabel searchTime6;
     private javax.swing.JButton selectedBook;
     private javax.swing.JButton selectedBookUnderline1;
     private javax.swing.JButton selectedBookUnderline10;
@@ -8859,6 +9230,10 @@ private Integer getSearchResultIdIfExists(String query) {
     private javax.swing.JButton selectedBookUnderline9;
     private javax.swing.JLabel sep1;
     private javax.swing.JLabel sep2;
+    private javax.swing.JProgressBar separator1;
+    private javax.swing.JProgressBar separator2;
+    private javax.swing.JProgressBar separator3;
+    private javax.swing.JProgressBar separator4;
     private javax.swing.JButton settingsBtn;
     private javax.swing.JLabel settingsLabel;
     private javax.swing.JButton showMore;
