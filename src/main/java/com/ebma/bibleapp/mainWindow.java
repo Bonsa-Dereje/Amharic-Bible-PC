@@ -1,258 +1,374 @@
-
-
 package com.ebma.bibleapp;
 
-
-
+import com.ebma.bibleapp.DBManagerEng;
 import com.formdev.flatlaf.FlatLightLaf;
-
-
-import javax.swing.*;
 import java.awt.*;
-
-import javax.swing.text.Highlighter;
-import javax.swing.text.DefaultHighlighter;
-import javax.swing.text.BadLocationException;
-
-import java.io.*;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
-
-
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
-import java.util.Set;
-import java.util.TreeSet;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import javax.swing.event.DocumentListener;
-import javax.swing.event.DocumentEvent;
-
-import java.nio.file.Files;
-
+import java.awt.event.InputEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
-import java.awt.event.InputEvent;
-
-import javax.swing.text.BadLocationException;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-
-import java.util.Map;
-import java.util.HashMap;
-
-
-import com.ebma.bibleapp.DBManagerEng;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
+import java.sql.Statement;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-
+import java.util.HashMap;
 import java.util.HashSet;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.Files;
-
-import java.net.URL;
-
-import java.sql.DriverManager;
-import java.util.Random;
-import java.sql.Statement;
 import java.util.LinkedHashSet;
-
-
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import javax.swing.JEditorPane;
-
-
-
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.rendering.PDFRenderer;
-import java.awt.image.BufferedImage;
-
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
-import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineListener;
-
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoField;
-import java.time.LocalDate;
-
-import java.awt.geom.Rectangle2D;
-
+import javax.sound.sampled.LineUnavailableException;
+import javax.swing.*;
+import javax.swing.JEditorPane;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Highlighter;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 //import io.documentnode.epub4j.domain.Book;
 //import io.documentnode.epub4j.epub.EpubReader;
 //import org.apache.tika.Tika;
 
-
 //import java.util.stream.Stream;
 //import java.util.Optional;
-
-
 
 public class mainWindow extends javax.swing.JFrame {
 
     private boolean isBoldActive = true;
-    
-    private boolean highlighterActive = false;  
-    private Color currentHighlightColor = null;  
-    
-    
-    private String[] allBooks = {
-        "ኦሪት ዘፍጥረት", "ኦሪት ዘጸአት", "ኦሪት ዘሌዋውያን", "ኦሪት ዘኍልቍ", "ኦሪት ዘዳግም", 
-        "መጽሐፈ ኢያሱ ወልደ ነዌ", "መጽሐፈ መሣፍንት", "መጽሐፈ ሩት", "መጽሐፈ ሳሙኤል ቀዳማዊ", 
-        "መጽሐፈ ሳሙኤል ካልዕ", "መጽሐፈ ነገሥት ቀዳማዊ", "መጽሐፈ ነገሥት ካልዕ", 
-        "መጽሐፈ ዜና መዋዕል ቀዳማዊ", "መጽሐፈ ዜና መዋዕል ካልዕ", "መጽሐፈ ዕዝራ", 
-        "መጽሐፈ ነህምያ", "መጽሐፈ አስቴር", "መጽሐፈ ኢዮብ", "መዝሙረ ዳዊት", "መጽሐፈ ምሳሌ", 
-        "መጽሐፈ መክብብ", "መኃልየ መኃልይ ዘሰሎሞን", "ትንቢተ ኢሳይያስ", "ትንቢተ ኤርምያስ", 
-        "ሰቆቃው ኤርምያስ", "ትንቢተ ሕዝቅኤል", "ትንቢተ ዳንኤል", "ትንቢተ ሆሴዕ", "ትንቢተ አሞጽ", 
-        "ትንቢተ ሚክያስ", "ትንቢተ ኢዮኤል", "ትንቢተ አብድዩ", "ትንቢተ ዮናስ", "ትንቢተ ናሆም", 
-        "ትንቢተ ዕንባቆም", "ትንቢተ ሶፎንያስ", "ትንቢተ ሐጌ", "ትንቢተ ዘካርያስ", "ትንቢተ ሚልክያስ", 
-        "የማቴዎስ ወንጌል", "የማርቆስ ወንጌል", "የሉቃስ ወንጌል", "የዮሐንስ ወንጌል", "የሐዋርያት ሥራ", 
-        "ወደ ሮሜ ሰዎች", "1ኛ ወደ ቆሮንቶስ ሰዎች", "2ኛ ወደ ቆሮንቶስ ሰዎች", "ወደ ገላትያ ሰዎች", 
-        "ወደ ኤፌሶን ሰዎች", "ወደ ፊልጵስዩስ ሰዎች", "ወደ ቆላስይስ ሰዎች", "1ኛ ወደ ተሰሎንቄ ሰዎች", 
-        "2ኛ ወደ ተሰሎንቄ ሰዎች", "1ኛ ወደ ጢሞቴዎስ", "2ኛ ወደ ጢሞቴዎስ", "ወደ ቲቶ", "ወደ ፊልሞና", 
-        "ወደ ዕብራውያን", "1ኛ የጴጥሮስ መልእክት", "2ኛ የጴጥሮስ መልእክት", "1ኛ የዮሐንስ መልእክት", 
-        "2ኛ የዮሐንስ መልእክት", "3ኛ የዮሐንስ መልእክት", "የያዕቆብ መልእክት", "የይሁዳ መልእክት", "የዮሐንስ ራእይ"
 
+    private boolean highlighterActive = false;
+    private Color currentHighlightColor = null;
+
+    private String[] allBooks = {
+        "ኦሪት ዘፍጥረት",
+        "ኦሪት ዘጸአት",
+        "ኦሪት ዘሌዋውያን",
+        "ኦሪት ዘኍልቍ",
+        "ኦሪት ዘዳግም",
+        "መጽሐፈ ኢያሱ ወልደ ነዌ",
+        "መጽሐፈ መሣፍንት",
+        "መጽሐፈ ሩት",
+        "መጽሐፈ ሳሙኤል ቀዳማዊ",
+        "መጽሐፈ ሳሙኤል ካልዕ",
+        "መጽሐፈ ነገሥት ቀዳማዊ",
+        "መጽሐፈ ነገሥት ካልዕ",
+        "መጽሐፈ ዜና መዋዕል ቀዳማዊ",
+        "መጽሐፈ ዜና መዋዕል ካልዕ",
+        "መጽሐፈ ዕዝራ",
+        "መጽሐፈ ነህምያ",
+        "መጽሐፈ አስቴር",
+        "መጽሐፈ ኢዮብ",
+        "መዝሙረ ዳዊት",
+        "መጽሐፈ ምሳሌ",
+        "መጽሐፈ መክብብ",
+        "መኃልየ መኃልይ ዘሰሎሞን",
+        "ትንቢተ ኢሳይያስ",
+        "ትንቢተ ኤርምያስ",
+        "ሰቆቃው ኤርምያስ",
+        "ትንቢተ ሕዝቅኤል",
+        "ትንቢተ ዳንኤል",
+        "ትንቢተ ሆሴዕ",
+        "ትንቢተ አሞጽ",
+        "ትንቢተ ሚክያስ",
+        "ትንቢተ ኢዮኤል",
+        "ትንቢተ አብድዩ",
+        "ትንቢተ ዮናስ",
+        "ትንቢተ ናሆም",
+        "ትንቢተ ዕንባቆም",
+        "ትንቢተ ሶፎንያስ",
+        "ትንቢተ ሐጌ",
+        "ትንቢተ ዘካርያስ",
+        "ትንቢተ ሚልክያስ",
+        "የማቴዎስ ወንጌል",
+        "የማርቆስ ወንጌል",
+        "የሉቃስ ወንጌል",
+        "የዮሐንስ ወንጌል",
+        "የሐዋርያት ሥራ",
+        "ወደ ሮሜ ሰዎች",
+        "1ኛ ወደ ቆሮንቶስ ሰዎች",
+        "2ኛ ወደ ቆሮንቶስ ሰዎች",
+        "ወደ ገላትያ ሰዎች",
+        "ወደ ኤፌሶን ሰዎች",
+        "ወደ ፊልጵስዩስ ሰዎች",
+        "ወደ ቆላስይስ ሰዎች",
+        "1ኛ ወደ ተሰሎንቄ ሰዎች",
+        "2ኛ ወደ ተሰሎንቄ ሰዎች",
+        "1ኛ ወደ ጢሞቴዎስ",
+        "2ኛ ወደ ጢሞቴዎስ",
+        "ወደ ቲቶ",
+        "ወደ ፊልሞና",
+        "ወደ ዕብራውያን",
+        "1ኛ የጴጥሮስ መልእክት",
+        "2ኛ የጴጥሮስ መልእክት",
+        "1ኛ የዮሐንስ መልእክት",
+        "2ኛ የዮሐንስ መልእክት",
+        "3ኛ የዮሐንስ መልእክት",
+        "የያዕቆብ መልእክት",
+        "የይሁዳ መልእክት",
+        "የዮሐንስ ራእይ",
     };
-    
+
     private boolean verseChooserInitialized = false;
-    
+
     public int currentBookIndex;
     public int currentChapterIndex;
-    
 
     private List<Integer> randomNums = get12RandomBookNumbers();
-    
+
     private int currentSelected;
-    
-    
+
     private int loadedBook;
-    
-    
+
     private int currentScrollState = 0;
-    
+
     private int overhead;
     private boolean firstScrollWrite = true;
-    
+
     // Declare this at the top of your class (outside the method)
     private int itr = 1;
     private Clip cafeClip;
     private Clip treeClip;
     private Clip rainClip;
     private Clip lastPlayedClip = null; // remembers the last active ambience
-    private long lastClipPosition = 0;  // remembers frame position for resume
-    private String lastTheme = "";  
+    private long lastClipPosition = 0; // remembers frame position for resume
+    private String lastTheme = "";
     //private int baseFontSize = 20;
-    //private float volumePercent = 50; 
+    //private float volumePercent = 50;
     private boolean isDarkMode = false;
-    
+
     private boolean closeClicked = false;
 
     private String[] allBooksEnglish = {
-        "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
-        "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel",
-        "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra",
-        "Nehemiah", "Esther", "Job", "Psalms", "Proverbs",
-        "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah",
-        "Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel",
-        "Amos", "Obadiah", "Jonah", "Micah", "Nahum",
-        "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi",
-        "Matthew", "Mark", "Luke", "John", "Acts",
-        "Romans", "1 Corinthians", "2 Corinthians", "Galatians",
-        "Ephesians", "Philippians", "Colossians", "1 Thessalonians",
-        "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus",
-        "Philemon", "Hebrews", "James", "1 Peter", "2 Peter",
-        "1 John", "2 John", "3 John", "Jude", "Revelation"
+        "Genesis",
+        "Exodus",
+        "Leviticus",
+        "Numbers",
+        "Deuteronomy",
+        "Joshua",
+        "Judges",
+        "Ruth",
+        "1 Samuel",
+        "2 Samuel",
+        "1 Kings",
+        "2 Kings",
+        "1 Chronicles",
+        "2 Chronicles",
+        "Ezra",
+        "Nehemiah",
+        "Esther",
+        "Job",
+        "Psalms",
+        "Proverbs",
+        "Ecclesiastes",
+        "Song of Solomon",
+        "Isaiah",
+        "Jeremiah",
+        "Lamentations",
+        "Ezekiel",
+        "Daniel",
+        "Hosea",
+        "Joel",
+        "Amos",
+        "Obadiah",
+        "Jonah",
+        "Micah",
+        "Nahum",
+        "Habakkuk",
+        "Zephaniah",
+        "Haggai",
+        "Zechariah",
+        "Malachi",
+        "Matthew",
+        "Mark",
+        "Luke",
+        "John",
+        "Acts",
+        "Romans",
+        "1 Corinthians",
+        "2 Corinthians",
+        "Galatians",
+        "Ephesians",
+        "Philippians",
+        "Colossians",
+        "1 Thessalonians",
+        "2 Thessalonians",
+        "1 Timothy",
+        "2 Timothy",
+        "Titus",
+        "Philemon",
+        "Hebrews",
+        "James",
+        "1 Peter",
+        "2 Peter",
+        "1 John",
+        "2 John",
+        "3 John",
+        "Jude",
+        "Revelation",
     };
-    
+
+    private String[] allBooksEnglishPsalms = {
+        "Genesis",
+        "Exodus",
+        "Leviticus",
+        "Numbers",
+        "Deuteronomy",
+        "Joshua",
+        "Judges",
+        "Ruth",
+        "1 Samuel",
+        "2 Samuel",
+        "1 Kings",
+        "2 Kings",
+        "1 Chronicles",
+        "2 Chronicles",
+        "Ezra",
+        "Nehemiah",
+        "Esther",
+        "Job",
+        "Psalm",
+        "Proverbs",
+        "Ecclesiastes",
+        "Song of Solomon",
+        "Isaiah",
+        "Jeremiah",
+        "Lamentations",
+        "Ezekiel",
+        "Daniel",
+        "Hosea",
+        "Joel",
+        "Amos",
+        "Obadiah",
+        "Jonah",
+        "Micah",
+        "Nahum",
+        "Habakkuk",
+        "Zephaniah",
+        "Haggai",
+        "Zechariah",
+        "Malachi",
+        "Matthew",
+        "Mark",
+        "Luke",
+        "John",
+        "Acts",
+        "Romans",
+        "1 Corinthians",
+        "2 Corinthians",
+        "Galatians",
+        "Ephesians",
+        "Philippians",
+        "Colossians",
+        "1 Thessalonians",
+        "2 Thessalonians",
+        "1 Timothy",
+        "2 Timothy",
+        "Titus",
+        "Philemon",
+        "Hebrews",
+        "James",
+        "1 Peter",
+        "2 Peter",
+        "1 John",
+        "2 John",
+        "3 John",
+        "Jude",
+        "Revelation",
+    };
     private String langChosen = "amh";
     private boolean isAmh = true;
-    //public String dbSwitch = "highlights"; 
-    
+    //public String dbSwitch = "highlights";
+
     private int tResumeE;
     private int bResumeE;
     private int cResumeE;
-    
+
     private int tResumeA;
     private int bResumeA;
     private int cResumeA;
-    
+
     public int b;
-    
+
     private boolean firstLoad = true;
-    
+
     private boolean nlsOn = false;
     private boolean normalSearchOn = false;
-    //private boolean iconEnabled = true; 
-    
-    
-    
+    //private boolean iconEnabled = true;
+
     private List<String> rawResults = new ArrayList<>();
 
     private String searchQuery;
-    
-    public int currentBookIndexPointer; 
-    public int currentChapterIndexPointer;    
-    public int versePointer;   
-    
+
+    public int currentBookIndexPointer;
+    public int currentChapterIndexPointer;
+    public int versePointer;
+
     public boolean searched;
-    
+
     public boolean toSearch = false;
-    
+
     public int currentSearchResultIndex;
-    
-    
-    
-    
-    
+
     public mainWindow() {
-        
-        setUndecorated(true);  
+        setUndecorated(true);
         initComponents();
-        
-         
+
         setLocationRelativeTo(null);
-        
+
         boldBtn.setBackground(Color.LIGHT_GRAY);
-        
+
         testamentChooser.addActionListener(e -> updateBookChooser());
         bookChooser.addActionListener(e -> updateChapterChooser());
 
-        
+        if (firstLoad) {
+            testamentChooser.setSelectedIndex(0);
+            bookChooser.setSelectedIndex(0);
+            chapterChooser.setSelectedIndex(0);
 
-    if (firstLoad) {
-        testamentChooser.setSelectedIndex(0);
-        bookChooser.setSelectedIndex(0);
-        chapterChooser.setSelectedIndex(0);
-
-        firstLoad = false;
-    }
-                updateBookChooser();
+            firstLoad = false;
+        }
+        updateBookChooser();
         updateVerseChooser();
         updateVerseChooser();
-        
+
         selectedBookUnderline1.setContentAreaFilled(false);
         selectedBookUnderline2.setContentAreaFilled(false);
         selectedBookUnderline3.setContentAreaFilled(false);
@@ -265,43 +381,40 @@ public class mainWindow extends javax.swing.JFrame {
         selectedBookUnderline10.setContentAreaFilled(false);
         selectedBookUnderline11.setContentAreaFilled(false);
         selectedBookUnderline12.setContentAreaFilled(false);
-        
+
         bookmarkSavedNotif.setVisible(false);
 
         unmute.setVisible(false);
         mute.setVisible(false);
-        
-        
+
         //loadLastReadBookFromSession();
-        
+
         startAutoSaveClickTimer();
 
         writeYourReflection.setVisible(false);
-        
+
         //updateReadingStatus();
         //updateReadingStatusDebug();
         //SwingUtilities.invokeLater(() -> updateReadingStatus());
 
         englishDropDownUpdater();
-        
+
         wrapper();
 
+        // updateChapterChooserEnglish();
 
-           // updateChapterChooserEnglish();
-        
-        cmtryName.setVisible(false);    
+        cmtryName.setVisible(false);
         loading30BW.setVisible(false);
-      
     }
-    
-        private void updateBookChooser() {
+
+    private void updateBookChooser() {
         int selectedTestament = testamentChooser.getSelectedIndex();
         int start, end;
 
-        if (selectedTestament == 0) { 
+        if (selectedTestament == 0) {
             start = 0;
             end = 39;
-        } else { 
+        } else {
             start = 39;
             end = allBooks.length;
         }
@@ -310,114 +423,128 @@ public class mainWindow extends javax.swing.JFrame {
         bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(subset));
     }
 
+    private void updateChapterChooser() {
+        int selectedBookIndex = bookChooser.getSelectedIndex();
+        if (selectedBookIndex < 0) return;
 
-     
-        private void updateChapterChooser() {
-            int selectedBookIndex = bookChooser.getSelectedIndex(); 
-            if (selectedBookIndex < 0) return;
-            
-            int selectedTestamentIndex = testamentChooser.getSelectedIndex();
+        int selectedTestamentIndex = testamentChooser.getSelectedIndex();
 
-            // Adjust for New Testament starting after 39 books
-            int folderNumber;
-            if (selectedTestamentIndex == 1) {
-                folderNumber = selectedBookIndex + 40; // since NT starts at book #40 (index 39)
-            } else {
-                folderNumber = selectedBookIndex + 1;  // OT starts at book #1
-            }
+        // Adjust for New Testament starting after 39 books
+        int folderNumber;
+        if (selectedTestamentIndex == 1) {
+            folderNumber = selectedBookIndex + 40; // since NT starts at book #40 (index 39)
+        } else {
+            folderNumber = selectedBookIndex + 1; // OT starts at book #1
+        }
 
-            File bookFolder = new File(
-                    "src/main/resources/files/books/amh",
-                    String.valueOf(folderNumber)
+        File bookFolder = new File(
+            "src/main/resources/files/books/amh",
+            String.valueOf(folderNumber)
+        );
+
+        if (!bookFolder.exists() || !bookFolder.isDirectory()) {
+            chapterChooser.setModel(
+                new javax.swing.DefaultComboBoxModel<>(new String[] { "1" })
             );
-
-            if (!bookFolder.exists() || !bookFolder.isDirectory()) {
-                chapterChooser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"1"}));
-                return;
-            }
-
-            // Count all PDF files in the folder
-            File[] chapterFiles = bookFolder.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
-            int chapterCount = (chapterFiles != null) ? chapterFiles.length : 0;
-
-            // Populate chapterChooser with numbers 1 .. chapterCount
-            String[] chapters = new String[chapterCount];
-            for (int i = 0; i < chapterCount; i++) {
-                chapters[i] = String.valueOf(i + 1); // start from 1
-            }
-
-            chapterChooser.setModel(new javax.swing.DefaultComboBoxModel<>(chapters));
-            chapterChooser.setSelectedIndex(0); // default to first chapter
+            return;
         }
 
+        // Count all PDF files in the folder
+        File[] chapterFiles = bookFolder.listFiles((dir, name) ->
+            name.toLowerCase().endsWith(".pdf")
+        );
+        int chapterCount = (chapterFiles != null) ? chapterFiles.length : 0;
 
-        private void updateVerseChooser() {
-            String text = mainTextArea.getText();
-            if (text == null || text.isEmpty()) return;
-
-            // Just verify the text has verses
-            Pattern pattern = Pattern.compile("\\b\\d+\\b");
-            Matcher matcher = pattern.matcher(text);
-
-            boolean found = matcher.find();
-            if (!found) return;
-
-            // Always default to first verse (index 0)
-            try {
-                Rectangle viewRect = mainTextArea.modelToView(0);
-                if (viewRect != null) {
-                    JViewport viewport = (JViewport) mainTextArea.getParent();
-                    viewport.setViewPosition(viewRect.getLocation());
-                }
-            } catch (Exception ignored) {}
-
-            // Optional: mark that verse loading is initialized
-            verseChooserInitialized = false;
+        // Populate chapterChooser with numbers 1 .. chapterCount
+        String[] chapters = new String[chapterCount];
+        for (int i = 0; i < chapterCount; i++) {
+            chapters[i] = String.valueOf(i + 1); // start from 1
         }
 
+        chapterChooser.setModel(
+            new javax.swing.DefaultComboBoxModel<>(chapters)
+        );
+        chapterChooser.setSelectedIndex(0); // default to first chapter
+    }
 
-        
-        private void saveHighlight(String text, Color color) {
-            if(isAmh){
+    private void updateVerseChooser() {
+        String text = mainTextArea.getText();
+        if (text == null || text.isEmpty()) return;
+
+        // Just verify the text has verses
+        Pattern pattern = Pattern.compile("\\b\\d+\\b");
+        Matcher matcher = pattern.matcher(text);
+
+        boolean found = matcher.find();
+        if (!found) return;
+
+        // Always default to first verse (index 0)
+        try {
+            Rectangle viewRect = mainTextArea.modelToView(0);
+            if (viewRect != null) {
+                JViewport viewport = (JViewport) mainTextArea.getParent();
+                viewport.setViewPosition(viewRect.getLocation());
+            }
+        } catch (Exception ignored) {}
+
+        // Optional: mark that verse loading is initialized
+        verseChooserInitialized = false;
+    }
+
+    private void saveHighlight(String text, Color color) {
+        if (isAmh) {
             try (Connection conn = DBManager.getConnection()) {
-
                 int selectionStart = mainTextArea.getSelectionStart();
                 int selectionEnd = mainTextArea.getSelectionEnd();
 
                 String insert = """
-                        INSERT INTO highlights 
-                        (bookIndex, chapterIndex, line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """;
+                    INSERT INTO highlights
+                    (bookIndex, chapterIndex, line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """;
 
                 try (PreparedStatement ps = conn.prepareStatement(insert)) {
-
-                    int startLine = mainTextArea.getLineOfOffset(selectionStart);
-                    int endLine   = mainTextArea.getLineOfOffset(selectionEnd);
+                    int startLine = mainTextArea.getLineOfOffset(
+                        selectionStart
+                    );
+                    int endLine = mainTextArea.getLineOfOffset(selectionEnd);
 
                     for (int line = startLine; line <= endLine; line++) {
-                        int lineStartOffset = mainTextArea.getLineStartOffset(line);
-                        int lineEndOffset   = mainTextArea.getLineEndOffset(line);
+                        int lineStartOffset = mainTextArea.getLineStartOffset(
+                            line
+                        );
+                        int lineEndOffset = mainTextArea.getLineEndOffset(line);
 
                         // Clamp selection to this line
-                        int lineSelStart = Math.max(selectionStart, lineStartOffset);
-                        int lineSelEnd   = Math.min(selectionEnd, lineEndOffset);
+                        int lineSelStart = Math.max(
+                            selectionStart,
+                            lineStartOffset
+                        );
+                        int lineSelEnd = Math.min(selectionEnd, lineEndOffset);
 
                         // Offset within line
-                        int selectionStartInLine = lineSelStart - lineStartOffset;
+                        int selectionStartInLine =
+                            lineSelStart - lineStartOffset;
 
                         // Grab text for this line
-                        String lineText = mainTextArea.getText(lineSelStart, lineSelEnd - lineSelStart);
+                        String lineText = mainTextArea.getText(
+                            lineSelStart,
+                            lineSelEnd - lineSelStart
+                        );
 
                         for (int i = 0; i < lineText.length(); i++) {
                             char c = lineText.charAt(i);
 
                             // Remove existing character at same position if exists
                             String delete = """
-                                    DELETE FROM highlights 
-                                    WHERE bookIndex=? AND chapterIndex=? AND line=? AND wordDistIndex=?
-                                    """;
-                            try (PreparedStatement del = conn.prepareStatement(delete)) {
+                                DELETE FROM highlights
+                                WHERE bookIndex=? AND chapterIndex=? AND line=? AND wordDistIndex=?
+                                """;
+                            try (
+                                PreparedStatement del = conn.prepareStatement(
+                                    delete
+                                )
+                            ) {
                                 del.setInt(1, currentBookIndex);
                                 del.setInt(2, currentChapterIndex);
                                 del.setInt(3, line);
@@ -441,30 +568,26 @@ public class mainWindow extends javax.swing.JFrame {
 
                     ps.executeBatch();
                 }
-
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-            }
         }
+    }
 
-
-
-        private void restoreHighlights() {
-            if(isAmh){
-                if (tabs.getSelectedIndex() != 0) {
-                    return; 
-                }
+    private void restoreHighlights() {
+        if (isAmh) {
+            if (tabs.getSelectedIndex() != 0) {
+                return;
+            }
             try (Connection conn = DBManager.getConnection()) {
-
                 // Remove old highlights
                 mainTextArea.getHighlighter().removeAllHighlights();
 
                 // Fetch all highlights for the current book and chapter
                 String query = """
-                    SELECT line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength 
-                    FROM highlights 
-                    WHERE bookIndex=? AND chapterIndex=? 
+                    SELECT line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength
+                    FROM highlights
+                    WHERE bookIndex=? AND chapterIndex=?
                     ORDER BY line, wordDistIndex
                     """;
 
@@ -473,7 +596,8 @@ public class mainWindow extends javax.swing.JFrame {
                     ps.setInt(2, currentChapterIndex);
 
                     try (ResultSet rs = ps.executeQuery()) {
-                        Map<Integer, List<HighlightWord>> lineMap = new HashMap<>();
+                        Map<Integer, List<HighlightWord>> lineMap =
+                            new HashMap<>();
 
                         // Group highlights by line
                         while (rs.next()) {
@@ -481,115 +605,143 @@ public class mainWindow extends javax.swing.JFrame {
                             int wordDistIndex = rs.getInt("wordDistIndex");
                             String text = rs.getString("text");
                             Color color = new Color(
-                                    rs.getInt("colorR"),
-                                    rs.getInt("colorG"),
-                                    rs.getInt("colorB")
+                                rs.getInt("colorR"),
+                                rs.getInt("colorG"),
+                                rs.getInt("colorB")
                             );
                             int postSpaceLength = rs.getInt("postSpaceLength");
 
-                            lineMap.computeIfAbsent(lineNumber, k -> new ArrayList<>())
-                                   .add(new HighlightWord(wordDistIndex, text, color, postSpaceLength));
+                            lineMap
+                                .computeIfAbsent(lineNumber, k ->
+                                    new ArrayList<>()
+                                )
+                                .add(
+                                    new HighlightWord(
+                                        wordDistIndex,
+                                        text,
+                                        color,
+                                        postSpaceLength
+                                    )
+                                );
                         }
 
                         // Apply highlights per line
-                        for (Map.Entry<Integer, List<HighlightWord>> entry : lineMap.entrySet()) {
+                        for (Map.Entry<
+                            Integer,
+                            List<HighlightWord>
+                        > entry : lineMap.entrySet()) {
                             int lineNumber = entry.getKey();
                             List<HighlightWord> words = entry.getValue();
-                            words.sort(Comparator.comparingInt(w -> w.wordDistIndex));
+                            words.sort(
+                                Comparator.comparingInt(w -> w.wordDistIndex)
+                            );
 
-                            int lineStartOffset = mainTextArea.getLineStartOffset(lineNumber);
+                            int lineStartOffset =
+                                mainTextArea.getLineStartOffset(lineNumber);
 
                             for (HighlightWord hw : words) {
                                 // Use saved wordDistIndex directly
                                 int start = lineStartOffset + hw.wordDistIndex;
-                                int end = Math.min(start + hw.text.length(), mainTextArea.getText().length());
-
-                                mainTextArea.getHighlighter().addHighlight(
-                                    start,
-                                    end,
-                                    new DefaultHighlighter.DefaultHighlightPainter(hw.color)
+                                int end = Math.min(
+                                    start + hw.text.length(),
+                                    mainTextArea.getText().length()
                                 );
+
+                                mainTextArea
+                                    .getHighlighter()
+                                    .addHighlight(
+                                        start,
+                                        end,
+                                        new DefaultHighlighter.DefaultHighlightPainter(
+                                            hw.color
+                                        )
+                                    );
                             }
                         }
                     }
                 }
-
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-            }
         }
-
-
-        public class HighlightWord {
-            public int wordDistIndex;
-            public String text;
-            public Color color;
-            public int postSpaceLength;
-
-            public HighlightWord(int wordDistIndex, String text, Color color) {
-                this(wordDistIndex, text, color, 1); // default post-space
-            }
-
-            public HighlightWord(int wordDistIndex, String text, Color color, int postSpaceLength) {
-                this.wordDistIndex = wordDistIndex;
-                this.text = text;
-                this.color = color;
-                this.postSpaceLength = postSpaceLength;
-            }
-        }
-
-
-        private void saveNotes() {
-            // get text from JTextArea
-            String text = notesInput.getText();
-
-            // build path to Notes folder relative to project directory
-            // (user.dir gives the working directory of the program)
-            String projectDir = System.getProperty("user.dir");
-            String notesDir = projectDir + File.separator + "Notes";
-
-            // make sure the Notes folder exists
-            File dir = new File(notesDir);
-            if (!dir.exists()) {
-                dir.mkdirs(); // create Notes folder if it doesn’t exist
-            }
-
-            // build the filename
-            String filename = "notes" + currentBookIndex + "_" + currentChapterIndex + "notes.txt";
-
-            // full file path
-            File file = new File(dir, filename);
-
-            try (FileWriter writer = new FileWriter(file)) {
-                writer.write(text);
-                System.out.println("Saved to: " + file.getAbsolutePath());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    
-
-
-        
-public List<Integer> get12RandomBookNumbers() {
-    // Folder in your project resources
-    String folderPath = "bookTiles"; // relative to resources
-    URL folderURL = getClass().getClassLoader().getResource(folderPath);
-    if (folderURL == null) {
-        System.err.println("Resource folder not found: " + folderPath);
-        return Collections.nCopies(12, 0);
     }
 
-    File folder = new File(folderURL.getPath());
-    File[] files = folder.listFiles();
-    if (files == null || files.length == 0) {
-        System.err.println("No files found in: " + folderPath);
-        return Collections.nCopies(12, 0);
+    public class HighlightWord {
+
+        public int wordDistIndex;
+        public String text;
+        public Color color;
+        public int postSpaceLength;
+
+        public HighlightWord(int wordDistIndex, String text, Color color) {
+            this(wordDistIndex, text, color, 1); // default post-space
+        }
+
+        public HighlightWord(
+            int wordDistIndex,
+            String text,
+            Color color,
+            int postSpaceLength
+        ) {
+            this.wordDistIndex = wordDistIndex;
+            this.text = text;
+            this.color = color;
+            this.postSpaceLength = postSpaceLength;
+        }
     }
 
-    // Extract numbers from filenames
-    List<Integer> numbers = Arrays.stream(files)
+    private void saveNotes() {
+        // get text from JTextArea
+        String text = notesInput.getText();
+
+        // build path to Notes folder relative to project directory
+        // (user.dir gives the working directory of the program)
+        String projectDir = System.getProperty("user.dir");
+        String notesDir = projectDir + File.separator + "Notes";
+
+        // make sure the Notes folder exists
+        File dir = new File(notesDir);
+        if (!dir.exists()) {
+            dir.mkdirs(); // create Notes folder if it doesn’t exist
+        }
+
+        // build the filename
+        String filename =
+            "notes" +
+            currentBookIndex +
+            "_" +
+            currentChapterIndex +
+            "notes.txt";
+
+        // full file path
+        File file = new File(dir, filename);
+
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write(text);
+            System.out.println("Saved to: " + file.getAbsolutePath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public List<Integer> get12RandomBookNumbers() {
+        // Folder in your project resources
+        String folderPath = "bookTiles"; // relative to resources
+        URL folderURL = getClass().getClassLoader().getResource(folderPath);
+        if (folderURL == null) {
+            System.err.println("Resource folder not found: " + folderPath);
+            return Collections.nCopies(12, 0);
+        }
+
+        File folder = new File(folderURL.getPath());
+        File[] files = folder.listFiles();
+        if (files == null || files.length == 0) {
+            System.err.println("No files found in: " + folderPath);
+            return Collections.nCopies(12, 0);
+        }
+
+        // Extract numbers from filenames
+        List<Integer> numbers = Arrays.stream(files)
             .filter(File::isFile)
             .map(f -> f.getName().replaceAll("\\D", ""))
             .filter(s -> !s.isEmpty())
@@ -597,228 +749,89 @@ public List<Integer> get12RandomBookNumbers() {
             .sorted()
             .collect(Collectors.toList());
 
-    int min = numbers.get(0);
-    int max = numbers.get(numbers.size() - 1);
-    System.out.println("Max number in folder: " + max);
+        int min = numbers.get(0);
+        int max = numbers.get(numbers.size() - 1);
+        System.out.println("Max number in folder: " + max);
 
-    // Generate 12 unique random numbers
-    Random rand = new Random();
-    Set<Integer> randomNumbers = new LinkedHashSet<>();
-    while (randomNumbers.size() < 12) {
-        int r = rand.nextInt(max - min + 1) + min;
-        randomNumbers.add(r);
-    }
-
-    return new ArrayList<>(randomNumbers);
-}
-
-  
-
-
-private void updateBookTiles() {
-    for (int i = 0; i < 12; i++) {
-        JButton btn = switch(i) {
-            case 0 -> bookDisplay1;
-            case 1 -> bookDisplay2;
-            case 2 -> bookDisplay3;
-            case 3 -> bookDisplay4;
-            case 4 -> bookDisplay5;
-            case 5 -> bookDisplay6;
-            case 6 -> bookDisplay7;
-            case 7 -> bookDisplay8;
-            case 8 -> bookDisplay9;
-            case 9 -> bookDisplay10;
-            case 10 -> bookDisplay11;
-            case 11 -> bookDisplay12;
-            default -> null;
-        };
-
-        int num = randomNums.get(i);
-        URL iconURL = getClass().getResource("/bookTiles/" + num + ".png");
-        if (iconURL != null) {
-            btn.setIcon(new javax.swing.ImageIcon(iconURL));
-        } else {
-            System.err.println("Icon not found: /bookTiles/" + num + ".png");
+        // Generate 12 unique random numbers
+        Random rand = new Random();
+        Set<Integer> randomNumbers = new LinkedHashSet<>();
+        while (randomNumbers.size() < 12) {
+            int r = rand.nextInt(max - min + 1) + min;
+            randomNumbers.add(r);
         }
-    }
-}
-      
 
-private void updateSelectedBookIcon() {
-    // currentSelected stores which button (1–12) was clicked
-    // so grab its random number from the list
-    int assignedNum = randomNums.get(currentSelected - 1); 
-
-    URL selectedIconURL = getClass().getResource("/bookTiles/" + assignedNum + ".png");
-    if (selectedIconURL != null) {
-        selectedBook.setIcon(new ImageIcon(selectedIconURL));
-    } else {
-        System.err.println("Icon not found: /bookTiles/" + assignedNum + ".png");
-    }
-}
-
-private void updateBookDetails() {
-    if (currentSelected < 1 || currentSelected > randomNums.size()) {
-        description.setText("<html><div style='text-align:center; color:red;'>Invalid selection.</div></html>");
-        return;
+        return new ArrayList<>(randomNumbers);
     }
 
-    int bookIndex = randomNums.get(currentSelected - 1); // get assigned number for this button
-    String dbPath = "bookStack.db";
-    String sql = "SELECT bookName, author, category, description FROM bookStack WHERE CAST(TRIM(bookIndex) AS INTEGER) = ?";
+    private void updateBookTiles() {
+        for (int i = 0; i < 12; i++) {
+            JButton btn = switch (i) {
+                case 0 -> bookDisplay1;
+                case 1 -> bookDisplay2;
+                case 2 -> bookDisplay3;
+                case 3 -> bookDisplay4;
+                case 4 -> bookDisplay5;
+                case 5 -> bookDisplay6;
+                case 6 -> bookDisplay7;
+                case 7 -> bookDisplay8;
+                case 8 -> bookDisplay9;
+                case 9 -> bookDisplay10;
+                case 10 -> bookDisplay11;
+                case 11 -> bookDisplay12;
+                default -> null;
+            };
 
-    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-        pstmt.setInt(1, bookIndex);
-
-        try (ResultSet rs = pstmt.executeQuery()) {
-            if (rs.next()) {
-                String bookName = rs.getString("bookName").trim();
-                String author = rs.getString("author").trim();
-                String category = rs.getString("category").trim();
-                String desc = rs.getString("description").trim();
-
-                String htmlText = "<html><div style='text-align:center; font-family:Nokia Pure Headline Ultra Light; font-size:14px; color:white;'>" +
-                                  "<b>Title:</b> " + bookName + "<br>" +
-                                  "<b>Author:</b> " + author + "<br>" +
-                                  "<b>Category:</b> " + category + "<br><br>" +
-                                  "<b>Description:</b><br>" +
-                                  "<span style='font-size:12px;'>" + desc.replace("\n", "<br>") + "</span>" +
-                                  "</div></html>";
-
-                description.setText(htmlText);
-
+            int num = randomNums.get(i);
+            URL iconURL = getClass().getResource("/bookTiles/" + num + ".png");
+            if (iconURL != null) {
+                btn.setIcon(new javax.swing.ImageIcon(iconURL));
             } else {
-                description.setText("<html><div style='text-align:center; color:red;'>Book not found in database.</div></html>");
+                System.err.println(
+                    "Icon not found: /bookTiles/" + num + ".png"
+                );
             }
         }
-
-    } catch (SQLException ex) {
-        ex.printStackTrace();
-        description.setText("<html><div style='text-align:center; color:red;'>Database error: " + ex.getMessage() + "</div></html>");
     }
-}
 
+    private void updateSelectedBookIcon() {
+        // currentSelected stores which button (1–12) was clicked
+        // so grab its random number from the list
+        int assignedNum = randomNums.get(currentSelected - 1);
 
-        
-private void startScrollLogger(JScrollPane scrollPane) {
-
-    new javax.swing.Timer(6000, e -> {
-        // Get current scroll position
-        JScrollBar verticalBar = scrollPane.getVerticalScrollBar();
-        int currentScrollState = verticalBar.getValue();
-
-        String dbPath = "bookStack.db";
-        overhead = 0; // current value from DB
-
-        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
-
-            if (!firstScrollWrite) {
-                // Read existing scroll index only if it's not the first write
-                String selectSQL = "SELECT currentScrollIndex FROM scrollStatus WHERE bookIndex = ?";
-                try (PreparedStatement pstmt = conn.prepareStatement(selectSQL)) {
-                    pstmt.setInt(1, loadedBook);
-                    try (ResultSet rs = pstmt.executeQuery()) {
-                        if (rs.next()) {
-                            overhead = rs.getInt("currentScrollIndex");
-                        }
-                    }
-                }
-            }
-
-            // Insert or update DB
-            if (firstScrollWrite || currentScrollState > overhead) {
-                String updateSQL = "INSERT INTO scrollStatus (bookIndex, currentScrollIndex) " +
-                                   "VALUES (?, ?) " +
-                                   "ON CONFLICT(bookIndex) DO UPDATE SET currentScrollIndex = excluded.currentScrollIndex";
-
-                try (PreparedStatement pstmtUpdate = conn.prepareStatement(updateSQL)) {
-                    pstmtUpdate.setInt(1, loadedBook);
-                    pstmtUpdate.setInt(2, currentScrollState);
-                    pstmtUpdate.executeUpdate();
-                    //System.out.println("Updated DB with scroll index: " + currentScrollState);
-                }
-
-                firstScrollWrite = false; // reset flag after first write
-            } else {
-                //System.out.println("No update needed. DB scroll index is higher or equal: " + overhead);
-            }
-
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-
-        // Debug prints
-        //System.out.println("Current Scroll Index: " + currentScrollState);
-        //System.out.println("Current Book Index: " + loadedBook);
-        //System.out.println("DB Overhead: " + overhead);
-
-    }).start();
-}
-
-
-private void updateVolumeDisplay() {
-    if (lastPlayedClip != null && lastPlayedClip.isRunning()) {
-        try {
-            FloatControl gainControl = (FloatControl) lastPlayedClip.getControl(FloatControl.Type.MASTER_GAIN);
-            float current = gainControl.getValue();
-            float min = gainControl.getMinimum();
-            float max = gainControl.getMaximum();
-
-            // Convert dB to 0–100% scale
-            int percent = Math.round(((current - min) / (max - min)) * 100);
-            volDisp.setText(" "+ percent );
-        } catch (IllegalArgumentException ex) {
-            volDisp.setText("N/A");
-        }
-    } else {
-        volDisp.setText("N/A");
-    }
-}
-
-
-private void loadLastReadDirectly() {
-    String dbPath = "bookStack.db";
-
-    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
-
-        // 1. Get the last read bookIndex (this is already the assignedNum)
-        int assignedNum = -1;
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT bookIndex FROM lastRead LIMIT 1")) {
-            if (rs.next()) {
-                assignedNum = rs.getInt("bookIndex");
-            }
-        }
-
-        if (assignedNum == -1) {
-            // No last read, fallback to first book in randomNums
-            assignedNum = randomNums.get(0);
-        }
-
-        // 2. Find button number corresponding to assignedNum (for highlighting, optional)
-        int buttonNumber = 1;
-        for (int i = 0; i < randomNums.size(); i++) {
-            if (randomNums.get(i) == assignedNum) {
-                buttonNumber = i + 1;
-                break;
-            }
-        }
-        currentSelected = buttonNumber;
-
-        // 3. Load icon directly using assignedNum
-        URL selectedIconURL = getClass().getResource("/bookTiles/" + assignedNum + ".png");
+        URL selectedIconURL = getClass().getResource(
+            "/bookTiles/" + assignedNum + ".png"
+        );
         if (selectedIconURL != null) {
             selectedBook.setIcon(new ImageIcon(selectedIconURL));
         } else {
-            System.err.println("Icon not found: /bookTiles/" + assignedNum + ".png");
+            System.err.println(
+                "Icon not found: /bookTiles/" + assignedNum + ".png"
+            );
+        }
+    }
+
+    private void updateBookDetails() {
+        if (currentSelected < 1 || currentSelected > randomNums.size()) {
+            description.setText(
+                "<html><div style='text-align:center; color:red;'>Invalid selection.</div></html>"
+            );
+            return;
         }
 
-        // 4. Load book details directly
-        String sql = "SELECT bookName, author, category, description FROM bookStack WHERE CAST(TRIM(bookIndex) AS INTEGER) = ?";
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, assignedNum);
+        int bookIndex = randomNums.get(currentSelected - 1); // get assigned number for this button
+        String dbPath = "bookStack.db";
+        String sql =
+            "SELECT bookName, author, category, description FROM bookStack WHERE CAST(TRIM(bookIndex) AS INTEGER) = ?";
+
+        try (
+            Connection conn = DriverManager.getConnection(
+                "jdbc:sqlite:" + dbPath
+            );
+            PreparedStatement pstmt = conn.prepareStatement(sql)
+        ) {
+            pstmt.setInt(1, bookIndex);
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     String bookName = rs.getString("bookName").trim();
@@ -826,320 +839,607 @@ private void loadLastReadDirectly() {
                     String category = rs.getString("category").trim();
                     String desc = rs.getString("description").trim();
 
-                    String htmlText = "<html><div style='text-align:center; font-family:Nokia Pure Headline Ultra Light; font-size:14px; color:white;'>" +
-                                      "<b>Title:</b> " + bookName + "<br>" +
-                                      "<b>Author:</b> " + author + "<br>" +
-                                      "<b>Category:</b> " + category + "<br><br>" +
-                                      "<b>Description:</b><br>" +
-                                      "<span style='font-size:12px;'>" + desc.replace("\n", "<br>") + "</span>" +
-                                      "</div></html>";
+                    String htmlText =
+                        "<html><div style='text-align:center; font-family:Nokia Pure Headline Ultra Light; font-size:14px; color:white;'>" +
+                        "<b>Title:</b> " +
+                        bookName +
+                        "<br>" +
+                        "<b>Author:</b> " +
+                        author +
+                        "<br>" +
+                        "<b>Category:</b> " +
+                        category +
+                        "<br><br>" +
+                        "<b>Description:</b><br>" +
+                        "<span style='font-size:12px;'>" +
+                        desc.replace("\n", "<br>") +
+                        "</span>" +
+                        "</div></html>";
 
                     description.setText(htmlText);
-
                 } else {
-                    description.setText("<html><div style='text-align:center; color:red;'>Book not found in database.</div></html>");
+                    description.setText(
+                        "<html><div style='text-align:center; color:red;'>Book not found in database.</div></html>"
+                    );
                 }
             }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            description.setText(
+                "<html><div style='text-align:center; color:red;'>Database error: " +
+                    ex.getMessage() +
+                    "</div></html>"
+            );
         }
-
-        continueReading.setVisible(true);
-
-    } catch (SQLException ex) {
-        ex.printStackTrace();
-        description.setText("<html><div style='text-align:center; color:red;'>Database error: " + ex.getMessage() + "</div></html>");
     }
-}
-private String loadNoteFromDB(int testamentIndex, int bookIndex, int chapterIndex) {
-    String noteText = "";
 
-    // Build the key as stored in DB: "testament-book-chapter" (0-based)
-    String bookChapterIndex = testamentIndex + "-" + bookIndex + "-" + chapterIndex;
+    private void startScrollLogger(JScrollPane scrollPane) {
+        new javax.swing.Timer(6000, e -> {
+            // Get current scroll position
+            JScrollBar verticalBar = scrollPane.getVerticalScrollBar();
+            int currentScrollState = verticalBar.getValue();
 
-    String dbPath = "notesNJournals.db"; // make sure this path is correct relative to your project
-    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
-        String sql = "SELECT note FROM notesReflections WHERE bookChapterIndex = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, bookChapterIndex);
-            try (ResultSet rs = stmt.executeQuery()) {
+            String dbPath = "bookStack.db";
+            overhead = 0; // current value from DB
+
+            try (
+                Connection conn = DriverManager.getConnection(
+                    "jdbc:sqlite:" + dbPath
+                )
+            ) {
+                if (!firstScrollWrite) {
+                    // Read existing scroll index only if it's not the first write
+                    String selectSQL =
+                        "SELECT currentScrollIndex FROM scrollStatus WHERE bookIndex = ?";
+                    try (
+                        PreparedStatement pstmt = conn.prepareStatement(
+                            selectSQL
+                        )
+                    ) {
+                        pstmt.setInt(1, loadedBook);
+                        try (ResultSet rs = pstmt.executeQuery()) {
+                            if (rs.next()) {
+                                overhead = rs.getInt("currentScrollIndex");
+                            }
+                        }
+                    }
+                }
+
+                // Insert or update DB
+                if (firstScrollWrite || currentScrollState > overhead) {
+                    String updateSQL =
+                        "INSERT INTO scrollStatus (bookIndex, currentScrollIndex) " +
+                        "VALUES (?, ?) " +
+                        "ON CONFLICT(bookIndex) DO UPDATE SET currentScrollIndex = excluded.currentScrollIndex";
+
+                    try (
+                        PreparedStatement pstmtUpdate = conn.prepareStatement(
+                            updateSQL
+                        )
+                    ) {
+                        pstmtUpdate.setInt(1, loadedBook);
+                        pstmtUpdate.setInt(2, currentScrollState);
+                        pstmtUpdate.executeUpdate();
+                        //System.out.println("Updated DB with scroll index: " + currentScrollState);
+                    }
+
+                    firstScrollWrite = false; // reset flag after first write
+                } else {
+                    //System.out.println("No update needed. DB scroll index is higher or equal: " + overhead);
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+
+            // Debug prints
+            //System.out.println("Current Scroll Index: " + currentScrollState);
+            //System.out.println("Current Book Index: " + loadedBook);
+            //System.out.println("DB Overhead: " + overhead);
+        })
+            .start();
+    }
+
+    private void updateVolumeDisplay() {
+        if (lastPlayedClip != null && lastPlayedClip.isRunning()) {
+            try {
+                FloatControl gainControl =
+                    (FloatControl) lastPlayedClip.getControl(
+                        FloatControl.Type.MASTER_GAIN
+                    );
+                float current = gainControl.getValue();
+                float min = gainControl.getMinimum();
+                float max = gainControl.getMaximum();
+
+                // Convert dB to 0–100% scale
+                int percent = Math.round(((current - min) / (max - min)) * 100);
+                volDisp.setText(" " + percent);
+            } catch (IllegalArgumentException ex) {
+                volDisp.setText("N/A");
+            }
+        } else {
+            volDisp.setText("N/A");
+        }
+    }
+
+    private void loadLastReadDirectly() {
+        String dbPath = "bookStack.db";
+
+        try (
+            Connection conn = DriverManager.getConnection(
+                "jdbc:sqlite:" + dbPath
+            )
+        ) {
+            // 1. Get the last read bookIndex (this is already the assignedNum)
+            int assignedNum = -1;
+            try (
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(
+                    "SELECT bookIndex FROM lastRead LIMIT 1"
+                )
+            ) {
                 if (rs.next()) {
-                    noteText = rs.getString("note");
+                    assignedNum = rs.getInt("bookIndex");
                 }
             }
-        }
-    } catch (SQLException ex) {
-        ex.printStackTrace();
-    }
 
-    return noteText;
-}
-
-
-private void startAutoSaveClickTimer() {
-    // 120000ms = 2 minutes
-    new javax.swing.Timer(120000, e -> {
-        if (saveNote.isVisible()) {      // only click if the button is visible
-            saveNote.doClick();          // simulate button click
-        }
-    }).start();
-}
-
-public void updateStatusLabels() {
-    String dbPath = "bookStack.db";
-
-    // Map to hold summed data per day
-    Map<LocalDate, int[]> dailyTotals = new HashMap<>();
-
-    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
-        String sql = "SELECT pagesRead, readFor, lastRead FROM session";
-        try (PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            // --- Aggregate totals per day ---
-            while (rs.next()) {
-                String lastReadStr = rs.getString("lastRead");
-                String dateOnlyStr = lastReadStr.split(" ")[0]; // yyyy-MM-dd
-                LocalDate date = LocalDate.parse(dateOnlyStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-                int pages = rs.getInt("pagesRead");
-                int minutes = rs.getInt("readFor");
-
-                dailyTotals.putIfAbsent(date, new int[]{0, 0});
-                int[] totals = dailyTotals.get(date);
-                totals[0] += pages;   // sum pagesRead
-                totals[1] += minutes; // sum readFor
+            if (assignedNum == -1) {
+                // No last read, fallback to first book in randomNums
+                assignedNum = randomNums.get(0);
             }
 
-            // --- Set label colors based on aggregated totals ---
-            for (Map.Entry<LocalDate, int[]> entry : dailyTotals.entrySet()) {
-                LocalDate date = entry.getKey();
-                int pagesRead = entry.getValue()[0];
-                int readFor = entry.getValue()[1];
-
-                int month = date.getMonthValue();
-                int day = date.getDayOfMonth();
-                int customDay = 0;
-
-                // --- Custom month mapping ---
-                switch (month) {
-                    case 9:  customDay = 1   + (day - 1); break;  // Sept
-                    case 10: customDay = 31  + (day - 1); break;  // Oct
-                    case 11: customDay = 61  + (day - 1); break;  // Nov
-                    case 12: customDay = 91  + (day - 1); break;  // Dec
-                    case 1:  customDay = 122 + (day - 1); break;  // Jan
-                    case 2:  customDay = 153 + (day - 1); break;  // Feb
-                    case 3:  customDay = 181 + (day - 1); break;  // Mar
-                    case 4:  customDay = 212 + (day - 1); break;  // Apr
-                    case 5:  customDay = 242 + (day - 1); break;  // May
-                    case 6:  customDay = 273 + (day - 1); break;  // Jun
-                    case 7:  customDay = 303 + (day - 1); break;  // Jul
-                    case 8:  customDay = 334 + (day - 1); break;  // Aug
-                    default: customDay = 0; break;
+            // 2. Find button number corresponding to assignedNum (for highlighting, optional)
+            int buttonNumber = 1;
+            for (int i = 0; i < randomNums.size(); i++) {
+                if (randomNums.get(i) == assignedNum) {
+                    buttonNumber = i + 1;
+                    break;
                 }
+            }
+            currentSelected = buttonNumber;
 
-                // --- Determine label color ---
-                Color color;
-                if (pagesRead >= 5 && pagesRead < 10 && readFor >= 5) {
-                    color = new Color(70, 140, 70); // level 1
-                } else if (pagesRead >= 10 && pagesRead < 15 && readFor >= 10) {
-                    color = new Color(100, 170, 85); // level 2
-                } else if (pagesRead >= 15 && pagesRead < 20 && readFor >= 15) {
-                    color = new Color(46, 160, 67); // level 3
-                } else if (pagesRead >= 20 && readFor >= 20) {
-                    color = new Color(86, 211, 100); // level 4
-                } else {
-                    color = new Color(50, 90, 50); // level 0
-                }
+            // 3. Load icon directly using assignedNum
+            URL selectedIconURL = getClass().getResource(
+                "/bookTiles/" + assignedNum + ".png"
+            );
+            if (selectedIconURL != null) {
+                selectedBook.setIcon(new ImageIcon(selectedIconURL));
+            } else {
+                System.err.println(
+                    "Icon not found: /bookTiles/" + assignedNum + ".png"
+                );
+            }
 
-                // --- Map to JLabel ---
-                int labelIndex = customDay - 1; // convert to 0-based index
-                if (labelIndex >= 0 && labelIndex < readStatus.getComponentCount()) {
-                    Component comp = readStatus.getComponent(labelIndex);
-                    if (comp instanceof JLabel lbl) {
-                        lbl.setOpaque(true);
-                        lbl.setBackground(color);
-                        lbl.repaint();
+            // 4. Load book details directly
+            String sql =
+                "SELECT bookName, author, category, description FROM bookStack WHERE CAST(TRIM(bookIndex) AS INTEGER) = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, assignedNum);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        String bookName = rs.getString("bookName").trim();
+                        String author = rs.getString("author").trim();
+                        String category = rs.getString("category").trim();
+                        String desc = rs.getString("description").trim();
+
+                        String htmlText =
+                            "<html><div style='text-align:center; font-family:Nokia Pure Headline Ultra Light; font-size:14px; color:white;'>" +
+                            "<b>Title:</b> " +
+                            bookName +
+                            "<br>" +
+                            "<b>Author:</b> " +
+                            author +
+                            "<br>" +
+                            "<b>Category:</b> " +
+                            category +
+                            "<br><br>" +
+                            "<b>Description:</b><br>" +
+                            "<span style='font-size:12px;'>" +
+                            desc.replace("\n", "<br>") +
+                            "</span>" +
+                            "</div></html>";
+
+                        description.setText(htmlText);
+                    } else {
+                        description.setText(
+                            "<html><div style='text-align:center; color:red;'>Book not found in database.</div></html>"
+                        );
                     }
                 }
             }
 
+            continueReading.setVisible(true);
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            description.setText(
+                "<html><div style='text-align:center; color:red;'>Database error: " +
+                    ex.getMessage() +
+                    "</div></html>"
+            );
         }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
-
-private void englishDropDownUpdater() {
-    boolean isEnglish = langChooser.getSelectedIndex() == 1;
-    int scrollTo = mainTextScrollPanel.getVerticalScrollBar().getValue();
-    int openBook = bookChooser.getSelectedIndex();
-    int openChapter = chapterChooser.getSelectedIndex();
-    
-    if(!isAmh){
-
-
-
-    int fontStyle = isEnglish ? Font.PLAIN : Font.BOLD;
-    testamentChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
-    
-    bookChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
-    chapterChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
-    langChooser.setFont(new Font("Nokia Pure Headline Ultra Light", fontStyle, 14));
-}
-    if(isEnglish) {
-        // Save current testament before replacing model
-        int selectedTestament = testamentChooser.getSelectedIndex();
-
-        // Update testament model and restore selection
-        testamentChooser.setModel(new DefaultComboBoxModel<>(new String[]{"Old Testament", "New Testament"}));
-        testamentChooser.setSelectedIndex(selectedTestament);
-
-        // Update books correctly
-        int start = (selectedTestament == 0) ? 0 : 39;
-        int end = (selectedTestament == 0) ? 39 : allBooksEnglish.length;
-        String[] subsetEng = Arrays.copyOfRange(allBooksEnglish, start, end);
-        bookChooser.setModel(new DefaultComboBoxModel<>(subsetEng));
-
-        // Restore previous book/chapter selection if valid
-        bookChooser.setSelectedIndex(Math.min(openBook, subsetEng.length - 1));
-        chapterChooser.setSelectedIndex(openChapter);
-
-        // Update chapters if needed
-        updateChapterChooserEnglish();
-    } else {
-        // Amharic branch
-        testamentChooser.setModel(new DefaultComboBoxModel<>(new String[]{"ብሉይ ኪዳን", "አዲስ ኪዳን"}));
-        updateBookChooser();
-        updateVerseChooser();
     }
 
-    // Restore scroll position
-    mainTextScrollPanel.getVerticalScrollBar().setValue(scrollTo);
-    
-}
+    private String loadNoteFromDB(
+        int testamentIndex,
+        int bookIndex,
+        int chapterIndex
+    ) {
+        String noteText = "";
 
-private void updateChapterChooserEnglish(){
-            int selectedTestament = testamentChooser.getSelectedIndex();
-                int start, end;
+        // Build the key as stored in DB: "testament-book-chapter" (0-based)
+        String bookChapterIndex =
+            testamentIndex + "-" + bookIndex + "-" + chapterIndex;
 
-                if (selectedTestament == 0) { 
-                    start = 0;
-                    end = 39;
-                } else { 
-                    start = 39;
-                    end = allBooksEnglish.length;
+        String dbPath = "notesNJournals.db"; // make sure this path is correct relative to your project
+        try (
+            Connection conn = DriverManager.getConnection(
+                "jdbc:sqlite:" + dbPath
+            )
+        ) {
+            String sql =
+                "SELECT note FROM notesReflections WHERE bookChapterIndex = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, bookChapterIndex);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        noteText = rs.getString("note");
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return noteText;
+    }
+
+    private void startAutoSaveClickTimer() {
+        // 120000ms = 2 minutes
+        new javax.swing.Timer(120000, e -> {
+            if (saveNote.isVisible()) {
+                // only click if the button is visible
+                saveNote.doClick(); // simulate button click
+            }
+        })
+            .start();
+    }
+
+    public void updateStatusLabels() {
+        String dbPath = "bookStack.db";
+
+        // Map to hold summed data per day
+        Map<LocalDate, int[]> dailyTotals = new HashMap<>();
+
+        try (
+            Connection conn = DriverManager.getConnection(
+                "jdbc:sqlite:" + dbPath
+            )
+        ) {
+            String sql = "SELECT pagesRead, readFor, lastRead FROM session";
+            try (
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()
+            ) {
+                // --- Aggregate totals per day ---
+                while (rs.next()) {
+                    String lastReadStr = rs.getString("lastRead");
+                    String dateOnlyStr = lastReadStr.split(" ")[0]; // yyyy-MM-dd
+                    LocalDate date = LocalDate.parse(
+                        dateOnlyStr,
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                    );
+
+                    int pages = rs.getInt("pagesRead");
+                    int minutes = rs.getInt("readFor");
+
+                    dailyTotals.putIfAbsent(date, new int[] { 0, 0 });
+                    int[] totals = dailyTotals.get(date);
+                    totals[0] += pages; // sum pagesRead
+                    totals[1] += minutes; // sum readFor
                 }
 
-                String[] subsetEng = java.util.Arrays.copyOfRange(allBooksEnglish, start, end);
-                bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(subsetEng)); 
-}
+                // --- Set label colors based on aggregated totals ---
+                for (Map.Entry<
+                    LocalDate,
+                    int[]
+                > entry : dailyTotals.entrySet()) {
+                    LocalDate date = entry.getKey();
+                    int pagesRead = entry.getValue()[0];
+                    int readFor = entry.getValue()[1];
 
-private void langSwitch(){
+                    int month = date.getMonthValue();
+                    int day = date.getDayOfMonth();
+                    int customDay = 0;
 
-    int selectedChapterIndex = chapterChooser.getSelectedIndex();
-    if (selectedChapterIndex < 0) return;
+                    // --- Custom month mapping ---
+                    switch (month) {
+                        case 9:
+                            customDay = 1 + (day - 1);
+                            break; // Sept
+                        case 10:
+                            customDay = 31 + (day - 1);
+                            break; // Oct
+                        case 11:
+                            customDay = 61 + (day - 1);
+                            break; // Nov
+                        case 12:
+                            customDay = 91 + (day - 1);
+                            break; // Dec
+                        case 1:
+                            customDay = 122 + (day - 1);
+                            break; // Jan
+                        case 2:
+                            customDay = 153 + (day - 1);
+                            break; // Feb
+                        case 3:
+                            customDay = 181 + (day - 1);
+                            break; // Mar
+                        case 4:
+                            customDay = 212 + (day - 1);
+                            break; // Apr
+                        case 5:
+                            customDay = 242 + (day - 1);
+                            break; // May
+                        case 6:
+                            customDay = 273 + (day - 1);
+                            break; // Jun
+                        case 7:
+                            customDay = 303 + (day - 1);
+                            break; // Jul
+                        case 8:
+                            customDay = 334 + (day - 1);
+                            break; // Aug
+                        default:
+                            customDay = 0;
+                            break;
+                    }
 
-    int selectedBookIndex = bookChooser.getSelectedIndex();
-    if (selectedBookIndex < 0) return;
+                    // --- Determine label color ---
+                    Color color;
+                    if (pagesRead >= 5 && pagesRead < 10 && readFor >= 5) {
+                        color = new Color(70, 140, 70); // level 1
+                    } else if (
+                        pagesRead >= 10 && pagesRead < 15 && readFor >= 10
+                    ) {
+                        color = new Color(100, 170, 85); // level 2
+                    } else if (
+                        pagesRead >= 15 && pagesRead < 20 && readFor >= 15
+                    ) {
+                        color = new Color(46, 160, 67); // level 3
+                    } else if (pagesRead >= 20 && readFor >= 20) {
+                        color = new Color(86, 211, 100); // level 4
+                    } else {
+                        color = new Color(50, 90, 50); // level 0
+                    }
 
-    int selectedTestamentIndex = testamentChooser.getSelectedIndex();
-
-    // Figure out the folder number
-    int folderNumber;
-    if (selectedTestamentIndex == 1) {
-        folderNumber = selectedBookIndex + 40; // New Testament offset
-    } else {
-        folderNumber = selectedBookIndex + 1;  // Old Testament
+                    // --- Map to JLabel ---
+                    int labelIndex = customDay - 1; // convert to 0-based index
+                    if (
+                        labelIndex >= 0 &&
+                        labelIndex < readStatus.getComponentCount()
+                    ) {
+                        Component comp = readStatus.getComponent(labelIndex);
+                        if (comp instanceof JLabel lbl) {
+                            lbl.setOpaque(true);
+                            lbl.setBackground(color);
+                            lbl.repaint();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    // Chapter files are named as index+1.pdf
-    int chapterNumber = selectedChapterIndex + 1;
-    File pdfFile = new File(
+    private void englishDropDownUpdater() {
+        boolean isEnglish = langChooser.getSelectedIndex() == 1;
+        int scrollTo = mainTextScrollPanel.getVerticalScrollBar().getValue();
+        int openBook = bookChooser.getSelectedIndex();
+        int openChapter = chapterChooser.getSelectedIndex();
+
+        if (!isAmh) {
+            int fontStyle = isEnglish ? Font.PLAIN : Font.BOLD;
+            testamentChooser.setFont(
+                new Font("Nokia Pure Headline Ultra Light", fontStyle, 14)
+            );
+
+            bookChooser.setFont(
+                new Font("Nokia Pure Headline Ultra Light", fontStyle, 14)
+            );
+            chapterChooser.setFont(
+                new Font("Nokia Pure Headline Ultra Light", fontStyle, 14)
+            );
+            langChooser.setFont(
+                new Font("Nokia Pure Headline Ultra Light", fontStyle, 14)
+            );
+        }
+        if (isEnglish) {
+            // Save current testament before replacing model
+            int selectedTestament = testamentChooser.getSelectedIndex();
+
+            // Update testament model and restore selection
+            testamentChooser.setModel(
+                new DefaultComboBoxModel<>(
+                    new String[] { "Old Testament", "New Testament" }
+                )
+            );
+            testamentChooser.setSelectedIndex(selectedTestament);
+
+            // Update books correctly
+            int start = (selectedTestament == 0) ? 0 : 39;
+            int end = (selectedTestament == 0) ? 39 : allBooksEnglish.length;
+            String[] subsetEng = Arrays.copyOfRange(
+                allBooksEnglish,
+                start,
+                end
+            );
+            bookChooser.setModel(new DefaultComboBoxModel<>(subsetEng));
+
+            // Restore previous book/chapter selection if valid
+            bookChooser.setSelectedIndex(
+                Math.min(openBook, subsetEng.length - 1)
+            );
+            chapterChooser.setSelectedIndex(openChapter);
+
+            // Update chapters if needed
+            updateChapterChooserEnglish();
+        } else {
+            // Amharic branch
+            testamentChooser.setModel(
+                new DefaultComboBoxModel<>(
+                    new String[] { "ብሉይ ኪዳን", "አዲስ ኪዳን" }
+                )
+            );
+            updateBookChooser();
+            updateVerseChooser();
+        }
+
+        // Restore scroll position
+        mainTextScrollPanel.getVerticalScrollBar().setValue(scrollTo);
+    }
+
+    private void updateChapterChooserEnglish() {
+        int selectedTestament = testamentChooser.getSelectedIndex();
+        int start, end;
+
+        if (selectedTestament == 0) {
+            start = 0;
+            end = 39;
+        } else {
+            start = 39;
+            end = allBooksEnglish.length;
+        }
+
+        String[] subsetEng = java.util.Arrays.copyOfRange(
+            allBooksEnglish,
+            start,
+            end
+        );
+        bookChooser.setModel(new javax.swing.DefaultComboBoxModel<>(subsetEng));
+    }
+
+    private void langSwitch() {
+        int selectedChapterIndex = chapterChooser.getSelectedIndex();
+        if (selectedChapterIndex < 0) return;
+
+        int selectedBookIndex = bookChooser.getSelectedIndex();
+        if (selectedBookIndex < 0) return;
+
+        int selectedTestamentIndex = testamentChooser.getSelectedIndex();
+
+        // Figure out the folder number
+        int folderNumber;
+        if (selectedTestamentIndex == 1) {
+            folderNumber = selectedBookIndex + 40; // New Testament offset
+        } else {
+            folderNumber = selectedBookIndex + 1; // Old Testament
+        }
+
+        // Chapter files are named as index+1.pdf
+        int chapterNumber = selectedChapterIndex + 1;
+        File pdfFile = new File(
             "src/main/resources/files/books/" + langChosen + "/" + folderNumber,
             chapterNumber + ".pdf"
-    );
+        );
 
-    if (!pdfFile.exists()) {
-        mainTextArea.setText("Chapter file not found: " + pdfFile.getName());
-        return;
+        if (!pdfFile.exists()) {
+            mainTextArea.setText(
+                "Chapter file not found: " + pdfFile.getName()
+            );
+            return;
+        }
+
+        // Load the PDF text into mainTextArea
+        try (PDDocument doc = PDDocument.load(pdfFile)) {
+            PDFTextStripper stripper = new PDFTextStripper();
+            String text = stripper.getText(doc);
+            mainTextArea.setText(text.trim());
+            mainTextArea.setCaretPosition(0); // scroll to top
+            /*
+                if (!isAmh) {
+            mainTextArea.setLineWrap(true);        // Enable line wrapping
+            mainTextArea.setWrapStyleWord(true);   // Wrap at word boundaries
+
+
+
+        }*/
+            //mainTextArea.setBackground(Color.WHITE);
+            mainTextArea.setLineWrap(true);
+            mainTextArea.setWrapStyleWord(true);
+            mainTextScrollPanel.setHorizontalScrollBarPolicy(
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+            );
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            mainTextArea.setText("Error reading: " + pdfFile.getName());
+        }
     }
 
-    // Load the PDF text into mainTextArea
-    try (PDDocument doc = PDDocument.load(pdfFile)) {
-        PDFTextStripper stripper = new PDFTextStripper();
-        String text = stripper.getText(doc);
-        mainTextArea.setText(text.trim());
-        mainTextArea.setCaretPosition(0); // scroll to top
-        /*
-            if (!isAmh) {
-        mainTextArea.setLineWrap(true);        // Enable line wrapping
-        mainTextArea.setWrapStyleWord(true);   // Wrap at word boundaries
-        
-        
+    private void wrapper() {
+        if (!isAmh) {
+            mainTextArea.setLineWrap(true); // Enable line wrapping
+            mainTextArea.setWrapStyleWord(true); // Wrap at word boundaries
 
-    }*/
-        //mainTextArea.setBackground(Color.WHITE);
-        mainTextArea.setLineWrap(true); 
-        mainTextArea.setWrapStyleWord(true);
-        mainTextScrollPanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-    } catch (IOException ex) {
-        ex.printStackTrace();
-        mainTextArea.setText("Error reading: " + pdfFile.getName());
+            mainTextScrollPanel.setHorizontalScrollBarPolicy(
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+            );
+        }
     }
 
-}
-
-private void wrapper() {
-    if (!isAmh) {
-        mainTextArea.setLineWrap(true);        // Enable line wrapping
-        mainTextArea.setWrapStyleWord(true);   // Wrap at word boundaries
-        
-        mainTextScrollPanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-
-    }
-}
-
-
-        private void saveHighlightEng(String text, Color color) {
-            if(!isAmh){
+    private void saveHighlightEng(String text, Color color) {
+        if (!isAmh) {
             try (Connection conn = DBManagerEng.getConnection()) {
-
                 int selectionStart = mainTextArea.getSelectionStart();
                 int selectionEnd = mainTextArea.getSelectionEnd();
 
                 String insert = """
-                        INSERT INTO highlights 
-                        (bookIndex, chapterIndex, line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """;
+                    INSERT INTO highlights
+                    (bookIndex, chapterIndex, line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """;
 
                 try (PreparedStatement ps = conn.prepareStatement(insert)) {
-
-                    int startLine = mainTextArea.getLineOfOffset(selectionStart);
-                    int endLine   = mainTextArea.getLineOfOffset(selectionEnd);
+                    int startLine = mainTextArea.getLineOfOffset(
+                        selectionStart
+                    );
+                    int endLine = mainTextArea.getLineOfOffset(selectionEnd);
 
                     for (int line = startLine; line <= endLine; line++) {
-                        int lineStartOffset = mainTextArea.getLineStartOffset(line);
-                        int lineEndOffset   = mainTextArea.getLineEndOffset(line);
+                        int lineStartOffset = mainTextArea.getLineStartOffset(
+                            line
+                        );
+                        int lineEndOffset = mainTextArea.getLineEndOffset(line);
 
                         // Clamp selection to this line
-                        int lineSelStart = Math.max(selectionStart, lineStartOffset);
-                        int lineSelEnd   = Math.min(selectionEnd, lineEndOffset);
+                        int lineSelStart = Math.max(
+                            selectionStart,
+                            lineStartOffset
+                        );
+                        int lineSelEnd = Math.min(selectionEnd, lineEndOffset);
 
                         // Offset within line
-                        int selectionStartInLine = lineSelStart - lineStartOffset;
+                        int selectionStartInLine =
+                            lineSelStart - lineStartOffset;
 
                         // Grab text for this line
-                        String lineText = mainTextArea.getText(lineSelStart, lineSelEnd - lineSelStart);
+                        String lineText = mainTextArea.getText(
+                            lineSelStart,
+                            lineSelEnd - lineSelStart
+                        );
 
                         for (int i = 0; i < lineText.length(); i++) {
                             char c = lineText.charAt(i);
 
                             // Remove existing character at same position if exists
                             String delete = """
-                                    DELETE FROM highlights 
-                                    WHERE bookIndex=? AND chapterIndex=? AND line=? AND wordDistIndex=?
-                                    """;
-                            try (PreparedStatement del = conn.prepareStatement(delete)) {
+                                DELETE FROM highlights
+                                WHERE bookIndex=? AND chapterIndex=? AND line=? AND wordDistIndex=?
+                                """;
+                            try (
+                                PreparedStatement del = conn.prepareStatement(
+                                    delete
+                                )
+                            ) {
                                 del.setInt(1, currentBookIndex);
                                 del.setInt(2, currentChapterIndex);
                                 del.setInt(3, line);
@@ -1163,510 +1463,664 @@ private void wrapper() {
 
                     ps.executeBatch();
                 }
-
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-            }
         }
+    }
 
+    private void restoreHighlightsEng() {
+        if (tabs.getSelectedIndex() != 0) {
+            return;
+        }
+        try (Connection conn = DBManagerEng.getConnection()) {
+            // Remove old highlights
+            mainTextArea.getHighlighter().removeAllHighlights();
 
+            // Fetch all highlights for the current book and chapter
+            String query = """
+                SELECT line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength
+                FROM highlights
+                WHERE bookIndex=? AND chapterIndex=?
+                ORDER BY line, wordDistIndex
+                """;
 
-        private void restoreHighlightsEng() {
+            try (PreparedStatement ps = conn.prepareStatement(query)) {
+                ps.setInt(1, currentBookIndex);
+                ps.setInt(2, currentChapterIndex);
 
-                if (tabs.getSelectedIndex() != 0) {
-                    return; 
-                }
-            try (Connection conn = DBManagerEng.getConnection()) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    Map<Integer, List<HighlightWord>> lineMap = new HashMap<>();
 
-                // Remove old highlights
-                mainTextArea.getHighlighter().removeAllHighlights();
+                    // Group highlights by line
+                    while (rs.next()) {
+                        int lineNumber = rs.getInt("line");
+                        int wordDistIndex = rs.getInt("wordDistIndex");
+                        String text = rs.getString("text");
+                        Color color = new Color(
+                            rs.getInt("colorR"),
+                            rs.getInt("colorG"),
+                            rs.getInt("colorB")
+                        );
+                        int postSpaceLength = rs.getInt("postSpaceLength");
 
-                // Fetch all highlights for the current book and chapter
-                String query = """
-                    SELECT line, wordDistIndex, text, colorR, colorG, colorB, postSpaceLength 
-                    FROM highlights 
-                    WHERE bookIndex=? AND chapterIndex=? 
-                    ORDER BY line, wordDistIndex
-                    """;
-
-                try (PreparedStatement ps = conn.prepareStatement(query)) {
-                    ps.setInt(1, currentBookIndex);
-                    ps.setInt(2, currentChapterIndex);
-
-                    try (ResultSet rs = ps.executeQuery()) {
-                        Map<Integer, List<HighlightWord>> lineMap = new HashMap<>();
-
-                        // Group highlights by line
-                        while (rs.next()) {
-                            int lineNumber = rs.getInt("line");
-                            int wordDistIndex = rs.getInt("wordDistIndex");
-                            String text = rs.getString("text");
-                            Color color = new Color(
-                                    rs.getInt("colorR"),
-                                    rs.getInt("colorG"),
-                                    rs.getInt("colorB")
+                        lineMap
+                            .computeIfAbsent(lineNumber, k -> new ArrayList<>())
+                            .add(
+                                new HighlightWord(
+                                    wordDistIndex,
+                                    text,
+                                    color,
+                                    postSpaceLength
+                                )
                             );
-                            int postSpaceLength = rs.getInt("postSpaceLength");
+                    }
 
-                            lineMap.computeIfAbsent(lineNumber, k -> new ArrayList<>())
-                                   .add(new HighlightWord(wordDistIndex, text, color, postSpaceLength));
-                        }
+                    // Apply highlights per line
+                    for (Map.Entry<
+                        Integer,
+                        List<HighlightWord>
+                    > entry : lineMap.entrySet()) {
+                        int lineNumber = entry.getKey();
+                        List<HighlightWord> words = entry.getValue();
+                        words.sort(
+                            Comparator.comparingInt(w -> w.wordDistIndex)
+                        );
 
-                        // Apply highlights per line
-                        for (Map.Entry<Integer, List<HighlightWord>> entry : lineMap.entrySet()) {
-                            int lineNumber = entry.getKey();
-                            List<HighlightWord> words = entry.getValue();
-                            words.sort(Comparator.comparingInt(w -> w.wordDistIndex));
+                        int lineStartOffset = mainTextArea.getLineStartOffset(
+                            lineNumber
+                        );
 
-                            int lineStartOffset = mainTextArea.getLineStartOffset(lineNumber);
+                        for (HighlightWord hw : words) {
+                            // Use saved wordDistIndex directly
+                            int start = lineStartOffset + hw.wordDistIndex;
+                            int end = Math.min(
+                                start + hw.text.length(),
+                                mainTextArea.getText().length()
+                            );
 
-                            for (HighlightWord hw : words) {
-                                // Use saved wordDistIndex directly
-                                int start = lineStartOffset + hw.wordDistIndex;
-                                int end = Math.min(start + hw.text.length(), mainTextArea.getText().length());
-
-                                mainTextArea.getHighlighter().addHighlight(
+                            mainTextArea
+                                .getHighlighter()
+                                .addHighlight(
                                     start,
                                     end,
-                                    new DefaultHighlighter.DefaultHighlightPainter(hw.color)
+                                    new DefaultHighlighter.DefaultHighlightPainter(
+                                        hw.color
+                                    )
                                 );
-                            }
                         }
                     }
                 }
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
             }
-            
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
+    }
 
-        
-        private void readIndex(){
-            
-            //if(isAmh){
+    private void readIndex() {
+        //if(isAmh){
 
-                tResumeE = testamentChooser.getSelectedIndex();
-                bResumeE = bookChooser.getSelectedIndex();
-                cResumeE = chapterChooser.getSelectedIndex();
-                b = bResumeE; 
-                System.out.println("drop clicked :" + bResumeE);
-               
-            //}
-     
+        tResumeE = testamentChooser.getSelectedIndex();
+        bResumeE = bookChooser.getSelectedIndex();
+        cResumeE = chapterChooser.getSelectedIndex();
+        b = bResumeE;
+        System.out.println("drop clicked :" + bResumeE);
 
-        }
+        //}
+    }
 
-        
-        private void hotReload(){
-           //if(!isAmh){
-               testamentChooser.setSelectedIndex(tResumeE);
-               bookChooser.setSelectedIndex(bResumeE);
-               chapterChooser.setSelectedIndex(cResumeE);
-           //}
-          /*
+    private void hotReload() {
+        //if(!isAmh){
+        testamentChooser.setSelectedIndex(tResumeE);
+        bookChooser.setSelectedIndex(bResumeE);
+        chapterChooser.setSelectedIndex(cResumeE);
+        //}
+        /*
            if(isAmh){
                testamentChooser.setSelectedIndex(tResumeA);
                bookChooser.setSelectedIndex(bResumeA);
                chapterChooser.setSelectedIndex(bResumeA);
-           }  
+           }
 
            */
-        }
-        
-       private void readIndexAmh(){
-            
-            //if(!isAmh){
+    }
 
-                tResumeA = testamentChooser.getSelectedIndex();
-                bResumeA = bookChooser.getSelectedIndex();
-                cResumeA = chapterChooser.getSelectedIndex();
-                b = bResumeA; 
-                System.out.println("drop clicked :" + bResumeA);
-               
-            //}
-    
-        }
- /*      
+    private void readIndexAmh() {
+        //if(!isAmh){
+
+        tResumeA = testamentChooser.getSelectedIndex();
+        bResumeA = bookChooser.getSelectedIndex();
+        cResumeA = chapterChooser.getSelectedIndex();
+        b = bResumeA;
+        System.out.println("drop clicked :" + bResumeA);
+
+        //}
+    }
+
+    /*
                private void hotReloadAmh(){
            //if(!isAmh){
                testamentChooser.setSelectedIndex(tResumeA);
                bookChooser.setSelectedIndex(bResumeA);
                chapterChooser.setSelectedIndex(cResumeA);
            }
- /*          
+ /*
            if(isAmh){
                testamentChooser.setSelectedIndex(tResumeA);
                bookChooser.setSelectedIndex(bResumeA);
                chapterChooser.setSelectedIndex(bResumeA);
-           }  
+           }
 */
-        
 
-       
-       
-       
-private void saveSearchResults(String searchTerm, List<String> rawResults) {
-    SwingWorker<Void, Void> dbWorker = new SwingWorker<>() {
-        @Override
-        protected Void doInBackground() throws Exception {
-            // Check if the results contain the "could not find" message
-            boolean noResults = rawResults.stream()
-                    .anyMatch(line -> line.toLowerCase().contains("could not find any verse"));
-            if (noResults) {
-                return null; // Skip saving to DB
+    private void saveSearchResults(String searchTerm, List<String> rawResults) {
+        SwingWorker<Void, Void> dbWorker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                // Check if the results contain the "could not find" message
+                boolean noResults = rawResults
+                    .stream()
+                    .anyMatch(line ->
+                        line.toLowerCase().contains("could not find any verse")
+                    );
+                if (noResults) {
+                    return null; // Skip saving to DB
+                }
+
+                String dbPath = "searchResults.db"; // in project folder
+                String url = "jdbc:sqlite:" + dbPath;
+
+                try (Connection conn = DriverManager.getConnection(url)) {
+                    // Check if this searchTerm already exists
+                    String checkSql =
+                        "SELECT id FROM searchResults WHERE searchTerm = ?";
+                    try (
+                        PreparedStatement checkStmt = conn.prepareStatement(
+                            checkSql
+                        )
+                    ) {
+                        checkStmt.setString(1, searchTerm);
+                        try (ResultSet rs = checkStmt.executeQuery()) {
+                            if (rs.next()) {
+                                // If already exists → assign the highest ID in DB
+                                String maxSql =
+                                    "SELECT MAX(id) AS maxId FROM searchResults";
+                                try (
+                                    Statement stmt = conn.createStatement();
+                                    ResultSet maxRs = stmt.executeQuery(maxSql)
+                                ) {
+                                    if (maxRs.next()) {
+                                        currentSearchResultIndex = maxRs.getInt(
+                                            "maxId"
+                                        );
+                                        System.out.println(
+                                            "Search term already exists. Assigned latest ID: " +
+                                                currentSearchResultIndex
+                                        );
+                                    }
+                                }
+                                return null;
+                            }
+                        }
+                    }
+
+                    // If not found, insert new entry and get generated ID
+                    String insertSql =
+                        "INSERT INTO searchResults(searchTerm, searchResult) VALUES (?, ?)";
+                    try (
+                        PreparedStatement pstmt = conn.prepareStatement(
+                            insertSql,
+                            Statement.RETURN_GENERATED_KEYS
+                        )
+                    ) {
+                        String allResults = String.join("\n", rawResults);
+                        pstmt.setString(1, searchTerm);
+                        pstmt.setString(2, allResults);
+                        pstmt.executeUpdate();
+
+                        try (
+                            ResultSet generatedKeys = pstmt.getGeneratedKeys()
+                        ) {
+                            if (generatedKeys.next()) {
+                                currentSearchResultIndex = generatedKeys.getInt(
+                                    1
+                                );
+                                System.out.println(
+                                    "Saved new search results for: " +
+                                        searchTerm +
+                                        " (ID: " +
+                                        currentSearchResultIndex +
+                                        ")"
+                                );
+                            }
+                        }
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+                return null;
+            }
+        };
+        dbWorker.execute(); // run in background
+    }
+
+    public void gotoVerse(int index) {
+        try {
+            JEditorPane[] resultPanes = {
+                searchResult1,
+                searchResult2,
+                searchResult3,
+                searchResult4,
+                searchResult5,
+                searchResult6,
+                searchResult7,
+                searchResult8,
+                searchResult9,
+                searchResult10,
+                searchResult11,
+                searchResult12,
+                searchResult13,
+                searchResult14,
+            };
+
+            if (index < 1 || index > resultPanes.length) {
+                System.err.println("Invalid goto index: " + index);
+                return;
             }
 
-            String dbPath = "searchResults.db"; // in project folder
-            String url = "jdbc:sqlite:" + dbPath;
+            String text = resultPanes[index - 1].getText().trim();
+            if (text.isEmpty()) return;
 
-            try (Connection conn = DriverManager.getConnection(url)) {
-                // Check if this searchTerm already exists
-                String checkSql = "SELECT id FROM searchResults WHERE searchTerm = ?";
-                try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-                    checkStmt.setString(1, searchTerm);
-                    try (ResultSet rs = checkStmt.executeQuery()) {
-                        if (rs.next()) {
-                            // If already exists → assign the highest ID in DB
-                            String maxSql = "SELECT MAX(id) AS maxId FROM searchResults";
-                            try (Statement stmt = conn.createStatement();
-                                 ResultSet maxRs = stmt.executeQuery(maxSql)) {
-                                if (maxRs.next()) {
-                                    currentSearchResultIndex = maxRs.getInt("maxId");
-                                    System.out.println("Search term already exists. Assigned latest ID: " + currentSearchResultIndex);
+            Pattern pattern = Pattern.compile(
+                "([1-3]?\\s?[A-Za-z]+(?:\\s+[A-Za-z]+)*)\\s+(\\d+):(\\d+)"
+            );
+            Matcher matcher = pattern.matcher(text);
+            if (!matcher.find()) {
+                System.err.println("Could not parse verse reference: " + text);
+                return;
+            }
+
+            String bookName = matcher.group(1).trim();
+            int chapterNumber = Integer.parseInt(matcher.group(2));
+            int verseNumber = Integer.parseInt(matcher.group(3));
+
+            currentBookIndexPointer = -1;
+            for (int i = 0; i < allBooksEnglishPsalms.length; i++) {
+                if (allBooksEnglishPsalms[i].equalsIgnoreCase(bookName)) {
+                    currentBookIndexPointer = i;
+                    break;
+                }
+            }
+            if (currentBookIndexPointer == -1) {
+                System.err.println("Book not found: " + bookName);
+                return;
+            }
+
+            currentChapterIndexPointer = chapterNumber;
+            versePointer = verseNumber;
+
+            tabs.setSelectedIndex(0);
+
+            javax.swing.Timer delayTimer = new javax.swing.Timer(1200, e -> {
+                try {
+                    // Select testament
+                    if (currentBookIndexPointer < 39) {
+                        testamentChooser.setSelectedIndex(0); // Old Testament
+                    } else {
+                        testamentChooser.setSelectedIndex(1); // New Testament
+                    }
+
+                    // Select book and chapter
+                    bookChooser.setSelectedIndex(currentBookIndexPointer);
+                    chapterChooser.setSelectedIndex(
+                        currentChapterIndexPointer - 1
+                    );
+
+                    // Highlight verse
+                    highlightVerseInTextArea(versePointer);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            });
+            delayTimer.setRepeats(false);
+            delayTimer.start();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void highlightVerseInTextArea(int verseNumber) {
+        try {
+            Highlighter highlighter = mainTextArea.getHighlighter();
+            highlighter.removeAllHighlights();
+
+            String text = mainTextArea.getText();
+            String currentVerse = verseNumber + " ";
+            String nextVerse = (verseNumber + 1) + " ";
+
+            int start = text.indexOf(currentVerse);
+            int end = text.indexOf(nextVerse, start + currentVerse.length());
+
+            if (start >= 0) {
+                if (end < 0) end = text.length();
+                highlighter.addHighlight(
+                    start,
+                    end,
+                    new DefaultHighlighter.DefaultHighlightPainter(
+                        new Color(173, 216, 230)
+                    )
+                ); // light blue
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void searchHistoryNav(int id) {
+        SwingWorker<Void, Void> dbWorker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                String dbPath = "searchResults.db"; // relative path in project folder
+                String url = "jdbc:sqlite:" + dbPath;
+                String query = null;
+                List<String> results = new ArrayList<>();
+
+                try (Connection conn = DriverManager.getConnection(url)) {
+                    String sql =
+                        "SELECT searchTerm, searchResult FROM searchResults WHERE id = ?";
+                    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                        pstmt.setInt(1, id);
+                        try (ResultSet rs = pstmt.executeQuery()) {
+                            if (rs.next()) {
+                                query = rs.getString("searchTerm");
+                                searchBar.setText(query);
+                                String allResults = rs.getString(
+                                    "searchResult"
+                                );
+                                if (
+                                    allResults != null && !allResults.isEmpty()
+                                ) {
+                                    results = Arrays.asList(
+                                        allResults.split("\n")
+                                    );
                                 }
                             }
-                            return null;
                         }
                     }
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
 
-                // If not found, insert new entry and get generated ID
-                String insertSql = "INSERT INTO searchResults(searchTerm, searchResult) VALUES (?, ?)";
-                try (PreparedStatement pstmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
-                    String allResults = String.join("\n", rawResults);
-                    pstmt.setString(1, searchTerm);
-                    pstmt.setString(2, allResults);
-                    pstmt.executeUpdate();
+                if (query == null || results.isEmpty()) {
+                    System.err.println("No results found for ID: " + id);
+                    return null;
+                }
 
-                    try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                        if (generatedKeys.next()) {
-                            currentSearchResultIndex = generatedKeys.getInt(1);
-                            System.out.println("Saved new search results for: " + searchTerm + " (ID: " + currentSearchResultIndex + ")");
-                        }
+                rawResults.clear();
+                rawResults.addAll(results);
+
+                // Arrays of editor panes and match rate labels
+                JEditorPane[] resultPanes = {
+                    searchResult1,
+                    searchResult2,
+                    searchResult3,
+                    searchResult4,
+                    searchResult5,
+                    searchResult6,
+                    searchResult7,
+                    searchResult8,
+                    searchResult9,
+                    searchResult10,
+                    searchResult11,
+                    searchResult12,
+                    searchResult13,
+                    searchResult14,
+                };
+
+                JLabel[] matchLabels = {
+                    matchRate1,
+                    matchRate2,
+                    matchRate3,
+                    matchRate4,
+                    matchRate5,
+                    matchRate6,
+                    matchRate7,
+                    matchRate8,
+                    matchRate9,
+                    matchRate10,
+                    matchRate11,
+                    matchRate12,
+                    matchRate13,
+                    matchRate14,
+                };
+
+                // Clear previous results
+                for (int i = 0; i < 14; i++) {
+                    resultPanes[i].setText("");
+                    matchLabels[i].setText("");
+                }
+
+                // Parse each result line (same logic as before)
+                for (String raw : results) {
+                    int dotIndex = raw.indexOf('.');
+                    if (dotIndex == -1) continue;
+
+                    int resultIndex;
+                    try {
+                        resultIndex =
+                            Integer.parseInt(
+                                raw.substring(0, dotIndex).trim()
+                            ) -
+                            1;
+                    } catch (NumberFormatException e) {
+                        continue;
                     }
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+                    if (resultIndex < 0 || resultIndex >= 14) continue;
 
-            return null;
-        }
-    };
-    dbWorker.execute(); // run in background
-}
-
-
-public void gotoVerse(int index) {
-    try {
-        
-        JEditorPane[] resultPanes = {
-            searchResult1, searchResult2, searchResult3, searchResult4,
-            searchResult5, searchResult6, searchResult7, searchResult8,
-            searchResult9, searchResult10, searchResult11, searchResult12,
-            searchResult13, searchResult14
-        };
-
-       
-        if (index < 1 || index > resultPanes.length) {
-            System.err.println("Invalid goto index: " + index);
-            return;
-        }
-
-        
-        String text = resultPanes[index - 1].getText().trim();
-        if (text.isEmpty()) return;
-
-        
-        
-        Pattern pattern = Pattern.compile("([1-3]?\\s?[A-Za-z]+(?:\\s+[A-Za-z]+)*)\\s+(\\d+):(\\d+)");
-        Matcher matcher = pattern.matcher(text);
-        if (!matcher.find()) {
-            System.err.println("Could not parse verse reference: " + text);
-            return;
-        }
-
-        String bookName = matcher.group(1).trim();
-        int chapterNumber = Integer.parseInt(matcher.group(2));
-        int verseNumber = Integer.parseInt(matcher.group(3));
-
-        
-        currentBookIndexPointer = -1;
-        for (int i = 0; i < allBooksEnglish.length; i++) {
-            if (allBooksEnglish[i].equalsIgnoreCase(bookName)) {
-                currentBookIndexPointer = i;
-                break;
-            }
-        }
-        if (currentBookIndexPointer == -1) {
-            System.err.println("Book not found: " + bookName);
-            return;
-        }
-
-        currentChapterIndexPointer = chapterNumber;
-        versePointer = verseNumber;
-
-        
-        tabs.setSelectedIndex(0);
-
-       
-        javax.swing.Timer delayTimer = new javax.swing.Timer(1200, e -> {
-            try {
-                // Select testament
-                if (currentBookIndexPointer < 39) {
-                    testamentChooser.setSelectedIndex(0); // Old Testament
-                } else {
-                    testamentChooser.setSelectedIndex(1); // New Testament
-                }
-
-                // Select book and chapter
-                bookChooser.setSelectedIndex(currentBookIndexPointer);
-                chapterChooser.setSelectedIndex(currentChapterIndexPointer - 1);
-
-                // Highlight verse
-                highlightVerseInTextArea(versePointer);
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        });
-        delayTimer.setRepeats(false);
-        delayTimer.start();
-
-    } catch (Exception ex) {
-        ex.printStackTrace();
-    }
-}
-
-
-private void highlightVerseInTextArea(int verseNumber) {
-    try {
-        Highlighter highlighter = mainTextArea.getHighlighter();
-        highlighter.removeAllHighlights();
-
-        String text = mainTextArea.getText();
-        String currentVerse = verseNumber + " ";
-        String nextVerse = (verseNumber + 1) + " ";
-
-        int start = text.indexOf(currentVerse);
-        int end = text.indexOf(nextVerse, start + currentVerse.length());
-
-        if (start >= 0) {
-            if (end < 0) end = text.length();
-            highlighter.addHighlight(start, end, 
-                new DefaultHighlighter.DefaultHighlightPainter(new Color(173, 216, 230))); // light blue
-        }
-    } catch (Exception ex) {
-        ex.printStackTrace();
-    }
-}
-
-
-private void searchHistoryNav(int id) {
-    SwingWorker<Void, Void> dbWorker = new SwingWorker<>() {
-        @Override
-        protected Void doInBackground() throws Exception {
-            String dbPath = "searchResults.db"; // relative path in project folder
-            String url = "jdbc:sqlite:" + dbPath;
-            String query = null;
-            List<String> results = new ArrayList<>();
-
-            try (Connection conn = DriverManager.getConnection(url)) {
-                String sql = "SELECT searchTerm, searchResult FROM searchResults WHERE id = ?";
-                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                    pstmt.setInt(1, id);
-                    try (ResultSet rs = pstmt.executeQuery()) {
-                        if (rs.next()) {
-                            query = rs.getString("searchTerm");
-                            searchBar.setText(query);
-                            String allResults = rs.getString("searchResult");
-                            if (allResults != null && !allResults.isEmpty()) {
-                                results = Arrays.asList(allResults.split("\n"));
-                            }
-                        }
+                    // Extract score
+                    double score = 0.0;
+                    int scoreIndex = raw.lastIndexOf("(score:");
+                    if (scoreIndex != -1) {
+                        String scoreStr = raw
+                            .substring(scoreIndex + 7)
+                            .replace(")", "")
+                            .trim();
+                        try {
+                            score = Double.parseDouble(scoreStr);
+                        } catch (NumberFormatException ignored) {}
+                        raw = raw.substring(dotIndex + 1, scoreIndex).trim();
+                    } else {
+                        raw = raw.substring(dotIndex + 1).trim();
                     }
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
 
-            if (query == null || results.isEmpty()) {
-                System.err.println("No results found for ID: " + id);
+                    // Extract the reference and verse text
+                    int dashIndex = raw.indexOf("—");
+                    if (dashIndex == -1) dashIndex = raw.indexOf("-");
+                    String reference = (dashIndex != -1)
+                        ? raw.substring(0, dashIndex).trim()
+                        : "";
+                    String verseText = (dashIndex != -1)
+                        ? raw.substring(dashIndex + 1).trim()
+                        : raw;
+
+                    // Highlight the query word inside verseText (optional)
+                    String highlighted = verseText.replaceAll(
+                        "(?i)" + Pattern.quote(query),
+                        "<span style='color:#2b7b2b;'>" + query + "</span>"
+                    );
+
+                    // HTML render
+                    String textHtml =
+                        "<html><body style='font-family:\"Nokia Pure Headline Ultra Light\", sans-serif;" +
+                        "font-size:14px; font-weight:100; line-height:1.4; color:#222;'>" +
+                        reference +
+                        " — " +
+                        highlighted +
+                        "</body></html>";
+
+                    // Set editor pane
+                    resultPanes[resultIndex].setContentType("text/html");
+                    resultPanes[resultIndex].setText(textHtml);
+                    resultPanes[resultIndex].setCaretPosition(0);
+
+                    // Match rate label
+                    matchLabels[resultIndex].setText(
+                        String.format("%.0f%%", score * 100)
+                    );
+                    matchLabels[resultIndex].setOpaque(true);
+                    matchLabels[resultIndex].setBackground(
+                        getScoreColorNav(score)
+                    );
+                    matchLabels[resultIndex].setHorizontalAlignment(
+                        SwingConstants.CENTER
+                    );
+                    matchLabels[resultIndex].setFont(
+                        new Font(
+                            "Nokia Pure Headline Ultra Light",
+                            Font.PLAIN,
+                            12
+                        )
+                    );
+                }
+
                 return null;
             }
 
-            rawResults.clear();
-            rawResults.addAll(results);
-
-            // Arrays of editor panes and match rate labels
-            JEditorPane[] resultPanes = {
-                searchResult1, searchResult2, searchResult3, searchResult4,
-                searchResult5, searchResult6, searchResult7, searchResult8,
-                searchResult9, searchResult10, searchResult11, searchResult12,
-                searchResult13, searchResult14
-            };
-
-            JLabel[] matchLabels = {
-                matchRate1, matchRate2, matchRate3, matchRate4,
-                matchRate5, matchRate6, matchRate7, matchRate8,
-                matchRate9, matchRate10, matchRate11, matchRate12,
-                matchRate13, matchRate14
-            };
-
-            // Clear previous results
-            for (int i = 0; i < 14; i++) {
-                resultPanes[i].setText("");
-                matchLabels[i].setText("");
+            @Override
+            protected void done() {
+                //tabs.setSelectedIndex(5);
+                //loading30BW.setVisible(false);
+                //System.out.println("Loaded search results from DB for ID: " + id);
             }
+        };
 
-            // Parse each result line (same logic as before)
-            for (String raw : results) {
-                int dotIndex = raw.indexOf('.');
-                if (dotIndex == -1) continue;
-
-                int resultIndex;
-                try {
-                    resultIndex = Integer.parseInt(raw.substring(0, dotIndex).trim()) - 1;
-                } catch (NumberFormatException e) {
-                    continue;
-                }
-                if (resultIndex < 0 || resultIndex >= 14) continue;
-
-                // Extract score
-                double score = 0.0;
-                int scoreIndex = raw.lastIndexOf("(score:");
-                if (scoreIndex != -1) {
-                    String scoreStr = raw.substring(scoreIndex + 7).replace(")", "").trim();
-                    try {
-                        score = Double.parseDouble(scoreStr);
-                    } catch (NumberFormatException ignored) {}
-                    raw = raw.substring(dotIndex + 1, scoreIndex).trim();
-                } else {
-                    raw = raw.substring(dotIndex + 1).trim();
-                }
-
-                // Extract the reference and verse text
-                int dashIndex = raw.indexOf("—");
-                if (dashIndex == -1) dashIndex = raw.indexOf("-");
-                String reference = (dashIndex != -1) ? raw.substring(0, dashIndex).trim() : "";
-                String verseText = (dashIndex != -1) ? raw.substring(dashIndex + 1).trim() : raw;
-
-                // Highlight the query word inside verseText (optional)
-                String highlighted = verseText.replaceAll("(?i)" + Pattern.quote(query),
-                    "<span style='color:#2b7b2b;'>" + query + "</span>"); 
-
-                // HTML render
-                String textHtml = "<html><body style='font-family:\"Nokia Pure Headline Ultra Light\", sans-serif;"
-                        + "font-size:14px; font-weight:100; line-height:1.4; color:#222;'>"
-                        + reference + " — " + highlighted + "</body></html>";
-
-                // Set editor pane
-                resultPanes[resultIndex].setContentType("text/html");
-                resultPanes[resultIndex].setText(textHtml);
-                resultPanes[resultIndex].setCaretPosition(0);
-
-                // Match rate label
-                matchLabels[resultIndex].setText(String.format("%.0f%%", score * 100));
-                matchLabels[resultIndex].setOpaque(true);
-                matchLabels[resultIndex].setBackground(getScoreColorNav(score));
-                matchLabels[resultIndex].setHorizontalAlignment(SwingConstants.CENTER);
-                matchLabels[resultIndex].setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 12));
-            }
-
-            return null; 
-        }
-
-        @Override
-        protected void done() {
-            //tabs.setSelectedIndex(5);
-            //loading30BW.setVisible(false);
-            //System.out.println("Loaded search results from DB for ID: " + id);
-        }
-    };
-
-    //loading30BW.setVisible(true);
-    dbWorker.execute();
-}
-
-// Keep your color function the same
-private Color getScoreColorNav(double score) {
-    score = Math.max(0.0, Math.min(1.0, score));
-    int r, g, b;
-    if (score >= 0.65) {
-        r = 86; g = 211; b = 100;
-    } else if (score <= 0.60) {
-        r = 217; g = 56; b = 72;
-    } else {
-        double t = (0.65 - score) / 0.05;
-        t = Math.pow(t, 1.5);
-        int startR = 86, startG = 211, startB = 100;
-        int endR = 255, endG = 80, endB = 80;
-        r = (int) (startR + t * (endR - startR));
-        g = (int) (startG + t * (endG - startG));
-        b = (int) (startB + t * (endB - startB));
+        //loading30BW.setVisible(true);
+        dbWorker.execute();
     }
-    return new Color(r, g, b);
-}
 
+    // Keep your color function the same
+    private Color getScoreColorNav(double score) {
+        score = Math.max(0.0, Math.min(1.0, score));
+        int r, g, b;
+        if (score >= 0.65) {
+            r = 86;
+            g = 211;
+            b = 100;
+        } else if (score <= 0.60) {
+            r = 217;
+            g = 56;
+            b = 72;
+        } else {
+            double t = (0.65 - score) / 0.05;
+            t = Math.pow(t, 1.5);
+            int startR = 86,
+                startG = 211,
+                startB = 100;
+            int endR = 255,
+                endG = 80,
+                endB = 80;
+            r = (int) (startR + t * (endR - startR));
+            g = (int) (startG + t * (endG - startG));
+            b = (int) (startB + t * (endB - startB));
+        }
+        return new Color(r, g, b);
+    }
 
-private Integer getSearchResultIdIfExists(String query) {
-    String dbPath = "searchResults.db";
-    String url = "jdbc:sqlite:" + dbPath;
-    Integer foundId = null;
+    private Integer getSearchResultIdIfExists(String query) {
+        String dbPath = "searchResults.db";
+        String url = "jdbc:sqlite:" + dbPath;
+        Integer foundId = null;
 
-    try (Connection conn = DriverManager.getConnection(url)) {
-        String sql = "SELECT id FROM searchResults WHERE LOWER(searchTerm) = LOWER(?) LIMIT 1";
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, query.trim());
-            try (ResultSet rs = pstmt.executeQuery()) {
+        try (Connection conn = DriverManager.getConnection(url)) {
+            String sql =
+                "SELECT id FROM searchResults WHERE LOWER(searchTerm) = LOWER(?) LIMIT 1";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, query.trim());
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        foundId = rs.getInt("id");
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return foundId;
+    }
+
+    private void maxId() {
+        if (currentSearchResultIndex != 0) {
+            return; // Only trigger when index is at the start
+        }
+
+        String dbPath = "searchResults.db";
+        String url = "jdbc:sqlite:" + dbPath;
+
+        try (Connection conn = DriverManager.getConnection(url)) {
+            String sql = "SELECT MAX(id) AS max_id FROM searchResults";
+            try (
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                ResultSet rs = pstmt.executeQuery()
+            ) {
                 if (rs.next()) {
-                    foundId = rs.getInt("id");
+                    int highestId = rs.getInt("max_id");
+                    if (!rs.wasNull()) {
+                        currentSearchResultIndex = highestId; //
+                    }
                 }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        e.printStackTrace();
     }
 
-    return foundId;
-}
+    private void lastSearchDisp() {
+        JLabel[] searchQueryDisp = {
+            recentSearchQuery1,
+            recentSearchQuery1,
+            recentSearchQuery4,
+            recentSearchQuery6,
+        };
 
+        JLabel[] searchResultDisp = {
+            recentSearchResult1,
+            recentSearchResult2,
+            recentSearchResult4,
+            recentSearchResult6,
+        };
 
-private void maxId() {
-    if (currentSearchResultIndex != 0) {
-        return; // Only trigger when index is at the start
+        JLabel[] searchTimeDisp = {
+            searchTime1,
+            searchTime2,
+            searchTime4,
+            searchTime6,
+        };
+
+        JButton[] goToRecent = {
+            goToRecent1,
+            goToRecent2,
+            goToRecent4,
+            goToRecent6,
+        };
     }
 
-    String dbPath = "searchResults.db";
-    String url = "jdbc:sqlite:" + dbPath;
-
-    try (Connection conn = DriverManager.getConnection(url)) {
-        String sql = "SELECT MAX(id) AS max_id FROM searchResults";
-        try (PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
+    private int getMaxId() {
+        int maxId = 0;
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:searchResults.db");
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT MAX(id) FROM searchResults")) {
 
             if (rs.next()) {
-                int highestId = rs.getInt("max_id");
-                if (!rs.wasNull()) {
-                    currentSearchResultIndex = highestId; // ✅ set the global tracker
-                }
+                maxId = rs.getInt(1);
             }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        e.printStackTrace();
+        return maxId;
     }
-}
+
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -2162,12 +2616,12 @@ private void maxId() {
         noSearchHistory = new javax.swing.JLabel();
         nlsRadioNoHistory = new javax.swing.JRadioButton();
         normalSearchNoHistory = new javax.swing.JRadioButton();
-        jButton1 = new javax.swing.JButton();
+        helpBtn = new javax.swing.JButton();
         searchNoHistoryPanel = new javax.swing.JPanel();
         loading30BW = new javax.swing.JLabel();
         searchBarNoHistory = new javax.swing.JTextField();
         searchNoHistory = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
+        verseSearchMainTitle = new javax.swing.JLabel();
         lastSearches = new javax.swing.JPanel();
         separator1 = new javax.swing.JProgressBar();
         lastSearch1 = new javax.swing.JPanel();
@@ -2203,7 +2657,7 @@ private void maxId() {
         goToRecent6 = new javax.swing.JButton();
         searchTime6 = new javax.swing.JLabel();
         separator4 = new javax.swing.JProgressBar();
-        jLabel2 = new javax.swing.JLabel();
+        searchHistoryTitle = new javax.swing.JLabel();
         searchTabResults = new javax.swing.JPanel();
         searchBar = new javax.swing.JTextField();
         search = new javax.swing.JButton();
@@ -6608,9 +7062,9 @@ private void maxId() {
             }
         });
 
-        jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/help20.png"))); // NOI18N
-        jButton1.setBorderPainted(false);
-        jButton1.setContentAreaFilled(false);
+        helpBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/help20.png"))); // NOI18N
+        helpBtn.setBorderPainted(false);
+        helpBtn.setContentAreaFilled(false);
 
         searchNoHistoryPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
@@ -6661,8 +7115,8 @@ private void maxId() {
         });
         searchNoHistoryPanel.add(searchNoHistory, new org.netbeans.lib.awtextra.AbsoluteConstraints(717, 16, 128, 49));
 
-        jLabel1.setFont(new java.awt.Font("Helvetica", 0, 48)); // NOI18N
-        jLabel1.setText("Verse Search");
+        verseSearchMainTitle.setFont(new java.awt.Font("Helvetica", 0, 48)); // NOI18N
+        verseSearchMainTitle.setText("Verse Search");
 
         separator1.setBackground(new java.awt.Color(204, 204, 204));
 
@@ -6842,20 +7296,20 @@ private void maxId() {
                             .addComponent(lastSearch1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(lastSearch4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(lastSearch6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(348, Short.MAX_VALUE))
+                .addContainerGap(333, Short.MAX_VALUE))
             .addGroup(lastSearchesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(lastSearchesLayout.createSequentialGroup()
                     .addGap(386, 386, 386)
                     .addComponent(separator2, javax.swing.GroupLayout.PREFERRED_SIZE, 528, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(436, Short.MAX_VALUE)))
+                    .addContainerGap(421, Short.MAX_VALUE)))
             .addGroup(lastSearchesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(lastSearchesLayout.createSequentialGroup()
                     .addGap(385, 385, 385)
                     .addComponent(separator3, javax.swing.GroupLayout.PREFERRED_SIZE, 527, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(438, Short.MAX_VALUE)))
+                    .addContainerGap(423, Short.MAX_VALUE)))
             .addGroup(lastSearchesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, lastSearchesLayout.createSequentialGroup()
-                    .addContainerGap(384, Short.MAX_VALUE)
+                    .addContainerGap(369, Short.MAX_VALUE)
                     .addComponent(separator4, javax.swing.GroupLayout.PREFERRED_SIZE, 527, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGap(439, 439, 439)))
         );
@@ -6890,49 +7344,48 @@ private void maxId() {
                     .addGap(63, 63, 63)))
         );
 
-        jLabel2.setFont(new java.awt.Font("Helvetica", 0, 24)); // NOI18N
-        jLabel2.setText("Search History");
+        searchHistoryTitle.setFont(new java.awt.Font("Helvetica", 0, 24)); // NOI18N
+        searchHistoryTitle.setText("Search History");
 
         javax.swing.GroupLayout searchTabNoHistoryLayout = new javax.swing.GroupLayout(searchTabNoHistory);
         searchTabNoHistory.setLayout(searchTabNoHistoryLayout);
         searchTabNoHistoryLayout.setHorizontalGroup(
             searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchTabNoHistoryLayout.createSequentialGroup()
+                .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
+                        .addGap(261, 261, 261)
+                        .addComponent(verseSearchMainTitle))
+                    .addComponent(searchNoHistoryPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
+                        .addGap(323, 323, 323)
+                        .addComponent(normalSearchNoHistory)
+                        .addGap(6, 6, 6)
+                        .addComponent(nlsRadioNoHistory)))
+                .addGap(366, 366, 366))
             .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
                 .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
                         .addGap(1548, 1548, 1548)
-                        .addComponent(jButton1))
+                        .addComponent(helpBtn))
                     .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                        .addGap(130, 130, 130)
-                        .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                                .addGap(577, 577, 577)
-                                .addComponent(noSearchHistory))
-                            .addComponent(lastSearches, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(707, 707, 707)
+                        .addComponent(noSearchHistory))
                     .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                        .addGap(343, 343, 343)
-                        .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                                .addGap(261, 261, 261)
-                                .addComponent(jLabel1))
-                            .addComponent(searchNoHistoryPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                                .addGap(323, 323, 323)
-                                .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                                        .addComponent(normalSearchNoHistory)
-                                        .addGap(6, 6, 6)
-                                        .addComponent(nlsRadioNoHistory)))))))
+                        .addGap(717, 717, 717)
+                        .addComponent(searchHistoryTitle))
+                    .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
+                        .addGap(145, 145, 145)
+                        .addComponent(lastSearches, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(6, 6, 6))
         );
         searchTabNoHistoryLayout.setVerticalGroup(
             searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
                 .addGap(53, 53, 53)
-                .addComponent(jButton1)
+                .addComponent(helpBtn)
                 .addGap(207, 207, 207)
-                .addComponent(jLabel1)
+                .addComponent(verseSearchMainTitle)
                 .addGap(12, 12, 12)
                 .addComponent(searchNoHistoryPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(35, 35, 35)
@@ -6940,7 +7393,7 @@ private void maxId() {
                     .addComponent(normalSearchNoHistory)
                     .addComponent(nlsRadioNoHistory))
                 .addGap(49, 49, 49)
-                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(searchHistoryTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
@@ -7665,6 +8118,20 @@ private void maxId() {
             }
         });
 
+        tabs.addChangeListener(e -> {
+            int maxIDD = getMaxId();
+            System.out.println("mac id" + maxIDD);
+            if (getMaxId() == 0) {
+                noSearchHistory.setVisible(true);
+                lastSearches.setVisible(false);
+                searchHistoryTitle.setVisible(false);
+            }else{
+                noSearchHistory.setVisible(false);
+                lastSearches.setVisible(true);
+                searchHistoryTitle.setVisible(true);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -7679,52 +8146,62 @@ private void maxId() {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void restoreBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_restoreBtnActionPerformed
-        
+    private void restoreBtnActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_restoreBtnActionPerformed
     }//GEN-LAST:event_restoreBtnActionPerformed
 
-    private void minimizeBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_minimizeBtnActionPerformed
+    private void minimizeBtnActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_minimizeBtnActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_minimizeBtnActionPerformed
 
-    private void settingsBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsBtnActionPerformed
+    private void settingsBtnActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_settingsBtnActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_settingsBtnActionPerformed
 
-    
-    
-    private void closeBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeBtnActionPerformed
+    private void closeBtnActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_closeBtnActionPerformed
         closeClicked = true;
         int result = JOptionPane.showConfirmDialog(
-            this, 
-            "Are you sure you want to exit?", 
-            "Warning", 
-            JOptionPane.YES_NO_OPTION, 
+            this,
+            "Are you sure you want to exit?",
+            "Warning",
+            JOptionPane.YES_NO_OPTION,
             JOptionPane.WARNING_MESSAGE
-            );
+        );
 
-            if (result == JOptionPane.YES_OPTION) {
-                System.exit(0);
-            }
+        if (result == JOptionPane.YES_OPTION) {
+            System.exit(0);
+        }
     }//GEN-LAST:event_closeBtnActionPerformed
 
-    private void bookChooserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookChooserActionPerformed
+    private void bookChooserActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_bookChooserActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_bookChooserActionPerformed
 
-    private void boldBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_boldBtnActionPerformed
+    private void boldBtnActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_boldBtnActionPerformed
 
         isBoldActive = !isBoldActive;
 
         Font currentFont = mainTextArea.getFont();
 
-        Font newFont = currentFont.deriveFont(isBoldActive ? Font.BOLD : Font.PLAIN);
+        Font newFont = currentFont.deriveFont(
+            isBoldActive ? Font.BOLD : Font.PLAIN
+        );
         mainTextArea.setFont(newFont);
 
-        boldBtn.setBackground(isBoldActive ? Color.LIGHT_GRAY : UIManager.getColor("Button.background"));
+        boldBtn.setBackground(
+            isBoldActive
+                ? Color.LIGHT_GRAY
+                : UIManager.getColor("Button.background")
+        );
     }//GEN-LAST:event_boldBtnActionPerformed
 
-    private void highlightBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_highlightBtnActionPerformed
+    private void highlightBtnActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_highlightBtnActionPerformed
         JPopupMenu popup = new JPopupMenu();
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(1, 4, 5, 5));
@@ -7738,9 +8215,11 @@ private void maxId() {
         yellowBtn.addActionListener(e -> {
             currentHighlightColor = Color.YELLOW;
             highlightBtn.setBackground(Color.YELLOW);
-            highlighterActive = true;   // activate highlighter
+            highlighterActive = true; // activate highlighter
             popup.setVisible(false);
-            mainTextArea.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+            mainTextArea.setCursor(
+                Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
+            );
         });
 
         JButton greenBtn = new JButton();
@@ -7751,7 +8230,9 @@ private void maxId() {
             highlightBtn.setBackground(Color.GREEN);
             highlighterActive = true;
             popup.setVisible(false);
-            mainTextArea.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+            mainTextArea.setCursor(
+                Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
+            );
         });
 
         JButton blueBtn = new JButton();
@@ -7762,7 +8243,9 @@ private void maxId() {
             highlightBtn.setBackground(Color.CYAN);
             highlighterActive = true;
             popup.setVisible(false);
-            mainTextArea.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+            mainTextArea.setCursor(
+                Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
+            );
         });
 
         JButton pinkBtn = new JButton();
@@ -7773,7 +8256,9 @@ private void maxId() {
             highlightBtn.setBackground(Color.PINK);
             highlighterActive = true;
             popup.setVisible(false);
-            mainTextArea.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+            mainTextArea.setCursor(
+                Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
+            );
         });
 
         panel.add(yellowBtn);
@@ -7794,16 +8279,18 @@ private void maxId() {
         }
     }//GEN-LAST:event_highlightBtnActionPerformed
 
-    private void libraryBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_libraryBtnActionPerformed
+    private void libraryBtnActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_libraryBtnActionPerformed
         tabs.setSelectedIndex(1);
     }//GEN-LAST:event_libraryBtnActionPerformed
 
-    private void addNoteBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addNoteBtnActionPerformed
+    private void addNoteBtnActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_addNoteBtnActionPerformed
         addNoteBtn.setVisible(false);
         eyeHide.setVisible(true);
         saveNote.setVisible(true);
         writeYourReflection.setVisible(true);
-        
+
         notesInput.setFocusable(true);
         notesInput.setEditable(true);
 
@@ -7813,14 +8300,16 @@ private void maxId() {
         // Optionally, request focus so user can type immediately
         notesInput.requestFocusInWindow();
         notesTabLayers.moveToFront(eyeHide);
-        notesTabLayers.moveToFront(saveNote);        
+        notesTabLayers.moveToFront(saveNote);
     }//GEN-LAST:event_addNoteBtnActionPerformed
 
-    private void homeBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_homeBtnActionPerformed
+    private void homeBtnActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_homeBtnActionPerformed
         tabs.setSelectedIndex(0);
     }//GEN-LAST:event_homeBtnActionPerformed
 
-    private void eyeShowActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_eyeShowActionPerformed
+    private void eyeShowActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_eyeShowActionPerformed
         // Toggle visibility
         notesInput.setVisible(true);
 
@@ -7831,7 +8320,8 @@ private void maxId() {
         eyeShow.setVisible(false);
     }//GEN-LAST:event_eyeShowActionPerformed
 
-    private void eyeHideActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_eyeHideActionPerformed
+    private void eyeHideActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_eyeHideActionPerformed
         // Toggle visibility
         notesInput.setVisible(!notesInput.isVisible());
 
@@ -7842,81 +8332,101 @@ private void maxId() {
         eyeShow.setVisible(true);
     }//GEN-LAST:event_eyeHideActionPerformed
 
-    private void saveNoteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveNoteActionPerformed
-                                       
-    saveTick.setVisible(true);
-    saveNote.setVisible(false);
+    private void saveNoteActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_saveNoteActionPerformed
 
-    // Get note text
-    String noteText = notesInput.getText();
-    if (noteText == null || noteText.trim().isEmpty()) return;
+        saveTick.setVisible(true);
+        saveNote.setVisible(false);
 
-    // Get current selections (0-based indices)
-    int testamentNum = testamentChooser.getSelectedIndex(); 
-    int bookNum = bookChooser.getSelectedIndex();
-    int chapterNum = chapterChooser.getSelectedIndex();
+        // Get note text
+        String noteText = notesInput.getText();
+        if (noteText == null || noteText.trim().isEmpty()) return;
 
-    // Combine with dashes
-    String bookChapterIndex = testamentNum + "-" + bookNum + "-" + chapterNum;
+        // Get current selections (0-based indices)
+        int testamentNum = testamentChooser.getSelectedIndex();
+        int bookNum = bookChooser.getSelectedIndex();
+        int chapterNum = chapterChooser.getSelectedIndex();
 
-    // Save to database with upsert logic
-    String dbPath = "notesNJournals.db"; // database in project folder
-    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
-        // Check if entry exists
-        String checkSql = "SELECT COUNT(*) FROM notesReflections WHERE bookChapterIndex = ?";
-        boolean exists = false;
-        try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-            checkStmt.setString(1, bookChapterIndex);
-            try (ResultSet rs = checkStmt.executeQuery()) {
-                if (rs.next() && rs.getInt(1) > 0) {
-                    exists = true;
+        // Combine with dashes
+        String bookChapterIndex =
+            testamentNum + "-" + bookNum + "-" + chapterNum;
+
+        // Save to database with upsert logic
+        String dbPath = "notesNJournals.db"; // database in project folder
+        try (
+            Connection conn = DriverManager.getConnection(
+                "jdbc:sqlite:" + dbPath
+            )
+        ) {
+            // Check if entry exists
+            String checkSql =
+                "SELECT COUNT(*) FROM notesReflections WHERE bookChapterIndex = ?";
+            boolean exists = false;
+            try (
+                PreparedStatement checkStmt = conn.prepareStatement(checkSql)
+            ) {
+                checkStmt.setString(1, bookChapterIndex);
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        exists = true;
+                    }
                 }
             }
+
+            if (exists) {
+                // Update existing note
+                String updateSql =
+                    "UPDATE notesReflections SET note = ? WHERE bookChapterIndex = ?";
+                try (
+                    PreparedStatement updateStmt = conn.prepareStatement(
+                        updateSql
+                    )
+                ) {
+                    updateStmt.setString(1, noteText);
+                    updateStmt.setString(2, bookChapterIndex);
+                    updateStmt.executeUpdate();
+                }
+            } else {
+                // Insert new note
+                String insertSql =
+                    "INSERT INTO notesReflections (bookChapterIndex, note) VALUES (?, ?)";
+                try (
+                    PreparedStatement insertStmt = conn.prepareStatement(
+                        insertSql
+                    )
+                ) {
+                    insertStmt.setString(1, bookChapterIndex);
+                    insertStmt.setString(2, noteText);
+                    insertStmt.executeUpdate();
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
 
-        if (exists) {
-            // Update existing note
-            String updateSql = "UPDATE notesReflections SET note = ? WHERE bookChapterIndex = ?";
-            try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
-                updateStmt.setString(1, noteText);
-                updateStmt.setString(2, bookChapterIndex);
-                updateStmt.executeUpdate();
-            }
-        } else {
-            // Insert new note
-            String insertSql = "INSERT INTO notesReflections (bookChapterIndex, note) VALUES (?, ?)";
-            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
-                insertStmt.setString(1, bookChapterIndex);
-                insertStmt.setString(2, noteText);
-                insertStmt.executeUpdate();
-            }
-        }
+        // Change text color to light gray after saving
+        notesInput.setForeground(new Color(100, 100, 100));
 
-    } catch (SQLException ex) {
-        ex.printStackTrace();
-    }
-
-    // Change text color to light gray after saving
-    notesInput.setForeground(new Color(100, 100, 100));
-
-    // Keep notesInput editable for new notes
-    notesInput.setFocusable(true);
-    notesInput.setEditable(true);
-    notesInput.requestFocusInWindow();
-    
-
-        
+        // Keep notesInput editable for new notes
+        notesInput.setFocusable(true);
+        notesInput.setEditable(true);
+        notesInput.requestFocusInWindow();
     }//GEN-LAST:event_saveNoteActionPerformed
 
-    private void bookDisp1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisp1ActionPerformed
+    private void bookDisp1ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_bookDisp1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_bookDisp1ActionPerformed
 
-    private void exploreMoreBtn1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exploreMoreBtn1ActionPerformed
+    private void exploreMoreBtn1ActionPerformed(
+        java.awt.event.ActionEvent evt
+    ) {
+//GEN-FIRST:event_exploreMoreBtn1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_exploreMoreBtn1ActionPerformed
 
-    private void bookDisplay1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay1ActionPerformed
+    private void bookDisplay1ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_bookDisplay1ActionPerformed
         selectedBookUnderline1.setContentAreaFilled(true);
         selectedBookUnderline2.setContentAreaFilled(false);
         selectedBookUnderline3.setContentAreaFilled(false);
@@ -7929,23 +8439,22 @@ private void maxId() {
         selectedBookUnderline10.setContentAreaFilled(false);
         selectedBookUnderline11.setContentAreaFilled(false);
         selectedBookUnderline12.setContentAreaFilled(false);
-        
-        
+
         currentSelected = 1;
         updateSelectedBookIcon();
         updateBookDetails();
-        
+
         continueReading.setVisible(false);
-        
     }//GEN-LAST:event_bookDisplay1ActionPerformed
 
-    private void reRandomizerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reRandomizerActionPerformed
+    private void reRandomizerActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_reRandomizerActionPerformed
         // Re-generate 12 random numbers
         randomNums = get12RandomBookNumbers();
 
         // Update all book display buttons
         updateBookTiles();
-        
+
         selectedBookUnderline1.setContentAreaFilled(false);
         selectedBookUnderline2.setContentAreaFilled(false);
         selectedBookUnderline3.setContentAreaFilled(false);
@@ -7958,24 +8467,31 @@ private void maxId() {
         selectedBookUnderline10.setContentAreaFilled(false);
         selectedBookUnderline11.setContentAreaFilled(false);
         selectedBookUnderline12.setContentAreaFilled(false);
-        
-        
-
     }//GEN-LAST:event_reRandomizerActionPerformed
 
-    private void selectedBookUnderline3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectedBookUnderline3ActionPerformed
+    private void selectedBookUnderline3ActionPerformed(
+        java.awt.event.ActionEvent evt
+    ) {
+//GEN-FIRST:event_selectedBookUnderline3ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_selectedBookUnderline3ActionPerformed
 
-    private void selectedBookUnderline9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectedBookUnderline9ActionPerformed
+    private void selectedBookUnderline9ActionPerformed(
+        java.awt.event.ActionEvent evt
+    ) {
+//GEN-FIRST:event_selectedBookUnderline9ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_selectedBookUnderline9ActionPerformed
 
-    private void selectedBookUnderline8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectedBookUnderline8ActionPerformed
+    private void selectedBookUnderline8ActionPerformed(
+        java.awt.event.ActionEvent evt
+    ) {
+//GEN-FIRST:event_selectedBookUnderline8ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_selectedBookUnderline8ActionPerformed
 
-    private void bookDisplay2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay2ActionPerformed
+    private void bookDisplay2ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_bookDisplay2ActionPerformed
         selectedBookUnderline1.setContentAreaFilled(false);
         selectedBookUnderline2.setContentAreaFilled(true);
         selectedBookUnderline3.setContentAreaFilled(false);
@@ -7988,15 +8504,16 @@ private void maxId() {
         selectedBookUnderline10.setContentAreaFilled(false);
         selectedBookUnderline11.setContentAreaFilled(false);
         selectedBookUnderline12.setContentAreaFilled(false);
-        
+
         currentSelected = 2;
         updateSelectedBookIcon();
         updateBookDetails();
-        
+
         continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay2ActionPerformed
 
-    private void bookDisplay3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay3ActionPerformed
+    private void bookDisplay3ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_bookDisplay3ActionPerformed
         selectedBookUnderline1.setContentAreaFilled(false);
         selectedBookUnderline2.setContentAreaFilled(false);
         selectedBookUnderline3.setContentAreaFilled(true);
@@ -8009,15 +8526,16 @@ private void maxId() {
         selectedBookUnderline10.setContentAreaFilled(false);
         selectedBookUnderline11.setContentAreaFilled(false);
         selectedBookUnderline12.setContentAreaFilled(false);
-        
+
         currentSelected = 3;
         updateSelectedBookIcon();
         updateBookDetails();
-        
+
         continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay3ActionPerformed
 
-    private void bookDisplay4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay4ActionPerformed
+    private void bookDisplay4ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_bookDisplay4ActionPerformed
         selectedBookUnderline1.setContentAreaFilled(false);
         selectedBookUnderline2.setContentAreaFilled(false);
         selectedBookUnderline3.setContentAreaFilled(false);
@@ -8030,15 +8548,16 @@ private void maxId() {
         selectedBookUnderline10.setContentAreaFilled(false);
         selectedBookUnderline11.setContentAreaFilled(false);
         selectedBookUnderline12.setContentAreaFilled(false);
-        
+
         currentSelected = 4;
         updateSelectedBookIcon();
         updateBookDetails();
-        
+
         continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay4ActionPerformed
 
-    private void bookDisplay5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay5ActionPerformed
+    private void bookDisplay5ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_bookDisplay5ActionPerformed
         selectedBookUnderline1.setContentAreaFilled(false);
         selectedBookUnderline2.setContentAreaFilled(false);
         selectedBookUnderline3.setContentAreaFilled(false);
@@ -8051,15 +8570,16 @@ private void maxId() {
         selectedBookUnderline10.setContentAreaFilled(false);
         selectedBookUnderline11.setContentAreaFilled(false);
         selectedBookUnderline12.setContentAreaFilled(false);
-        
+
         currentSelected = 5;
         updateSelectedBookIcon();
         updateBookDetails();
-        
+
         continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay5ActionPerformed
 
-    private void bookDisplay6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay6ActionPerformed
+    private void bookDisplay6ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_bookDisplay6ActionPerformed
         selectedBookUnderline1.setContentAreaFilled(false);
         selectedBookUnderline2.setContentAreaFilled(false);
         selectedBookUnderline3.setContentAreaFilled(false);
@@ -8072,15 +8592,16 @@ private void maxId() {
         selectedBookUnderline10.setContentAreaFilled(false);
         selectedBookUnderline11.setContentAreaFilled(false);
         selectedBookUnderline12.setContentAreaFilled(false);
-        
+
         currentSelected = 6;
         updateSelectedBookIcon();
         updateBookDetails();
-        
+
         continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay6ActionPerformed
 
-    private void bookDisplay7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay7ActionPerformed
+    private void bookDisplay7ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_bookDisplay7ActionPerformed
         selectedBookUnderline1.setContentAreaFilled(false);
         selectedBookUnderline2.setContentAreaFilled(false);
         selectedBookUnderline3.setContentAreaFilled(false);
@@ -8093,15 +8614,16 @@ private void maxId() {
         selectedBookUnderline10.setContentAreaFilled(false);
         selectedBookUnderline11.setContentAreaFilled(false);
         selectedBookUnderline12.setContentAreaFilled(false);
-        
+
         currentSelected = 7;
         updateSelectedBookIcon();
         updateBookDetails();
-        
+
         continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay7ActionPerformed
 
-    private void bookDisplay8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay8ActionPerformed
+    private void bookDisplay8ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_bookDisplay8ActionPerformed
         selectedBookUnderline1.setContentAreaFilled(false);
         selectedBookUnderline2.setContentAreaFilled(false);
         selectedBookUnderline3.setContentAreaFilled(false);
@@ -8114,15 +8636,16 @@ private void maxId() {
         selectedBookUnderline10.setContentAreaFilled(false);
         selectedBookUnderline11.setContentAreaFilled(false);
         selectedBookUnderline12.setContentAreaFilled(false);
-        
+
         currentSelected = 8;
         updateSelectedBookIcon();
         updateBookDetails();
-        
+
         continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay8ActionPerformed
 
-    private void bookDisplay9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay9ActionPerformed
+    private void bookDisplay9ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_bookDisplay9ActionPerformed
         selectedBookUnderline1.setContentAreaFilled(false);
         selectedBookUnderline2.setContentAreaFilled(false);
         selectedBookUnderline3.setContentAreaFilled(false);
@@ -8135,15 +8658,16 @@ private void maxId() {
         selectedBookUnderline10.setContentAreaFilled(false);
         selectedBookUnderline11.setContentAreaFilled(false);
         selectedBookUnderline12.setContentAreaFilled(false);
-        
+
         currentSelected = 9;
         updateSelectedBookIcon();
         updateBookDetails();
-        
+
         continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay9ActionPerformed
 
-    private void bookDisplay10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay10ActionPerformed
+    private void bookDisplay10ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_bookDisplay10ActionPerformed
         selectedBookUnderline1.setContentAreaFilled(false);
         selectedBookUnderline2.setContentAreaFilled(false);
         selectedBookUnderline3.setContentAreaFilled(false);
@@ -8156,15 +8680,16 @@ private void maxId() {
         selectedBookUnderline10.setContentAreaFilled(true);
         selectedBookUnderline11.setContentAreaFilled(false);
         selectedBookUnderline12.setContentAreaFilled(false);
-        
+
         currentSelected = 10;
         updateSelectedBookIcon();
         updateBookDetails();
-        
+
         continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay10ActionPerformed
 
-    private void bookDisplay11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay11ActionPerformed
+    private void bookDisplay11ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_bookDisplay11ActionPerformed
         selectedBookUnderline1.setContentAreaFilled(false);
         selectedBookUnderline2.setContentAreaFilled(false);
         selectedBookUnderline3.setContentAreaFilled(false);
@@ -8177,15 +8702,16 @@ private void maxId() {
         selectedBookUnderline10.setContentAreaFilled(false);
         selectedBookUnderline11.setContentAreaFilled(true);
         selectedBookUnderline12.setContentAreaFilled(false);
-        
+
         currentSelected = 11;
         updateSelectedBookIcon();
         updateBookDetails();
-        
+
         continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay11ActionPerformed
 
-    private void bookDisplay12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookDisplay12ActionPerformed
+    private void bookDisplay12ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_bookDisplay12ActionPerformed
         selectedBookUnderline1.setContentAreaFilled(false);
         selectedBookUnderline2.setContentAreaFilled(false);
         selectedBookUnderline3.setContentAreaFilled(false);
@@ -8198,148 +8724,177 @@ private void maxId() {
         selectedBookUnderline10.setContentAreaFilled(false);
         selectedBookUnderline11.setContentAreaFilled(false);
         selectedBookUnderline12.setContentAreaFilled(true);
-        
+
         currentSelected = 12;
         updateSelectedBookIcon();
         updateBookDetails();
-        
+
         continueReading.setVisible(false);
     }//GEN-LAST:event_bookDisplay12ActionPerformed
 
-    private void readBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_readBtnActionPerformed
-    // Immediately switch to loading tab
-    tabs.setSelectedIndex(2);
+    private void readBtnActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_readBtnActionPerformed
+        // Immediately switch to loading tab
+        tabs.setSelectedIndex(2);
 
-    // Get the bookIndex early
-    int assignedNum = randomNums.get(currentSelected - 1);
-    loadedBook = assignedNum;
-    
-    // Update lastRead table
-    int realBookIndex = -1;
-    String dbPath = "bookStack.db";
+        // Get the bookIndex early
+        int assignedNum = randomNums.get(currentSelected - 1);
+        loadedBook = assignedNum;
 
-    // Query the real bookIndex from bookStack
-    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
-         PreparedStatement ps = conn.prepareStatement(
-             "SELECT bookIndex FROM bookStack WHERE CAST(TRIM(bookIndex) AS INTEGER) = ?")) {
+        // Update lastRead table
+        int realBookIndex = -1;
+        String dbPath = "bookStack.db";
 
-        ps.setInt(1, assignedNum);
-        try (ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                realBookIndex = rs.getInt("bookIndex");
+        // Query the real bookIndex from bookStack
+        try (
+            Connection conn = DriverManager.getConnection(
+                "jdbc:sqlite:" + dbPath
+            );
+            PreparedStatement ps = conn.prepareStatement(
+                "SELECT bookIndex FROM bookStack WHERE CAST(TRIM(bookIndex) AS INTEGER) = ?"
+            )
+        ) {
+            ps.setInt(1, assignedNum);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    realBookIndex = rs.getInt("bookIndex");
+                }
             }
-        }
-
-    } catch (SQLException ex) {
-        ex.printStackTrace();
-    }
-
-    // Save to lastRead table (clear previous row first)
-    if (realBookIndex != -1) {
-        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
-             Statement stmt = conn.createStatement()) {
-
-            // Delete old lastRead row
-            stmt.executeUpdate("DELETE FROM lastRead");
-
-            // Insert new lastRead row
-            try (PreparedStatement ps = conn.prepareStatement("INSERT INTO lastRead(bookIndex) VALUES(?)")) {
-                ps.setInt(1, realBookIndex);
-                ps.executeUpdate();
-            }
-
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
-    }
 
+        // Save to lastRead table (clear previous row first)
+        if (realBookIndex != -1) {
+            try (
+                Connection conn = DriverManager.getConnection(
+                    "jdbc:sqlite:" + dbPath
+                );
+                Statement stmt = conn.createStatement()
+            ) {
+                // Delete old lastRead row
+                stmt.executeUpdate("DELETE FROM lastRead");
 
-    // Background worker to load the PDF
-    SwingWorker<JTextPane, Void> worker = new SwingWorker<>() {
-        @Override
-        protected JTextPane doInBackground() throws Exception {
-            String fileName = null;
+                // Insert new lastRead row
+                try (
+                    PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO lastRead(bookIndex) VALUES(?)"
+                    )
+                ) {
+                    ps.setInt(1, realBookIndex);
+                    ps.executeUpdate();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
 
-            // Query the database
-            try (Connection conn = DriverManager.getConnection("jdbc:sqlite:bookStack.db")) {
-                String query = "SELECT fileName FROM bookStack WHERE bookIndex=?";
-                try (PreparedStatement ps = conn.prepareStatement(query)) {
-                    ps.setInt(1, assignedNum);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) {
-                            fileName = rs.getString("fileName");
-                        } else {
-                            SwingUtilities.invokeLater(() -> 
-                                JOptionPane.showMessageDialog(null, "Book not found in database!")
-                            );
-                            return null;
+        // Background worker to load the PDF
+        SwingWorker<JTextPane, Void> worker = new SwingWorker<>() {
+            @Override
+            protected JTextPane doInBackground() throws Exception {
+                String fileName = null;
+
+                // Query the database
+                try (
+                    Connection conn = DriverManager.getConnection(
+                        "jdbc:sqlite:bookStack.db"
+                    )
+                ) {
+                    String query =
+                        "SELECT fileName FROM bookStack WHERE bookIndex=?";
+                    try (PreparedStatement ps = conn.prepareStatement(query)) {
+                        ps.setInt(1, assignedNum);
+                        try (ResultSet rs = ps.executeQuery()) {
+                            if (rs.next()) {
+                                fileName = rs.getString("fileName");
+                            } else {
+                                SwingUtilities.invokeLater(() ->
+                                    JOptionPane.showMessageDialog(
+                                        null,
+                                        "Book not found in database!"
+                                    )
+                                );
+                                return null;
+                            }
                         }
                     }
                 }
-            }
 
-            // Load PDF file
-            File pdfFile = new File("src/main/resources/bookStack/" + fileName);
-            if (!pdfFile.exists()) {
-                SwingUtilities.invokeLater(() -> 
-                    JOptionPane.showMessageDialog(null, "PDF file not found: " + pdfFile.getAbsolutePath())
+                // Load PDF file
+                File pdfFile = new File(
+                    "src/main/resources/bookStack/" + fileName
                 );
-                return null;
-            }
-
-            // Extract text
-            String text;
-            try (PDDocument document = PDDocument.load(pdfFile)) {
-                PDFTextStripper stripper = new PDFTextStripper();
-                text = stripper.getText(document);
-            }
-
-            // Convert to HTML
-            String htmlText = "<html><body style='font-family:Serif; font-size:20pt; "
-                    + "text-align:center; background-color:rgb(255,251,247)'>"
-                    + text.replace("\n", "<br>")
-                    + "</body></html>";
-
-            // Prepare JTextPane
-            JTextPane pdfPane = new JTextPane();
-            pdfPane.setContentType("text/html");
-            pdfPane.setText(htmlText);
-            pdfPane.setEditable(false);
-            pdfPane.setBackground(new Color(255, 251, 247));
-            return pdfPane;
-        }
-
-        @Override
-        protected void done() {
-            try {
-                JTextPane pdfPane = get();
-                if (pdfPane != null) {
-                    bookScroll.setViewportView(pdfPane);
-                    //bookScroll.getVerticalScrollBar().setValue(currentScrollState);
-
-                    // Switch to the book display tab
-                    tabs.setSelectedIndex(3);
-
-                    // Refresh
-                    bookScroll.requestFocusInWindow(); 
-                    bookScroll.revalidate();           
-                    bookScroll.repaint();
+                if (!pdfFile.exists()) {
+                    SwingUtilities.invokeLater(() ->
+                        JOptionPane.showMessageDialog(
+                            null,
+                            "PDF file not found: " + pdfFile.getAbsolutePath()
+                        )
+                    );
+                    return null;
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Error loading book: " + e.getMessage());
+
+                // Extract text
+                String text;
+                try (PDDocument document = PDDocument.load(pdfFile)) {
+                    PDFTextStripper stripper = new PDFTextStripper();
+                    text = stripper.getText(document);
+                }
+
+                // Convert to HTML
+                String htmlText =
+                    "<html><body style='font-family:Serif; font-size:20pt; " +
+                    "text-align:center; background-color:rgb(255,251,247)'>" +
+                    text.replace("\n", "<br>") +
+                    "</body></html>";
+
+                // Prepare JTextPane
+                JTextPane pdfPane = new JTextPane();
+                pdfPane.setContentType("text/html");
+                pdfPane.setText(htmlText);
+                pdfPane.setEditable(false);
+                pdfPane.setBackground(new Color(255, 251, 247));
+                return pdfPane;
             }
-        }
-    };
 
-    worker.execute(); // start background loading
+            @Override
+            protected void done() {
+                try {
+                    JTextPane pdfPane = get();
+                    if (pdfPane != null) {
+                        bookScroll.setViewportView(pdfPane);
+                        //bookScroll.getVerticalScrollBar().setValue(currentScrollState);
 
+                        // Switch to the book display tab
+                        tabs.setSelectedIndex(3);
+
+                        // Refresh
+                        bookScroll.requestFocusInWindow();
+                        bookScroll.revalidate();
+                        bookScroll.repaint();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(
+                        null,
+                        "Error loading book: " + e.getMessage()
+                    );
+                }
+            }
+        };
+
+        worker.execute(); // start background loading
     }//GEN-LAST:event_readBtnActionPerformed
 
-    private void volMinusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_volMinusActionPerformed
+    private void volMinusActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_volMinusActionPerformed
         if (lastPlayedClip != null && lastPlayedClip.isRunning()) {
             try {
-                FloatControl gainControl = (FloatControl) lastPlayedClip.getControl(FloatControl.Type.MASTER_GAIN);
+                FloatControl gainControl =
+                    (FloatControl) lastPlayedClip.getControl(
+                        FloatControl.Type.MASTER_GAIN
+                    );
 
                 // Get current volume in dB
                 float current = gainControl.getValue();
@@ -8352,51 +8907,69 @@ private void maxId() {
                 System.out.println("Volume decreased to: " + newGain + " dB");
                 updateVolumeDisplay();
             } catch (IllegalArgumentException ex) {
-                System.out.println("Volume control not supported for this clip.");
+                System.out.println(
+                    "Volume control not supported for this clip."
+                );
             }
         } else {
             System.out.println("No clip is currently running.");
         }
     }//GEN-LAST:event_volMinusActionPerformed
 
-    private void bookmarkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookmarkActionPerformed
+    private void bookmarkActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_bookmarkActionPerformed
         int bookIndex = loadedBook; // assuming this field exists
         int scrollIndex = bookScroll.getVerticalScrollBar().getValue();
 
         String dbPath = "bookStack.db";
-        String insertQuery = "INSERT INTO bookmarks (bookIndex, scrollIndex) VALUES (?, ?)";
+        String insertQuery =
+            "INSERT INTO bookmarks (bookIndex, scrollIndex) VALUES (?, ?)";
 
         // --- Save to DB ---
-        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
-             PreparedStatement pstmt = conn.prepareStatement(insertQuery)) {
-
+        try (
+            Connection conn = DriverManager.getConnection(
+                "jdbc:sqlite:" + dbPath
+            );
+            PreparedStatement pstmt = conn.prepareStatement(insertQuery)
+        ) {
             pstmt.setInt(1, bookIndex);
             pstmt.setInt(2, scrollIndex);
             pstmt.executeUpdate();
 
-            System.out.println("Bookmark saved for bookIndex: " + bookIndex + " | scrollIndex: " + scrollIndex);
-
+            System.out.println(
+                "Bookmark saved for bookIndex: " +
+                    bookIndex +
+                    " | scrollIndex: " +
+                    scrollIndex
+            );
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
 
-        
-        bookmark.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/bookmark.png")));
+        bookmark.setIcon(
+            new javax.swing.ImageIcon(
+                getClass().getResource("/icons/bookmark.png")
+            )
+        );
         bookmarkSavedNotif.setVisible(true);
 
-        
         javax.swing.Timer timer = new javax.swing.Timer(1500, e -> {
             bookmarkSavedNotif.setVisible(false);
-            bookmark.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/bookmark30W.png")));
+            bookmark.setIcon(
+                new javax.swing.ImageIcon(
+                    getClass().getResource("/icons/bookmark30W.png")
+                )
+            );
         });
         timer.setRepeats(false);
-        timer.start(); 
+        timer.start();
     }//GEN-LAST:event_bookmarkActionPerformed
 
-    private void cafeThemeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cafeThemeActionPerformed
+    private void cafeThemeActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_cafeThemeActionPerformed
         //mute.setVisible(false);
         //unmute.setVisible(false);
-        if(mute.isVisible()){
+        if (mute.isVisible()) {
             mute.setVisible(false);
             unmute.setVisible(true);
         }
@@ -8417,7 +8990,9 @@ private void maxId() {
         }
 
         // Load background image
-        java.net.URL imgURL = getClass().getResource("/themes/cafe" + itr + ".jpg");
+        java.net.URL imgURL = getClass().getResource(
+            "/themes/cafe" + itr + ".jpg"
+        );
         if (imgURL != null) {
             themer.setIcon(new javax.swing.ImageIcon(imgURL));
             themer.repaint();
@@ -8427,9 +9002,13 @@ private void maxId() {
 
         // Load and loop the matching cafe .wav file
         try {
-            java.net.URL soundURL = getClass().getResource("/ambienceSfx/cafe" + itr + ".wav");
+            java.net.URL soundURL = getClass().getResource(
+                "/ambienceSfx/cafe" + itr + ".wav"
+            );
             if (soundURL != null) {
-                AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundURL);
+                AudioInputStream audioIn = AudioSystem.getAudioInputStream(
+                    soundURL
+                );
                 cafeClip = AudioSystem.getClip();
                 cafeClip.open(audioIn);
                 cafeClip.loop(Clip.LOOP_CONTINUOUSLY); // instant seamless loop
@@ -8452,10 +9031,11 @@ private void maxId() {
         lastPlayedClip = cafeClip;
     }//GEN-LAST:event_cafeThemeActionPerformed
 
-    private void treeThemeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_treeThemeActionPerformed
+    private void treeThemeActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_treeThemeActionPerformed
         //mute.setVisible(false);
         //unmute.setVisible(false);
-        if(mute.isVisible()){
+        if (mute.isVisible()) {
             mute.setVisible(false);
             unmute.setVisible(true);
         }
@@ -8475,7 +9055,9 @@ private void maxId() {
         }
 
         // Load background image
-        java.net.URL imgURL = getClass().getResource("/themes/trees" + itr + ".jpg");
+        java.net.URL imgURL = getClass().getResource(
+            "/themes/trees" + itr + ".jpg"
+        );
         if (imgURL != null) {
             themer.setIcon(new javax.swing.ImageIcon(imgURL));
             themer.repaint();
@@ -8485,9 +9067,13 @@ private void maxId() {
 
         // Load and loop matching tree sound
         try {
-            java.net.URL soundURL = getClass().getResource("/ambienceSfx/trees" + itr + ".wav");
+            java.net.URL soundURL = getClass().getResource(
+                "/ambienceSfx/trees" + itr + ".wav"
+            );
             if (soundURL != null) {
-                AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundURL);
+                AudioInputStream audioIn = AudioSystem.getAudioInputStream(
+                    soundURL
+                );
                 treeClip = AudioSystem.getClip();
                 treeClip.open(audioIn);
                 treeClip.loop(Clip.LOOP_CONTINUOUSLY);
@@ -8510,15 +9096,16 @@ private void maxId() {
         lastPlayedClip = treeClip;
     }//GEN-LAST:event_treeThemeActionPerformed
 
-    private void rainAmbienceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rainAmbienceActionPerformed
+    private void rainAmbienceActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_rainAmbienceActionPerformed
         //mute.setVisible(false);
-        //unmute.setVisible(false);  
-        if(mute.isVisible()){
+        //unmute.setVisible(false);
+        if (mute.isVisible()) {
             mute.setVisible(false);
             unmute.setVisible(true);
         }
         volDisp.setText("100");
-        
+
         if (cafeClip != null && cafeClip.isRunning()) {
             cafeClip.stop();
             cafeClip.close();
@@ -8537,7 +9124,9 @@ private void maxId() {
         }
 
         // Load background image
-        java.net.URL imgURL = getClass().getResource("/themes/rain" + itr + ".jpg");
+        java.net.URL imgURL = getClass().getResource(
+            "/themes/rain" + itr + ".jpg"
+        );
         if (imgURL != null) {
             themer.setIcon(new javax.swing.ImageIcon(imgURL));
             themer.repaint();
@@ -8547,9 +9136,13 @@ private void maxId() {
 
         // Load and play rain ambience (loop continuously)
         try {
-            java.net.URL soundURL = getClass().getResource("/ambienceSfx/rain" + itr + ".wav");
+            java.net.URL soundURL = getClass().getResource(
+                "/ambienceSfx/rain" + itr + ".wav"
+            );
             if (soundURL != null) {
-                AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundURL);
+                AudioInputStream audioIn = AudioSystem.getAudioInputStream(
+                    soundURL
+                );
                 rainClip = AudioSystem.getClip();
                 rainClip.open(audioIn);
                 rainClip.loop(Clip.LOOP_CONTINUOUSLY);
@@ -8574,10 +9167,11 @@ private void maxId() {
         lastPlayedClip = rainClip;
     }//GEN-LAST:event_rainAmbienceActionPerformed
 
-    private void muteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_muteActionPerformed
-       mute.setVisible(false);
-       unmute.setVisible(true);
-       
+    private void muteActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_muteActionPerformed
+        mute.setVisible(false);
+        unmute.setVisible(true);
+
         if (lastPlayedClip != null) {
             try {
                 // Resume the clip from where it left
@@ -8588,13 +9182,14 @@ private void maxId() {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }       
+        }
     }//GEN-LAST:event_muteActionPerformed
 
-    private void unmuteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_unmuteActionPerformed
+    private void unmuteActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_unmuteActionPerformed
         unmute.setVisible(false);
         mute.setVisible(true);
-           
+
         if (cafeClip != null && cafeClip.isRunning()) {
             lastPlayedClip = cafeClip;
             lastClipPosition = cafeClip.getMicrosecondPosition();
@@ -8615,13 +9210,17 @@ private void maxId() {
         unmute.setVisible(false);
         mute.setVisible(true);
 
-        System.out.println("🔇 All ambience muted");        
+        System.out.println("🔇 All ambience muted");
     }//GEN-LAST:event_unmuteActionPerformed
 
-    private void volPLusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_volPLusActionPerformed
+    private void volPLusActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_volPLusActionPerformed
         if (lastPlayedClip != null && lastPlayedClip.isRunning()) {
             try {
-                FloatControl gainControl = (FloatControl) lastPlayedClip.getControl(FloatControl.Type.MASTER_GAIN);
+                FloatControl gainControl =
+                    (FloatControl) lastPlayedClip.getControl(
+                        FloatControl.Type.MASTER_GAIN
+                    );
 
                 // Get current volume in dB
                 float current = gainControl.getValue();
@@ -8634,53 +9233,66 @@ private void maxId() {
                 System.out.println("Volume increased to: " + newGain + " dB");
                 updateVolumeDisplay();
             } catch (IllegalArgumentException ex) {
-                System.out.println("Volume control not supported for this clip.");
+                System.out.println(
+                    "Volume control not supported for this clip."
+                );
             }
         } else {
             System.out.println("No clip is currently running.");
         }
     }//GEN-LAST:event_volPLusActionPerformed
 
-    private void continueReadingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_continueReadingActionPerformed
+    private void continueReadingActionPerformed(
+        java.awt.event.ActionEvent evt
+    ) {
+//GEN-FIRST:event_continueReadingActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_continueReadingActionPerformed
 
-    private void langChooserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_langChooserActionPerformed
+    private void langChooserActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_langChooserActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_langChooserActionPerformed
 
-    private void testamentChooserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_testamentChooserActionPerformed
+    private void testamentChooserActionPerformed(
+        java.awt.event.ActionEvent evt
+    ) {
+//GEN-FIRST:event_testamentChooserActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_testamentChooserActionPerformed
 
-    private void searchBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBtnActionPerformed
+    private void searchBtnActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_searchBtnActionPerformed
         if (tabs.getSelectedIndex() == 5) {
             tabs.setSelectedIndex(4);
-        }        
+        }
         tabs.setSelectedIndex(4);
     }//GEN-LAST:event_searchBtnActionPerformed
 
-    private void searchBarNoHistoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBarNoHistoryActionPerformed
+    private void searchBarNoHistoryActionPerformed(
+        java.awt.event.ActionEvent evt
+    ) {
+//GEN-FIRST:event_searchBarNoHistoryActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_searchBarNoHistoryActionPerformed
 
-    private void searchNoHistoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchNoHistoryActionPerformed
+    private void searchNoHistoryActionPerformed(
+        java.awt.event.ActionEvent evt
+    ) {
+//GEN-FIRST:event_searchNoHistoryActionPerformed
         if (!nlsOn) {
             // Optional: you can show a message or just return silently
-            
+
             return;
         }
-        
+
         searched = true;
-            // Show loading indicator
+        // Show loading indicator
         loading30BW.setVisible(true);
         //searchNoHistory.setEnabled(false);
         searchNoHistory.setBackground(new Color(150, 150, 150)); // gray background
         searchNoHistory.setForeground(new Color(200, 200, 200)); // lighter gray text
         searchQuery = searchBarNoHistory.getText();
- 
-        
-        
 
         String query = searchBarNoHistory.getText().trim();
         if (query.isEmpty() || query.equals("Search for verses")) {
@@ -8696,8 +9308,8 @@ private void maxId() {
             tabs.setSelectedIndex(5);
             System.out.println("found in database...finna load from that now");
             return; // Skip FAISS engine
-        }        
-        
+        }
+
         SwingWorker<Void, Void> worker = new SwingWorker<>() {
             @Override
             protected Void doInBackground() throws Exception {
@@ -8710,14 +9322,18 @@ private void maxId() {
                 pb.redirectErrorStream(true);
                 Process process = pb.start();
 
-                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream())
+                );
                 rawResults.clear();
                 List<String> results = new ArrayList<>();
                 String line;
                 while ((line = reader.readLine()) != null) {
                     // Skip headers or empty lines
                     if (line.trim().isEmpty()) continue;
-                    if (line.startsWith("Top ") || line.startsWith("❌")) continue;
+                    if (
+                        line.startsWith("Top ") || line.startsWith("❌")
+                    ) continue;
                     results.add(line.trim());
                     rawResults.add(line.trim());
                 }
@@ -8725,17 +9341,37 @@ private void maxId() {
 
                 // Arrays of editor panes and match rate labels
                 JEditorPane[] resultPanes = {
-                    searchResult1, searchResult2, searchResult3, searchResult4,
-                    searchResult5, searchResult6, searchResult7, searchResult8,
-                    searchResult9, searchResult10, searchResult11, searchResult12,
-                    searchResult13, searchResult14
+                    searchResult1,
+                    searchResult2,
+                    searchResult3,
+                    searchResult4,
+                    searchResult5,
+                    searchResult6,
+                    searchResult7,
+                    searchResult8,
+                    searchResult9,
+                    searchResult10,
+                    searchResult11,
+                    searchResult12,
+                    searchResult13,
+                    searchResult14,
                 };
 
                 JLabel[] matchLabels = {
-                    matchRate1, matchRate2, matchRate3, matchRate4,
-                    matchRate5, matchRate6, matchRate7, matchRate8,
-                    matchRate9, matchRate10, matchRate11, matchRate12,
-                    matchRate13, matchRate14
+                    matchRate1,
+                    matchRate2,
+                    matchRate3,
+                    matchRate4,
+                    matchRate5,
+                    matchRate6,
+                    matchRate7,
+                    matchRate8,
+                    matchRate9,
+                    matchRate10,
+                    matchRate11,
+                    matchRate12,
+                    matchRate13,
+                    matchRate14,
                 };
 
                 // Clear previous results
@@ -8751,7 +9387,11 @@ private void maxId() {
 
                     int resultIndex;
                     try {
-                        resultIndex = Integer.parseInt(raw.substring(0, dotIndex).trim()) - 1;
+                        resultIndex =
+                            Integer.parseInt(
+                                raw.substring(0, dotIndex).trim()
+                            ) -
+                            1;
                     } catch (NumberFormatException e) {
                         continue;
                     }
@@ -8761,7 +9401,10 @@ private void maxId() {
                     double score = 0.0;
                     int scoreIndex = raw.lastIndexOf("(score:");
                     if (scoreIndex != -1) {
-                        String scoreStr = raw.substring(scoreIndex + 7).replace(")", "").trim();
+                        String scoreStr = raw
+                            .substring(scoreIndex + 7)
+                            .replace(")", "")
+                            .trim();
                         try {
                             score = Double.parseDouble(scoreStr);
                         } catch (NumberFormatException ignored) {}
@@ -8773,17 +9416,27 @@ private void maxId() {
                     // Extract the reference and verse text
                     int dashIndex = raw.indexOf("—");
                     if (dashIndex == -1) dashIndex = raw.indexOf("-");
-                    String reference = (dashIndex != -1) ? raw.substring(0, dashIndex).trim() : "";
-                    String verseText = (dashIndex != -1) ? raw.substring(dashIndex + 1).trim() : raw;
+                    String reference = (dashIndex != -1)
+                        ? raw.substring(0, dashIndex).trim()
+                        : "";
+                    String verseText = (dashIndex != -1)
+                        ? raw.substring(dashIndex + 1).trim()
+                        : raw;
 
                     // Highlight the query word inside verseText (optional)
-                    String highlighted = verseText.replaceAll("(?i)" + Pattern.quote(query),
-                        "<span style='color:#2b7b2b;'>" + query + "</span>"); 
+                    String highlighted = verseText.replaceAll(
+                        "(?i)" + Pattern.quote(query),
+                        "<span style='color:#2b7b2b;'>" + query + "</span>"
+                    );
 
                     // HTML render
-                    String textHtml = "<html><body style='font-family:\"Nokia Pure Headline Ultra Light\", sans-serif;"
-                            + "font-size:14px; font-weight:100; line-height:1.4; color:#222;'>"
-                            + reference + " — " + highlighted + "</body></html>";
+                    String textHtml =
+                        "<html><body style='font-family:\"Nokia Pure Headline Ultra Light\", sans-serif;" +
+                        "font-size:14px; font-weight:100; line-height:1.4; color:#222;'>" +
+                        reference +
+                        " — " +
+                        highlighted +
+                        "</body></html>";
 
                     // Set editor pane
                     resultPanes[resultIndex].setContentType("text/html");
@@ -8791,14 +9444,26 @@ private void maxId() {
                     resultPanes[resultIndex].setCaretPosition(0);
 
                     // Match rate label
-                    matchLabels[resultIndex].setText(String.format("%.0f%%", score * 100));
+                    matchLabels[resultIndex].setText(
+                        String.format("%.0f%%", score * 100)
+                    );
                     matchLabels[resultIndex].setOpaque(true);
-                    matchLabels[resultIndex].setBackground(getScoreColor(score));
-                    matchLabels[resultIndex].setHorizontalAlignment(SwingConstants.CENTER);
-                    matchLabels[resultIndex].setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 12));
+                    matchLabels[resultIndex].setBackground(
+                        getScoreColor(score)
+                    );
+                    matchLabels[resultIndex].setHorizontalAlignment(
+                        SwingConstants.CENTER
+                    );
+                    matchLabels[resultIndex].setFont(
+                        new Font(
+                            "Nokia Pure Headline Ultra Light",
+                            Font.PLAIN,
+                            12
+                        )
+                    );
                 }
 
-                return null; 
+                return null;
             }
 
             @Override
@@ -8807,13 +9472,14 @@ private void maxId() {
                 loading30BW.setVisible(false);
 
                 // Only save if the exe actually found results
-                if (!rawResults.isEmpty() && !rawResults.get(0).contains("❌ Could not find any verse"))
-                    saveSearchResults(query, rawResults);
+                if (
+                    !rawResults.isEmpty() &&
+                    !rawResults.get(0).contains("❌ Could not find any verse")
+                ) saveSearchResults(query, rawResults);
             }
         };
 
         worker.execute();
-        
     }
 
     // Keep your color function as-is
@@ -8821,14 +9487,22 @@ private void maxId() {
         score = Math.max(0.0, Math.min(1.0, score));
         int r, g, b;
         if (score >= 0.65) {
-            r = 86; g = 211; b = 100;
+            r = 86;
+            g = 211;
+            b = 100;
         } else if (score <= 0.60) {
-            r = 217; g = 56; b = 72;
+            r = 217;
+            g = 56;
+            b = 72;
         } else {
             double t = (0.65 - score) / 0.05;
             t = Math.pow(t, 1.5);
-            int startR = 86, startG = 211, startB = 100;
-            int endR = 255, endG = 80, endB = 80;
+            int startR = 86,
+                startG = 211,
+                startB = 100;
+            int endR = 255,
+                endG = 80,
+                endB = 80;
             r = (int) (startR + t * (endR - startR));
             g = (int) (startG + t * (endG - startG));
             b = (int) (startB + t * (endB - startB));
@@ -8837,138 +9511,165 @@ private void maxId() {
         //}
     }//GEN-LAST:event_searchNoHistoryActionPerformed
 
-    private void searchBarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBarActionPerformed
+    private void searchBarActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_searchBarActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_searchBarActionPerformed
 
-    private void searchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchActionPerformed
+    private void searchActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_searchActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_searchActionPerformed
 
-    private void nlsRadioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nlsRadioActionPerformed
-
+    private void nlsRadioActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_nlsRadioActionPerformed
     }//GEN-LAST:event_nlsRadioActionPerformed
 
-    private void showMoreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showMoreActionPerformed
+    private void showMoreActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_showMoreActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_showMoreActionPerformed
 
-    private void normalSearchNoHistoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_normalSearchNoHistoryActionPerformed
+    private void normalSearchNoHistoryActionPerformed(
+        java.awt.event.ActionEvent evt
+    ) {
+//GEN-FIRST:event_normalSearchNoHistoryActionPerformed
         normalSearchOn = true;
         nlsOn = false;
         nlsRadioNoHistory.setSelected(false);
         //normalSearchNoHistory.setSelected(true);
     }//GEN-LAST:event_normalSearchNoHistoryActionPerformed
 
-    private void nlsRadioNoHistoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nlsRadioNoHistoryActionPerformed
-       nlsOn= true;
-       normalSearchOn = false;
-       normalSearchNoHistory.setSelected(false);
-       //nlsRadioNoHistory.setSelected(false);
+    private void nlsRadioNoHistoryActionPerformed(
+        java.awt.event.ActionEvent evt
+    ) {
+//GEN-FIRST:event_nlsRadioNoHistoryActionPerformed
+        nlsOn = true;
+        normalSearchOn = false;
+        normalSearchNoHistory.setSelected(false);
+        //nlsRadioNoHistory.setSelected(false);
     }//GEN-LAST:event_nlsRadioNoHistoryActionPerformed
 
-    private void goto1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto1ActionPerformed
+    private void goto1ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goto1ActionPerformed
         gotoVerse(1);
     }//GEN-LAST:event_goto1ActionPerformed
 
-    private void goto2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto2ActionPerformed
+    private void goto2ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goto2ActionPerformed
         gotoVerse(2);
     }//GEN-LAST:event_goto2ActionPerformed
 
-    private void goto3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto3ActionPerformed
+    private void goto3ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goto3ActionPerformed
         gotoVerse(3);
     }//GEN-LAST:event_goto3ActionPerformed
 
-    private void goto4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto4ActionPerformed
+    private void goto4ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goto4ActionPerformed
         gotoVerse(4);
     }//GEN-LAST:event_goto4ActionPerformed
 
-    private void goto5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto5ActionPerformed
+    private void goto5ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goto5ActionPerformed
         gotoVerse(5);
     }//GEN-LAST:event_goto5ActionPerformed
 
-    private void goto6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto6ActionPerformed
+    private void goto6ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goto6ActionPerformed
         gotoVerse(6);
     }//GEN-LAST:event_goto6ActionPerformed
 
-    private void goto7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto7ActionPerformed
+    private void goto7ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goto7ActionPerformed
         gotoVerse(7);
     }//GEN-LAST:event_goto7ActionPerformed
 
-    private void goto8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto8ActionPerformed
+    private void goto8ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goto8ActionPerformed
         gotoVerse(8);
     }//GEN-LAST:event_goto8ActionPerformed
 
-    private void goto9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto9ActionPerformed
+    private void goto9ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goto9ActionPerformed
         gotoVerse(9);
     }//GEN-LAST:event_goto9ActionPerformed
 
-    private void goto10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto10ActionPerformed
+    private void goto10ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goto10ActionPerformed
         gotoVerse(10);
     }//GEN-LAST:event_goto10ActionPerformed
 
-    private void goto11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto11ActionPerformed
+    private void goto11ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goto11ActionPerformed
         gotoVerse(11);
     }//GEN-LAST:event_goto11ActionPerformed
 
-    private void goto12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto12ActionPerformed
+    private void goto12ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goto12ActionPerformed
         gotoVerse(12);
     }//GEN-LAST:event_goto12ActionPerformed
 
-    private void goto13ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto13ActionPerformed
+    private void goto13ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goto13ActionPerformed
         gotoVerse(13);
     }//GEN-LAST:event_goto13ActionPerformed
 
-    private void goto14ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goto14ActionPerformed
+    private void goto14ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goto14ActionPerformed
         gotoVerse(14);
     }//GEN-LAST:event_goto14ActionPerformed
 
-    private void backToSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backToSearchActionPerformed
+    private void backToSearchActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_backToSearchActionPerformed
         toSearch = true;
         tabs.setSelectedIndex(4);
-        
     }//GEN-LAST:event_backToSearchActionPerformed
 
-    private void lastSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lastSearchActionPerformed
+    private void lastSearchActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_lastSearchActionPerformed
         maxId();
         searchHistoryNav(currentSearchResultIndex - 1);
         currentSearchResultIndex--;
     }//GEN-LAST:event_lastSearchActionPerformed
 
-    private void nextSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nextSearchActionPerformed
+    private void nextSearchActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_nextSearchActionPerformed
         maxId();
         searchHistoryNav(currentSearchResultIndex + 1);
         currentSearchResultIndex++;
     }//GEN-LAST:event_nextSearchActionPerformed
 
-    private void goToRecent1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goToRecent1ActionPerformed
+    private void goToRecent1ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goToRecent1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_goToRecent1ActionPerformed
 
-    private void goToRecent2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goToRecent2ActionPerformed
+    private void goToRecent2ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goToRecent2ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_goToRecent2ActionPerformed
 
-    private void goToRecent3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goToRecent3ActionPerformed
+    private void goToRecent3ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goToRecent3ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_goToRecent3ActionPerformed
 
-    private void goToRecent4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goToRecent4ActionPerformed
+    private void goToRecent4ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goToRecent4ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_goToRecent4ActionPerformed
 
-    private void goToRecent5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goToRecent5ActionPerformed
+    private void goToRecent5ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goToRecent5ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_goToRecent5ActionPerformed
 
-    private void goToRecent6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goToRecent6ActionPerformed
+    private void goToRecent6ActionPerformed(java.awt.event.ActionEvent evt) {
+//GEN-FIRST:event_goToRecent6ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_goToRecent6ActionPerformed
 
-    
-   
- 
-    
     /**
      * @param args the command line arguments
      */
@@ -8976,7 +9677,7 @@ private void maxId() {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -8986,35 +9687,47 @@ private void maxId() {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(mainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(mainWindow.class.getName()).log(
+                java.util.logging.Level.SEVERE,
+                null,
+                ex
+            );
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(mainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(mainWindow.class.getName()).log(
+                java.util.logging.Level.SEVERE,
+                null,
+                ex
+            );
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(mainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(mainWindow.class.getName()).log(
+                java.util.logging.Level.SEVERE,
+                null,
+                ex
+            );
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(mainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(mainWindow.class.getName()).log(
+                java.util.logging.Level.SEVERE,
+                null,
+                ex
+            );
         }
         //</editor-fold>
 
         /* Create and display the form */
-        
-         try {
-            UIManager.setLookAndFeel(new FlatLightLaf()); 
-            
+
+        try {
+            UIManager.setLookAndFeel(new FlatLightLaf());
         } catch (Exception ex) {
             System.err.println("Failed to initialize FlatLaf");
         }
-         
-         
-         
-         
 
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new mainWindow().setVisible(true);
-                
+        java.awt.EventQueue.invokeLater(
+            new Runnable() {
+                public void run() {
+                    new mainWindow().setVisible(true);
+                }
             }
-        });
+        );
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -9089,14 +9802,12 @@ private void maxId() {
     private javax.swing.JButton goto7;
     private javax.swing.JButton goto8;
     private javax.swing.JButton goto9;
+    private javax.swing.JButton helpBtn;
     private javax.swing.JButton highlightBtn;
     private javax.swing.JButton homeBtn;
     private javax.swing.JLabel homeBtnLabel;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jan;
     private javax.swing.JButton journalBtn;
     private javax.swing.JLabel jul;
@@ -9191,6 +9902,7 @@ private void maxId() {
     private javax.swing.JTextField searchBarNoHistory;
     private javax.swing.JButton searchBtn;
     private javax.swing.JLabel searchBtnLabel;
+    private javax.swing.JLabel searchHistoryTitle;
     private javax.swing.JButton searchNoHistory;
     private javax.swing.JPanel searchNoHistoryPanel;
     private javax.swing.JEditorPane searchResult1;
@@ -9612,6 +10324,7 @@ private void maxId() {
     private javax.swing.JPanel topBar;
     private javax.swing.JButton treeTheme;
     private javax.swing.JButton unmute;
+    private javax.swing.JLabel verseSearchMainTitle;
     private javax.swing.JTextField volDisp;
     private javax.swing.JButton volMinus;
     private javax.swing.JButton volPLus;

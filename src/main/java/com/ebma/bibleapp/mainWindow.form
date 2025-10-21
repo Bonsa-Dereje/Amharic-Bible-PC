@@ -490,7 +490,7 @@
         </Container>
         <Container class="javax.swing.JTabbedPane" name="tabs">
           <AuxValues>
-            <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="tabs.addChangeListener(e -&gt; {&#xa;    int selectedIndex = tabs.getSelectedIndex();&#xa;    if (selectedIndex &gt;= 0 &amp;&amp; selectedIndex &lt;= 10) {&#xa;        // Clear the background image&#xa;        themer.setIcon(null);&#xa;&#xa;        // Pause all clips&#xa;        if (cafeClip != null &amp;&amp; cafeClip.isRunning()) {&#xa;            cafeClip.stop();&#xa;        }&#xa;        if (treeClip != null &amp;&amp; treeClip.isRunning()) {&#xa;            treeClip.stop();&#xa;        }&#xa;        if (rainClip != null &amp;&amp; rainClip.isRunning()) {&#xa;            rainClip.stop();&#xa;        }&#xa;&#xa;        System.out.println(&quot;Tabs 0&#x2013;10 selected: Themer cleared, all music paused&quot;);&#xa;    }&#xa;});tabs.addChangeListener(e -&gt; {&#xa;    int selectedIndex = tabs.getSelectedIndex();&#xa;&#xa;    final String dbPath = &quot;bookStack.db&quot;;&#xa;    final int PAGE_HEIGHT = 1365;       // ~height of one page&#xa;    final int SCROLL_THRESHOLD = 5460;  // minimum scroll difference to count&#xa;    final int TIME_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes&#xa;&#xa;    // Holder class for session data&#xa;    class SessionState {&#xa;        long startTime = 0;&#xa;        int startScrollIndex = 0;&#xa;        javax.swing.Timer readingTimer = null;&#xa;    }&#xa;&#xa;    // Store one SessionState in the tabs property for persistence&#xa;    if (tabs.getClientProperty(&quot;sessionState&quot;) == null) {&#xa;        tabs.putClientProperty(&quot;sessionState&quot;, new SessionState());&#xa;    }&#xa;    SessionState state = (SessionState) tabs.getClientProperty(&quot;sessionState&quot;);&#xa;&#xa;    // TAB 3 SELECTED &#x2192; START TRACKING&#xa;    if (selectedIndex == 3) {&#xa;        try (Connection conn = DriverManager.getConnection(&quot;jdbc:sqlite:&quot; + dbPath);&#xa;             Statement stmt = conn.createStatement()) {&#xa;&#xa;            ResultSet rs = stmt.executeQuery(&#xa;                &quot;SELECT currentScrollIndex FROM scrollStatus WHERE bookIndex = &quot; + loadedBook + &quot; LIMIT 1&quot;&#xa;            );&#xa;            if (rs.next()) {&#xa;                state.startScrollIndex = rs.getInt(&quot;currentScrollIndex&quot;);&#xa;            }&#xa;        } catch (Exception ex) {&#xa;            ex.printStackTrace();&#xa;        }&#xa;&#xa;        state.startTime = System.currentTimeMillis();&#xa;        state.readingTimer = new javax.swing.Timer(1000, evt2 -&gt; {}); // ticks every sec, not doing anything&#xa;        state.readingTimer.start();&#xa;    }&#xa;&#xa;    // ANY OTHER TAB SELECTED &#x2192; STOP TRACKING&#xa;    else {&#xa;        if (state.readingTimer != null &amp;&amp; state.readingTimer.isRunning()) {&#xa;        if (closeClicked) {&#xa;            state.readingTimer.stop();&#xa;            state.startTime = 0;&#xa;            state.startScrollIndex = 0;&#xa;            state.readingTimer = null;&#xa;            return; // exit early, don&#x2019;t log session&#xa;        }            &#xa;            state.readingTimer.stop();&#xa;            long endTime = System.currentTimeMillis();&#xa;            long duration = endTime - state.startTime; // in ms&#xa;            int endScrollIndex = 0;&#xa;&#xa;            // Get ending scroll index&#xa;            try (Connection conn = DriverManager.getConnection(&quot;jdbc:sqlite:&quot; + dbPath);&#xa;                 Statement stmt = conn.createStatement()) {&#xa;&#xa;                ResultSet rs = stmt.executeQuery(&#xa;                    &quot;SELECT currentScrollIndex FROM scrollStatus WHERE bookIndex = &quot; + loadedBook + &quot; LIMIT 1&quot;&#xa;                );&#xa;                if (rs.next()) {&#xa;                    endScrollIndex = rs.getInt(&quot;currentScrollIndex&quot;);&#xa;                }&#xa;            } catch (Exception ex) {&#xa;                ex.printStackTrace();&#xa;            }&#xa;&#xa;            int scrollDiff = Math.abs(endScrollIndex - state.startScrollIndex);&#xa;            int pagesRead = (int) Math.ceil((double) scrollDiff / PAGE_HEIGHT); // round up partial pages&#xa;&#xa;            // Only log to DB if conditions met&#xa;            if (duration &gt;= TIME_THRESHOLD_MS &amp;&amp; scrollDiff &gt; SCROLL_THRESHOLD) {&#xa;                try (Connection conn = DriverManager.getConnection(&quot;jdbc:sqlite:&quot; + dbPath)) {&#xa;&#xa;                    // Add pagesRead column if missing (ignore error)&#xa;                    try (Statement stmt = conn.createStatement()) {&#xa;                        stmt.execute(&quot;ALTER TABLE session ADD COLUMN pagesRead INTEGER&quot;);&#xa;                    } catch (SQLException ignored) {}&#xa;&#xa;                    try (PreparedStatement pstmt = conn.prepareStatement(&#xa;                        &quot;INSERT INTO session (bookIndex, readFor, continueReading, scrollDiff, pagesRead) &quot; +&#xa;                        &quot;VALUES (?, ?, datetime(&apos;now&apos;), ?, ?)&quot;&#xa;                    )) {&#xa;                        pstmt.setInt(1, loadedBook);                             // book index&#xa;                        pstmt.setInt(2, (int) (duration / 1000 / 60));           // minutes&#xa;                        pstmt.setInt(3, scrollDiff);                              // scroll diff&#xa;                        pstmt.setInt(4, pagesRead);                               // pages read&#xa;                        pstmt.executeUpdate();&#xa;                    }&#xa;&#xa;                } catch (Exception ex) {&#xa;                    ex.printStackTrace();&#xa;                }&#xa;            }&#xa;&#xa;            // Reset session state&#xa;            state.readingTimer = null;&#xa;            state.startTime = 0;&#xa;            state.startScrollIndex = 0;&#xa;        }&#xa;    }&#xa;&#xa;    // EXISTING LOGIC: Themer + Audio Control&#xa;    if (selectedIndex &gt;= 0 &amp;&amp; selectedIndex &lt;= 10) {&#xa;        themer.setIcon(null);&#xa;&#xa;        if (cafeClip != null &amp;&amp; cafeClip.isRunning()) cafeClip.stop();&#xa;        if (treeClip != null &amp;&amp; treeClip.isRunning()) treeClip.stop();&#xa;        if (rainClip != null &amp;&amp; rainClip.isRunning()) rainClip.stop();&#xa;    }&#xa;});&#xa;&#xa;&#xa;tabs.addChangeListener(e -&gt; {&#xa;    if (tabs.getSelectedIndex() == 1) { &#xa;        loadLastReadDirectly();&#xa;updateStatusLabels();&#xa;    }&#xa;});&#xa;tabs.addChangeListener(e -&gt; {&#xa;        if (!nlsOn) { &#xa;            return;&#xa;        }&#xa;    int selectedIndex = tabs.getSelectedIndex();&#xa;&#xa;    // Run your search mode logic when tab 5 is selected&#xa;    if (selectedIndex == 5) {&#xa;        if(nlsOn){&#xa;            nlsRadio.setSelected(true);&#xa;            normalSearch.setSelected(false);&#xa;        }&#xa;        if(normalSearchOn){&#xa;            nlsRadio.setSelected(false);&#xa;            normalSearch.setSelected(true);&#xa;        }&#xa;        searchBar.setText(searchQuery);&#xa;    }&#xa;});&#xa;&#xa;tabs.addChangeListener(e -&gt; {&#xa;    if (tabs.getSelectedIndex() == 4 &amp;&amp; searched) { &#xa;        toSearch = false;&#xa;    }&#xa;});&#xa;&#xa;tabs.addChangeListener(e -&gt; {&#xa;    if (searched &amp;&amp; tabs.getSelectedIndex() == 4 &amp;&amp; !toSearch) {&#xa;        tabs.setSelectedIndex(5);&#xa;    }&#xa;});"/>
+            <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="tabs.addChangeListener(e -&gt; {&#xa;    int selectedIndex = tabs.getSelectedIndex();&#xa;    if (selectedIndex &gt;= 0 &amp;&amp; selectedIndex &lt;= 10) {&#xa;        // Clear the background image&#xa;        themer.setIcon(null);&#xa;&#xa;        // Pause all clips&#xa;        if (cafeClip != null &amp;&amp; cafeClip.isRunning()) {&#xa;            cafeClip.stop();&#xa;        }&#xa;        if (treeClip != null &amp;&amp; treeClip.isRunning()) {&#xa;            treeClip.stop();&#xa;        }&#xa;        if (rainClip != null &amp;&amp; rainClip.isRunning()) {&#xa;            rainClip.stop();&#xa;        }&#xa;&#xa;        System.out.println(&quot;Tabs 0&#x2013;10 selected: Themer cleared, all music paused&quot;);&#xa;    }&#xa;});tabs.addChangeListener(e -&gt; {&#xa;    int selectedIndex = tabs.getSelectedIndex();&#xa;&#xa;    final String dbPath = &quot;bookStack.db&quot;;&#xa;    final int PAGE_HEIGHT = 1365;       // ~height of one page&#xa;    final int SCROLL_THRESHOLD = 5460;  // minimum scroll difference to count&#xa;    final int TIME_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes&#xa;&#xa;    // Holder class for session data&#xa;    class SessionState {&#xa;        long startTime = 0;&#xa;        int startScrollIndex = 0;&#xa;        javax.swing.Timer readingTimer = null;&#xa;    }&#xa;&#xa;    // Store one SessionState in the tabs property for persistence&#xa;    if (tabs.getClientProperty(&quot;sessionState&quot;) == null) {&#xa;        tabs.putClientProperty(&quot;sessionState&quot;, new SessionState());&#xa;    }&#xa;    SessionState state = (SessionState) tabs.getClientProperty(&quot;sessionState&quot;);&#xa;&#xa;    // TAB 3 SELECTED &#x2192; START TRACKING&#xa;    if (selectedIndex == 3) {&#xa;        try (Connection conn = DriverManager.getConnection(&quot;jdbc:sqlite:&quot; + dbPath);&#xa;             Statement stmt = conn.createStatement()) {&#xa;&#xa;            ResultSet rs = stmt.executeQuery(&#xa;                &quot;SELECT currentScrollIndex FROM scrollStatus WHERE bookIndex = &quot; + loadedBook + &quot; LIMIT 1&quot;&#xa;            );&#xa;            if (rs.next()) {&#xa;                state.startScrollIndex = rs.getInt(&quot;currentScrollIndex&quot;);&#xa;            }&#xa;        } catch (Exception ex) {&#xa;            ex.printStackTrace();&#xa;        }&#xa;&#xa;        state.startTime = System.currentTimeMillis();&#xa;        state.readingTimer = new javax.swing.Timer(1000, evt2 -&gt; {}); // ticks every sec, not doing anything&#xa;        state.readingTimer.start();&#xa;    }&#xa;&#xa;    // ANY OTHER TAB SELECTED &#x2192; STOP TRACKING&#xa;    else {&#xa;        if (state.readingTimer != null &amp;&amp; state.readingTimer.isRunning()) {&#xa;        if (closeClicked) {&#xa;            state.readingTimer.stop();&#xa;            state.startTime = 0;&#xa;            state.startScrollIndex = 0;&#xa;            state.readingTimer = null;&#xa;            return; // exit early, don&#x2019;t log session&#xa;        }            &#xa;            state.readingTimer.stop();&#xa;            long endTime = System.currentTimeMillis();&#xa;            long duration = endTime - state.startTime; // in ms&#xa;            int endScrollIndex = 0;&#xa;&#xa;            // Get ending scroll index&#xa;            try (Connection conn = DriverManager.getConnection(&quot;jdbc:sqlite:&quot; + dbPath);&#xa;                 Statement stmt = conn.createStatement()) {&#xa;&#xa;                ResultSet rs = stmt.executeQuery(&#xa;                    &quot;SELECT currentScrollIndex FROM scrollStatus WHERE bookIndex = &quot; + loadedBook + &quot; LIMIT 1&quot;&#xa;                );&#xa;                if (rs.next()) {&#xa;                    endScrollIndex = rs.getInt(&quot;currentScrollIndex&quot;);&#xa;                }&#xa;            } catch (Exception ex) {&#xa;                ex.printStackTrace();&#xa;            }&#xa;&#xa;            int scrollDiff = Math.abs(endScrollIndex - state.startScrollIndex);&#xa;            int pagesRead = (int) Math.ceil((double) scrollDiff / PAGE_HEIGHT); // round up partial pages&#xa;&#xa;            // Only log to DB if conditions met&#xa;            if (duration &gt;= TIME_THRESHOLD_MS &amp;&amp; scrollDiff &gt; SCROLL_THRESHOLD) {&#xa;                try (Connection conn = DriverManager.getConnection(&quot;jdbc:sqlite:&quot; + dbPath)) {&#xa;&#xa;                    // Add pagesRead column if missing (ignore error)&#xa;                    try (Statement stmt = conn.createStatement()) {&#xa;                        stmt.execute(&quot;ALTER TABLE session ADD COLUMN pagesRead INTEGER&quot;);&#xa;                    } catch (SQLException ignored) {}&#xa;&#xa;                    try (PreparedStatement pstmt = conn.prepareStatement(&#xa;                        &quot;INSERT INTO session (bookIndex, readFor, continueReading, scrollDiff, pagesRead) &quot; +&#xa;                        &quot;VALUES (?, ?, datetime(&apos;now&apos;), ?, ?)&quot;&#xa;                    )) {&#xa;                        pstmt.setInt(1, loadedBook);                             // book index&#xa;                        pstmt.setInt(2, (int) (duration / 1000 / 60));           // minutes&#xa;                        pstmt.setInt(3, scrollDiff);                              // scroll diff&#xa;                        pstmt.setInt(4, pagesRead);                               // pages read&#xa;                        pstmt.executeUpdate();&#xa;                    }&#xa;&#xa;                } catch (Exception ex) {&#xa;                    ex.printStackTrace();&#xa;                }&#xa;            }&#xa;&#xa;            // Reset session state&#xa;            state.readingTimer = null;&#xa;            state.startTime = 0;&#xa;            state.startScrollIndex = 0;&#xa;        }&#xa;    }&#xa;&#xa;    // EXISTING LOGIC: Themer + Audio Control&#xa;    if (selectedIndex &gt;= 0 &amp;&amp; selectedIndex &lt;= 10) {&#xa;        themer.setIcon(null);&#xa;&#xa;        if (cafeClip != null &amp;&amp; cafeClip.isRunning()) cafeClip.stop();&#xa;        if (treeClip != null &amp;&amp; treeClip.isRunning()) treeClip.stop();&#xa;        if (rainClip != null &amp;&amp; rainClip.isRunning()) rainClip.stop();&#xa;    }&#xa;});&#xa;&#xa;&#xa;tabs.addChangeListener(e -&gt; {&#xa;    if (tabs.getSelectedIndex() == 1) { &#xa;        loadLastReadDirectly();&#xa;updateStatusLabels();&#xa;    }&#xa;});&#xa;tabs.addChangeListener(e -&gt; {&#xa;        if (!nlsOn) { &#xa;            return;&#xa;        }&#xa;    int selectedIndex = tabs.getSelectedIndex();&#xa;&#xa;    // Run your search mode logic when tab 5 is selected&#xa;    if (selectedIndex == 5) {&#xa;        if(nlsOn){&#xa;            nlsRadio.setSelected(true);&#xa;            normalSearch.setSelected(false);&#xa;        }&#xa;        if(normalSearchOn){&#xa;            nlsRadio.setSelected(false);&#xa;            normalSearch.setSelected(true);&#xa;        }&#xa;        searchBar.setText(searchQuery);&#xa;    }&#xa;});&#xa;&#xa;tabs.addChangeListener(e -&gt; {&#xa;    if (tabs.getSelectedIndex() == 4 &amp;&amp; searched) { &#xa;        toSearch = false;&#xa;    }&#xa;});&#xa;&#xa;tabs.addChangeListener(e -&gt; {&#xa;    if (searched &amp;&amp; tabs.getSelectedIndex() == 4 &amp;&amp; !toSearch) {&#xa;        tabs.setSelectedIndex(5);&#xa;    }&#xa;});&#xa;&#xa;tabs.addChangeListener(e -&gt; {&#xa;int maxIDD = getMaxId();&#xa;System.out.println(&quot;mac id&quot; + maxIDD);&#xa;    if (getMaxId() == 0) {&#xa;        noSearchHistory.setVisible(true);&#xa;        lastSearches.setVisible(false);&#xa;        searchHistoryTitle.setVisible(false);&#xa;    }else{&#xa;        noSearchHistory.setVisible(false);&#xa;        lastSearches.setVisible(true);&#xa;        searchHistoryTitle.setVisible(true);        &#xa;    }&#xa;});"/>
           </AuxValues>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
@@ -8968,42 +8968,39 @@
               <Layout>
                 <DimensionLayout dim="0">
                   <Group type="103" groupAlignment="0" attributes="0">
+                      <Group type="102" alignment="1" attributes="0">
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Group type="102" alignment="0" attributes="0">
+                                  <EmptySpace min="-2" pref="261" max="-2" attributes="0"/>
+                                  <Component id="verseSearchMainTitle" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <Component id="searchNoHistoryPanel" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Group type="102" alignment="0" attributes="0">
+                                  <EmptySpace min="-2" pref="323" max="-2" attributes="0"/>
+                                  <Component id="normalSearchNoHistory" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+                                  <Component id="nlsRadioNoHistory" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                          </Group>
+                          <EmptySpace min="-2" pref="366" max="-2" attributes="0"/>
+                      </Group>
                       <Group type="102" attributes="0">
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Group type="102" attributes="0">
                                   <EmptySpace min="1548" pref="1548" max="-2" attributes="0"/>
-                                  <Component id="jButton1" min="-2" max="-2" attributes="0"/>
+                                  <Component id="helpBtn" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <Group type="102" attributes="0">
-                                  <EmptySpace min="130" pref="130" max="-2" attributes="0"/>
-                                  <Group type="103" groupAlignment="0" attributes="0">
-                                      <Group type="102" attributes="0">
-                                          <EmptySpace min="577" pref="577" max="-2" attributes="0"/>
-                                          <Component id="noSearchHistory" min="-2" max="-2" attributes="0"/>
-                                      </Group>
-                                      <Component id="lastSearches" min="-2" max="-2" attributes="0"/>
-                                  </Group>
+                                  <EmptySpace min="-2" pref="707" max="-2" attributes="0"/>
+                                  <Component id="noSearchHistory" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <Group type="102" alignment="0" attributes="0">
-                                  <EmptySpace min="-2" pref="343" max="-2" attributes="0"/>
-                                  <Group type="103" groupAlignment="0" attributes="0">
-                                      <Group type="102" alignment="0" attributes="0">
-                                          <EmptySpace min="-2" pref="261" max="-2" attributes="0"/>
-                                          <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
-                                      </Group>
-                                      <Component id="searchNoHistoryPanel" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Group type="102" alignment="0" attributes="0">
-                                          <EmptySpace min="-2" pref="323" max="-2" attributes="0"/>
-                                          <Group type="103" groupAlignment="1" attributes="0">
-                                              <Component id="jLabel2" min="-2" pref="166" max="-2" attributes="0"/>
-                                              <Group type="102" attributes="0">
-                                                  <Component id="normalSearchNoHistory" min="-2" max="-2" attributes="0"/>
-                                                  <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
-                                                  <Component id="nlsRadioNoHistory" min="-2" max="-2" attributes="0"/>
-                                              </Group>
-                                          </Group>
-                                      </Group>
-                                  </Group>
+                                  <EmptySpace min="-2" pref="717" max="-2" attributes="0"/>
+                                  <Component id="searchHistoryTitle" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <Group type="102" alignment="0" attributes="0">
+                                  <EmptySpace min="-2" pref="145" max="-2" attributes="0"/>
+                                  <Component id="lastSearches" min="-2" max="-2" attributes="0"/>
                               </Group>
                           </Group>
                           <EmptySpace min="-2" pref="6" max="-2" attributes="0"/>
@@ -9014,9 +9011,9 @@
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" attributes="0">
                           <EmptySpace min="53" pref="53" max="-2" attributes="0"/>
-                          <Component id="jButton1" min="-2" max="-2" attributes="0"/>
+                          <Component id="helpBtn" min="-2" max="-2" attributes="0"/>
                           <EmptySpace min="-2" pref="207" max="-2" attributes="0"/>
-                          <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+                          <Component id="verseSearchMainTitle" min="-2" max="-2" attributes="0"/>
                           <EmptySpace min="12" pref="12" max="-2" attributes="0"/>
                           <Component id="searchNoHistoryPanel" min="-2" max="-2" attributes="0"/>
                           <EmptySpace min="35" pref="35" max="-2" attributes="0"/>
@@ -9025,7 +9022,7 @@
                               <Component id="nlsRadioNoHistory" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace min="-2" pref="49" max="-2" attributes="0"/>
-                          <Component id="jLabel2" min="-2" pref="44" max="-2" attributes="0"/>
+                          <Component id="searchHistoryTitle" min="-2" pref="44" max="-2" attributes="0"/>
                           <EmptySpace type="separate" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Group type="102" attributes="0">
@@ -9075,7 +9072,7 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="normalSearchNoHistoryActionPerformed"/>
                   </Events>
                 </Component>
-                <Component class="javax.swing.JButton" name="jButton1">
+                <Component class="javax.swing.JButton" name="helpBtn">
                   <Properties>
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/icons/help20.png"/>
@@ -9148,7 +9145,7 @@
                     </Component>
                   </SubComponents>
                 </Container>
-                <Component class="javax.swing.JLabel" name="jLabel1">
+                <Component class="javax.swing.JLabel" name="verseSearchMainTitle">
                   <Properties>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Helvetica" size="48" style="0"/>
@@ -9177,25 +9174,25 @@
                                       </Group>
                                   </Group>
                               </Group>
-                              <EmptySpace pref="348" max="32767" attributes="0"/>
+                              <EmptySpace pref="333" max="32767" attributes="0"/>
                           </Group>
                           <Group type="103" rootIndex="1" groupAlignment="0" attributes="0">
                               <Group type="102" alignment="0" attributes="0">
                                   <EmptySpace min="-2" pref="386" max="-2" attributes="0"/>
                                   <Component id="separator2" min="-2" pref="528" max="-2" attributes="0"/>
-                                  <EmptySpace pref="436" max="32767" attributes="0"/>
+                                  <EmptySpace pref="421" max="32767" attributes="0"/>
                               </Group>
                           </Group>
                           <Group type="103" rootIndex="2" groupAlignment="0" attributes="0">
                               <Group type="102" alignment="0" attributes="0">
                                   <EmptySpace min="-2" pref="385" max="-2" attributes="0"/>
                                   <Component id="separator3" min="-2" pref="527" max="-2" attributes="0"/>
-                                  <EmptySpace pref="438" max="32767" attributes="0"/>
+                                  <EmptySpace pref="423" max="32767" attributes="0"/>
                               </Group>
                           </Group>
                           <Group type="103" rootIndex="3" groupAlignment="0" attributes="0">
                               <Group type="102" alignment="1" attributes="0">
-                                  <EmptySpace pref="384" max="32767" attributes="0"/>
+                                  <EmptySpace pref="369" max="32767" attributes="0"/>
                                   <Component id="separator4" min="-2" pref="527" max="-2" attributes="0"/>
                                   <EmptySpace min="-2" pref="439" max="-2" attributes="0"/>
                               </Group>
@@ -9672,7 +9669,7 @@
                     </Component>
                   </SubComponents>
                 </Container>
-                <Component class="javax.swing.JLabel" name="jLabel2">
+                <Component class="javax.swing.JLabel" name="searchHistoryTitle">
                   <Properties>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Helvetica" size="24" style="0"/>
