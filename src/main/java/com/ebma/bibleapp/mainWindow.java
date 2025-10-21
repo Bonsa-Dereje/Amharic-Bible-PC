@@ -347,6 +347,8 @@ public class mainWindow extends javax.swing.JFrame {
 
     public int currentSearchResultIndex;
 
+    public boolean homed = false;
+
     public mainWindow() {
         setUndecorated(true);
         initComponents();
@@ -2145,6 +2147,10 @@ public class mainWindow extends javax.swing.JFrame {
                 searchResultDisp[index].setText(result);
                 searchTimeDisp[index].setText(formatRelativeTime(createdAt));
 
+                searchTimeDisp[index].setHorizontalAlignment(
+                    SwingConstants.LEFT
+                );
+
                 index++;
             }
 
@@ -2153,6 +2159,7 @@ public class mainWindow extends javax.swing.JFrame {
                 searchQueryDisp[i].setText("");
                 searchResultDisp[i].setText("");
                 searchTimeDisp[i].setText("");
+                searchTimeDisp[i].setHorizontalAlignment(SwingConstants.LEFT);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -8179,7 +8186,7 @@ public class mainWindow extends javax.swing.JFrame {
         });
 
         tabs.addChangeListener(e -> {
-            if (searched && tabs.getSelectedIndex() == 4 && !toSearch) {
+            if (searched && tabs.getSelectedIndex() == 4 && !toSearch && !homed) {
                 tabs.setSelectedIndex(5);
             }
         });
@@ -9352,6 +9359,7 @@ public class mainWindow extends javax.swing.JFrame {
         java.awt.event.ActionEvent evt
     ) {
 //GEN-FIRST:event_searchNoHistoryActionPerformed
+        homed = false;
         if (!nlsOn) {
             // Optional: you can show a message or just return silently
 
@@ -9696,6 +9704,9 @@ public class mainWindow extends javax.swing.JFrame {
 //GEN-FIRST:event_backToSearchActionPerformed
         toSearch = true;
         tabs.setSelectedIndex(4);
+        searchNoHistory.setBackground(new java.awt.Color(40, 43, 45));
+        loading30BW.setVisible(false);
+        homed = true;
     }//GEN-LAST:event_backToSearchActionPerformed
 
     private void lastSearchActionPerformed(java.awt.event.ActionEvent evt) {
@@ -9714,22 +9725,30 @@ public class mainWindow extends javax.swing.JFrame {
 
     private void goToRecent1ActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_goToRecent1ActionPerformed
-        // TODO add your handling code here:
+        int maxId = getMaxId();
+        tabs.setSelectedIndex(5);
+        searchHistoryNav(maxId);
     }//GEN-LAST:event_goToRecent1ActionPerformed
 
     private void goToRecent2ActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_goToRecent2ActionPerformed
-        // TODO add your handling code here:
+        int maxId = getMaxId();
+        tabs.setSelectedIndex(5);
+        searchHistoryNav(maxId - 1);
     }//GEN-LAST:event_goToRecent2ActionPerformed
 
     private void goToRecent4ActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_goToRecent4ActionPerformed
-        // TODO add your handling code here:
+        int maxId = getMaxId();
+        tabs.setSelectedIndex(5);
+        searchHistoryNav(maxId - 2);
     }//GEN-LAST:event_goToRecent4ActionPerformed
 
     private void goToRecent6ActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_goToRecent6ActionPerformed
-        // TODO add your handling code here:
+        int maxId = getMaxId();
+        tabs.setSelectedIndex(5);
+        searchHistoryNav(maxId - 3);
     }//GEN-LAST:event_goToRecent6ActionPerformed
 
     /**
