@@ -1625,12 +1625,6 @@ public class mainWindow extends javax.swing.JFrame {
         SwingWorker<Void, Void> dbWorker = new SwingWorker<>() {
             @Override
             protected Void doInBackground() throws Exception {
-                System.out.println("\n=== saveSearchResults() START ===");
-                System.out.println(
-                    "Incoming searchTerm = \"" + searchTerm + "\""
-                );
-                System.out.println("Raw results size = " + rawResults.size());
-
                 // Skip saving if no results
                 boolean noResults = rawResults
                     .stream()
@@ -1682,9 +1676,7 @@ public class mainWindow extends javax.swing.JFrame {
 
                     if (existingResult != null) {
                         // --- Delete old record
-                        System.out.println(
-                            "Deleting old record (ID " + existingId + ")..."
-                        );
+
                         String deleteSql =
                             "DELETE FROM searchResults WHERE id = ?";
                         try (
@@ -1696,12 +1688,6 @@ public class mainWindow extends javax.swing.JFrame {
                             System.out.println("Rows deleted: " + deleted);
                         }
 
-                        // --- Reinsert with same term/result
-                        System.out.println(
-                            "Reinserting \"" +
-                                searchTerm +
-                                "\" with refreshed timestamp..."
-                        );
                         String insertSql =
                             "INSERT INTO searchResults(searchTerm, searchResult) VALUES (?, ?)";
                         try (
@@ -1727,24 +1713,18 @@ public class mainWindow extends javax.swing.JFrame {
                                     );
                                 } else {
                                     System.out.println(
-                                        "⚠️  No generated key returned!"
+                                        "  No generated key returned!"
                                     );
                                 }
                             }
                         }
 
                         conn.commit();
-                        System.out.println(
-                            "Transaction committed. (Existing entry bumped to top)"
-                        );
+
                         System.out.println("=== saveSearchResults() END ===\n");
                         return null;
                     }
 
-                    // --- Otherwise, brand new entry
-                    System.out.println(
-                        "Inserting NEW searchTerm \"" + searchTerm + "\"..."
-                    );
                     String allResults = String.join("\n", rawResults);
                     String insertSql =
                         "INSERT INTO searchResults(searchTerm, searchResult) VALUES (?, ?)";
@@ -1762,13 +1742,9 @@ public class mainWindow extends javax.swing.JFrame {
                         try (ResultSet keys = pstmt.getGeneratedKeys()) {
                             if (keys.next()) {
                                 currentSearchResultIndex = keys.getInt(1);
-                                System.out.println(
-                                    "Inserted with new ID → " +
-                                        currentSearchResultIndex
-                                );
                             } else {
                                 System.out.println(
-                                    "⚠️  No generated key returned!"
+                                    "  No generated key returned!"
                                 );
                             }
                         }
@@ -19374,174 +19350,242 @@ public class mainWindow extends javax.swing.JFrame {
 //GEN-FIRST:event_searchNoHistoryActionPerformed
         //markAsAlreadySearched(true);
         //System.out.println("is it matched? " + matched);
-        
-    homed = false;
-    if (!nlsOn) {
-        return;
-    }
 
-    searched = true;
-    loading30BW.setVisible(true);
-    searchNoHistory.setBackground(new Color(150, 150, 150));
-    searchNoHistory.setForeground(new Color(200, 200, 200));
-    searchQuery = searchBarNoHistory.getText();
-
-    String query = searchBarNoHistory.getText().trim();
-    if (query.isEmpty() || query.equals("Search for verses")) {
-        loading30BW.setVisible(false);
-        return;
-    }
-
-    String dbPath = "searchResults.db";
-    String url = "jdbc:sqlite:" + dbPath;
-
-    try (Connection conn = DriverManager.getConnection(url)) {
-        // Case-insensitive match
-        String checkSql = "SELECT id FROM searchResults WHERE LOWER(searchTerm) = LOWER(?)";
-        try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-            checkStmt.setString(1, query);
-            try (ResultSet rs = checkStmt.executeQuery()) {
-                if (rs.next()) {
-                    int existingId = rs.getInt("id");
-
-                    // Get current MAX id
-                    String maxSql = "SELECT MAX(id) AS maxId FROM searchResults";
-                    int maxId = 0;
-                    try (Statement stmt = conn.createStatement();
-                         ResultSet maxRs = stmt.executeQuery(maxSql)) {
-                        if (maxRs.next()) {
-                            maxId = maxRs.getInt("maxId");
-                        }
-                    }
-
-                    // Bump the existing record to new ID = maxId + 1
-                    String bumpSql = """
-                        UPDATE searchResults
-                        SET id = ?, createdAt = CURRENT_TIMESTAMP
-                        WHERE id = ?
-                        """;
-                    try (PreparedStatement bumpStmt = conn.prepareStatement(bumpSql)) {
-                        bumpStmt.setInt(1, maxId + 1);
-                        bumpStmt.setInt(2, existingId);
-                        bumpStmt.executeUpdate();
-                    }
-
-                    // Now load it
-                    loading30BW.setVisible(true);
-                    searchHistoryNav(maxId + 1);
-                    tabs.setSelectedIndex(5);
-                    matched = true;
-                    return;
-                }
-            }
-        }
-    } catch (SQLException e) {
-        e.printStackTrace();
-    }
-
-    // If not found → run FAISS
-    SwingWorker<Void, Void> worker = new SwingWorker<>() {
-        @Override
-        protected Void doInBackground() throws Exception {
-            ProcessBuilder pb = new ProcessBuilder("nlsEngine/nlSearch.exe", query, "14");
-            pb.redirectErrorStream(true);
-            Process process = pb.start();
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            rawResults.clear();
-            List<String> results = new ArrayList<>();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.trim().isEmpty()) continue;
-                if (line.startsWith("Top ") || line.startsWith("❌")) continue;
-                results.add(line.trim());
-                rawResults.add(line.trim());
-            }
-            process.waitFor();
-
-            JEditorPane[] resultPanes = {
-                searchResult1, searchResult2, searchResult3, searchResult4, searchResult5,
-                searchResult6, searchResult7, searchResult8, searchResult9, searchResult10,
-                searchResult11, searchResult12, searchResult13, searchResult14
-            };
-
-            JLabel[] matchLabels = {
-                matchRate1, matchRate2, matchRate3, matchRate4, matchRate5,
-                matchRate6, matchRate7, matchRate8, matchRate9, matchRate10,
-                matchRate11, matchRate12, matchRate13, matchRate14
-            };
-
-            for (int i = 0; i < 14; i++) {
-                resultPanes[i].setText("");
-                matchLabels[i].setText("");
-            }
-
-            for (String raw : results) {
-                int dotIndex = raw.indexOf('.');
-                if (dotIndex == -1) continue;
-
-                int resultIndex;
-                try {
-                    resultIndex = Integer.parseInt(raw.substring(0, dotIndex).trim()) - 1;
-                } catch (NumberFormatException e) {
-                    continue;
-                }
-                if (resultIndex < 0 || resultIndex >= 14) continue;
-
-                double score = 0.0;
-                int scoreIndex = raw.lastIndexOf("(score:");
-                if (scoreIndex != -1) {
-                    String scoreStr = raw.substring(scoreIndex + 7).replace(")", "").trim();
-                    try { score = Double.parseDouble(scoreStr); } catch (NumberFormatException ignored) {}
-                    raw = raw.substring(dotIndex + 1, scoreIndex).trim();
-                } else {
-                    raw = raw.substring(dotIndex + 1).trim();
-                }
-
-                int dashIndex = raw.indexOf("—");
-                if (dashIndex == -1) dashIndex = raw.indexOf("-");
-                String reference = (dashIndex != -1)
-                    ? raw.substring(0, dashIndex).trim()
-                    : "";
-                String verseText = (dashIndex != -1)
-                    ? raw.substring(dashIndex + 1).trim()
-                    : raw;
-
-                String highlighted = verseText.replaceAll(
-                    "(?i)" + Pattern.quote(query),
-                    "<span style='color:#2b7b2b;'>" + query + "</span>"
-                );
-
-                String textHtml = "<html><body style='font-family:\"Nokia Pure Headline Ultra Light\", sans-serif;"
-                    + "font-size:14px; font-weight:100; line-height:1.4; color:#222;'>"
-                    + reference + " — " + highlighted + "</body></html>";
-
-                resultPanes[resultIndex].setContentType("text/html");
-                resultPanes[resultIndex].setText(textHtml);
-                resultPanes[resultIndex].setCaretPosition(0);
-
-                matchLabels[resultIndex].setText(String.format("%.0f%%", score * 100));
-                matchLabels[resultIndex].setOpaque(true);
-                matchLabels[resultIndex].setBackground(getScoreColor(score));
-                matchLabels[resultIndex].setHorizontalAlignment(SwingConstants.CENTER);
-                matchLabels[resultIndex].setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 12));
-            }
-
-            return null;
+        homed = false;
+        if (!nlsOn) {
+            return;
         }
 
-        @Override
-        protected void done() {
-            tabs.setSelectedIndex(5);
+        searched = true;
+        loading30BW.setVisible(true);
+        searchNoHistory.setBackground(new Color(150, 150, 150));
+        searchNoHistory.setForeground(new Color(200, 200, 200));
+        searchQuery = searchBarNoHistory.getText();
+
+        String query = searchBarNoHistory.getText().trim();
+        if (query.isEmpty() || query.equals("Search for verses")) {
             loading30BW.setVisible(false);
-
-            if (!rawResults.isEmpty() && !rawResults.get(0).contains("Could not find any verse"))
-                saveSearchResults(query, rawResults);
+            return;
         }
-    };
 
-    worker.execute();
-}
+        String dbPath = "searchResults.db";
+        String url = "jdbc:sqlite:" + dbPath;
+
+        try (Connection conn = DriverManager.getConnection(url)) {
+            // Case-insensitive match
+            String checkSql =
+                "SELECT id FROM searchResults WHERE LOWER(searchTerm) = LOWER(?)";
+            try (
+                PreparedStatement checkStmt = conn.prepareStatement(checkSql)
+            ) {
+                checkStmt.setString(1, query);
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next()) {
+                        int existingId = rs.getInt("id");
+
+                        // Get current MAX id
+                        String maxSql =
+                            "SELECT MAX(id) AS maxId FROM searchResults";
+                        int maxId = 0;
+                        try (
+                            Statement stmt = conn.createStatement();
+                            ResultSet maxRs = stmt.executeQuery(maxSql)
+                        ) {
+                            if (maxRs.next()) {
+                                maxId = maxRs.getInt("maxId");
+                            }
+                        }
+
+                        // Bump the existing record to new ID = maxId + 1
+                        String bumpSql = """
+                            UPDATE searchResults
+                            SET id = ?, createdAt = CURRENT_TIMESTAMP
+                            WHERE id = ?
+                            """;
+                        try (
+                            PreparedStatement bumpStmt = conn.prepareStatement(
+                                bumpSql
+                            )
+                        ) {
+                            bumpStmt.setInt(1, maxId + 1);
+                            currentSearchResultIndex = maxId;
+                            bumpStmt.setInt(2, existingId);
+                            bumpStmt.executeUpdate();
+                        }
+
+                        // Now load it
+                        loading30BW.setVisible(true);
+                        searchHistoryNav(maxId + 1);
+                        tabs.setSelectedIndex(5);
+                        matched = true;
+                        return;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // If not found → run FAISS
+        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                ProcessBuilder pb = new ProcessBuilder(
+                    "nlsEngine/nlSearch.exe",
+                    query,
+                    "14"
+                );
+                pb.redirectErrorStream(true);
+                Process process = pb.start();
+                currentSearchResultIndex = getMaxId() + 1;
+                BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream())
+                );
+                rawResults.clear();
+                List<String> results = new ArrayList<>();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.trim().isEmpty()) continue;
+                    if (
+                        line.startsWith("Top ") || line.startsWith("❌")
+                    ) continue;
+                    results.add(line.trim());
+                    rawResults.add(line.trim());
+                }
+                process.waitFor();
+
+                JEditorPane[] resultPanes = {
+                    searchResult1,
+                    searchResult2,
+                    searchResult3,
+                    searchResult4,
+                    searchResult5,
+                    searchResult6,
+                    searchResult7,
+                    searchResult8,
+                    searchResult9,
+                    searchResult10,
+                    searchResult11,
+                    searchResult12,
+                    searchResult13,
+                    searchResult14,
+                };
+
+                JLabel[] matchLabels = {
+                    matchRate1,
+                    matchRate2,
+                    matchRate3,
+                    matchRate4,
+                    matchRate5,
+                    matchRate6,
+                    matchRate7,
+                    matchRate8,
+                    matchRate9,
+                    matchRate10,
+                    matchRate11,
+                    matchRate12,
+                    matchRate13,
+                    matchRate14,
+                };
+
+                for (int i = 0; i < 14; i++) {
+                    resultPanes[i].setText("");
+                    matchLabels[i].setText("");
+                }
+
+                for (String raw : results) {
+                    int dotIndex = raw.indexOf('.');
+                    if (dotIndex == -1) continue;
+
+                    int resultIndex;
+                    try {
+                        resultIndex =
+                            Integer.parseInt(
+                                raw.substring(0, dotIndex).trim()
+                            ) -
+                            1;
+                    } catch (NumberFormatException e) {
+                        continue;
+                    }
+                    if (resultIndex < 0 || resultIndex >= 14) continue;
+
+                    double score = 0.0;
+                    int scoreIndex = raw.lastIndexOf("(score:");
+                    if (scoreIndex != -1) {
+                        String scoreStr = raw
+                            .substring(scoreIndex + 7)
+                            .replace(")", "")
+                            .trim();
+                        try {
+                            score = Double.parseDouble(scoreStr);
+                        } catch (NumberFormatException ignored) {}
+                        raw = raw.substring(dotIndex + 1, scoreIndex).trim();
+                    } else {
+                        raw = raw.substring(dotIndex + 1).trim();
+                    }
+
+                    int dashIndex = raw.indexOf("—");
+                    if (dashIndex == -1) dashIndex = raw.indexOf("-");
+                    String reference = (dashIndex != -1)
+                        ? raw.substring(0, dashIndex).trim()
+                        : "";
+                    String verseText = (dashIndex != -1)
+                        ? raw.substring(dashIndex + 1).trim()
+                        : raw;
+
+                    String highlighted = verseText.replaceAll(
+                        "(?i)" + Pattern.quote(query),
+                        "<span style='color:#2b7b2b;'>" + query + "</span>"
+                    );
+
+                    String textHtml =
+                        "<html><body style='font-family:\"Nokia Pure Headline Ultra Light\", sans-serif;" +
+                        "font-size:14px; font-weight:100; line-height:1.4; color:#222;'>" +
+                        reference +
+                        " — " +
+                        highlighted +
+                        "</body></html>";
+
+                    resultPanes[resultIndex].setContentType("text/html");
+                    resultPanes[resultIndex].setText(textHtml);
+                    resultPanes[resultIndex].setCaretPosition(0);
+
+                    matchLabels[resultIndex].setText(
+                        String.format("%.0f%%", score * 100)
+                    );
+                    matchLabels[resultIndex].setOpaque(true);
+                    matchLabels[resultIndex].setBackground(
+                        getScoreColor(score)
+                    );
+                    matchLabels[resultIndex].setHorizontalAlignment(
+                        SwingConstants.CENTER
+                    );
+                    matchLabels[resultIndex].setFont(
+                        new Font(
+                            "Nokia Pure Headline Ultra Light",
+                            Font.PLAIN,
+                            12
+                        )
+                    );
+                }
+
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                tabs.setSelectedIndex(5);
+                loading30BW.setVisible(false);
+
+                if (
+                    !rawResults.isEmpty() &&
+                    !rawResults.get(0).contains("Could not find any verse")
+                ) saveSearchResults(query, rawResults);
+            }
+        };
+
+        worker.execute();
+    }
 
     // Keep your color function as-is
     private Color getScoreColor(double score) {
@@ -19696,8 +19740,22 @@ public class mainWindow extends javax.swing.JFrame {
         String url = "jdbc:sqlite:" + dbPath;
 
         try (Connection conn = DriverManager.getConnection(url)) {
-            // Find the next *lower* existing ID
-            String sql = "SELECT id FROM searchResults WHERE id < ? ORDER BY id DESC LIMIT 1";
+            // If currentSearchResultIndex is 0, start from the latest
+            if (currentSearchResultIndex == 0) {
+                String maxSql = "SELECT MAX(id) AS maxId FROM searchResults";
+                try (
+                    Statement stmt = conn.createStatement();
+                    ResultSet rs = stmt.executeQuery(maxSql)
+                ) {
+                    if (rs.next()) {
+                        currentSearchResultIndex = rs.getInt("maxId");
+                    }
+                }
+            }
+
+            // Find the next lower existing ID
+            String sql =
+                "SELECT id FROM searchResults WHERE id < ? ORDER BY id DESC LIMIT 1";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, currentSearchResultIndex);
                 try (ResultSet rs = stmt.executeQuery()) {
@@ -19705,8 +19763,15 @@ public class mainWindow extends javax.swing.JFrame {
                         int prevId = rs.getInt("id");
                         currentSearchResultIndex = prevId;
                         searchHistoryNav(prevId);
+                        tabs.setSelectedIndex(5);
+     
                     } else {
-                        System.out.println("Already at the earliest search result.");
+                        System.out.println(
+                            "Already at the earliest search result (ID: " +
+                                currentSearchResultIndex +
+                                ")"
+                        );
+                        //lastSearch.setEnabled(false);
                     }
                 }
             }
@@ -19721,8 +19786,22 @@ public class mainWindow extends javax.swing.JFrame {
         String url = "jdbc:sqlite:" + dbPath;
 
         try (Connection conn = DriverManager.getConnection(url)) {
-            // Find the next *higher* existing ID
-            String sql = "SELECT id FROM searchResults WHERE id > ? ORDER BY id ASC LIMIT 1";
+            // If currentSearchResultIndex is 0, start from the latest
+            if (currentSearchResultIndex == 0) {
+                String maxSql = "SELECT MAX(id) AS maxId FROM searchResults";
+                try (
+                    Statement stmt = conn.createStatement();
+                    ResultSet rs = stmt.executeQuery(maxSql)
+                ) {
+                    if (rs.next()) {
+                        currentSearchResultIndex = rs.getInt("maxId");
+                    }
+                }
+            }
+
+            // Find the next higher existing ID
+            String sql =
+                "SELECT id FROM searchResults WHERE id > ? ORDER BY id ASC LIMIT 1";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, currentSearchResultIndex);
                 try (ResultSet rs = stmt.executeQuery()) {
@@ -19730,8 +19809,17 @@ public class mainWindow extends javax.swing.JFrame {
                         int nextId = rs.getInt("id");
                         currentSearchResultIndex = nextId;
                         searchHistoryNav(nextId);
+                        tabs.setSelectedIndex(5);
+                        
+
                     } else {
-                        System.out.println("Already at the latest search result.");
+                        System.out.println(
+                            "Already at the latest search result (ID: " +
+                                currentSearchResultIndex +
+                                ")"
+                        );
+                       
+                        //nextSearch.setEnabled(false);
                     }
                 }
             }
@@ -19745,6 +19833,7 @@ public class mainWindow extends javax.swing.JFrame {
         int maxId = getMaxId();
         tabs.setSelectedIndex(5);
         searchHistoryNav(maxId);
+        currentSearchResultIndex = maxId;
     }//GEN-LAST:event_goToRecent1ActionPerformed
 
     private void goToRecent2ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -19752,6 +19841,7 @@ public class mainWindow extends javax.swing.JFrame {
         int maxId = getMaxId();
         tabs.setSelectedIndex(5);
         searchHistoryNav(maxId - 1);
+        currentSearchResultIndex = maxId - 1;
     }//GEN-LAST:event_goToRecent2ActionPerformed
 
     private void goToRecent4ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -19759,6 +19849,7 @@ public class mainWindow extends javax.swing.JFrame {
         int maxId = getMaxId();
         tabs.setSelectedIndex(5);
         searchHistoryNav(maxId - 2);
+        currentSearchResultIndex = maxId - 2;
     }//GEN-LAST:event_goToRecent4ActionPerformed
 
     private void goToRecent6ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -19766,6 +19857,7 @@ public class mainWindow extends javax.swing.JFrame {
         int maxId = getMaxId();
         tabs.setSelectedIndex(5);
         searchHistoryNav(maxId - 3);
+        currentSearchResultIndex = maxId - 3;
     }//GEN-LAST:event_goToRecent6ActionPerformed
 
     /**
