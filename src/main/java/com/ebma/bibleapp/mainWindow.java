@@ -19764,6 +19764,10 @@ public class mainWindow extends javax.swing.JFrame {
                         currentSearchResultIndex = prevId;
                         searchHistoryNav(prevId);
                         tabs.setSelectedIndex(5);
+                        lastSearch.setEnabled(true);
+                        if(!nextSearch.isEnabled()){
+                            nextSearch.setEnabled(true);
+                        }
      
                     } else {
                         System.out.println(
@@ -19771,7 +19775,7 @@ public class mainWindow extends javax.swing.JFrame {
                                 currentSearchResultIndex +
                                 ")"
                         );
-                        //lastSearch.setEnabled(false);
+                        lastSearch.setEnabled(false);
                     }
                 }
             }
@@ -19810,6 +19814,11 @@ public class mainWindow extends javax.swing.JFrame {
                         currentSearchResultIndex = nextId;
                         searchHistoryNav(nextId);
                         tabs.setSelectedIndex(5);
+                        nextSearch.setEnabled(true);
+                        
+                        if(!lastSearch.isEnabled()){
+                            lastSearch.setEnabled(true);
+                        }                        
                         
 
                     } else {
@@ -19819,7 +19828,7 @@ public class mainWindow extends javax.swing.JFrame {
                                 ")"
                         );
                        
-                        //nextSearch.setEnabled(false);
+                        nextSearch.setEnabled(false);
                     }
                 }
             }
