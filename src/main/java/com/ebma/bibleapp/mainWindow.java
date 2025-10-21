@@ -405,6 +405,13 @@ public class mainWindow extends javax.swing.JFrame {
 
         cmtryName.setVisible(false);
         loading30BW.setVisible(false);
+
+        recentSearchQuery3.setVisible(false);
+        recentSearchQuery5.setVisible(false);
+        recentSearchResult3.setVisible(false);
+        recentSearchResult5.setVisible(false);
+        searchTime3.setVisible(false);
+        searchTime5.setVisible(false);
     }
 
     private void updateBookChooser() {
@@ -2075,10 +2082,30 @@ public class mainWindow extends javax.swing.JFrame {
         }
     }
 
+    private int getMaxId() {
+        int maxId = 0;
+        try (
+            Connection conn = DriverManager.getConnection(
+                "jdbc:sqlite:searchResults.db"
+            );
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(
+                "SELECT MAX(id) FROM searchResults"
+            )
+        ) {
+            if (rs.next()) {
+                maxId = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return maxId;
+    }
+
     private void lastSearchDisp() {
         JLabel[] searchQueryDisp = {
             recentSearchQuery1,
-            recentSearchQuery1,
+            recentSearchQuery2,
             recentSearchQuery4,
             recentSearchQuery6,
         };
@@ -2097,30 +2124,84 @@ public class mainWindow extends javax.swing.JFrame {
             searchTime6,
         };
 
-        JButton[] goToRecent = {
-            goToRecent1,
-            goToRecent2,
-            goToRecent4,
-            goToRecent6,
-        };
-    }
+        String url = "jdbc:sqlite:searchResults.db";
 
-    private int getMaxId() {
-        int maxId = 0;
-        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:searchResults.db");
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT MAX(id) FROM searchResults")) {
+        try (
+            Connection conn = DriverManager.getConnection(url);
+            PreparedStatement pstmt = conn.prepareStatement(
+                "SELECT id, searchTerm, searchResult, createdAt " +
+                    "FROM searchResults ORDER BY id DESC LIMIT 4"
+            );
+            ResultSet rs = pstmt.executeQuery()
+        ) {
+            int index = 0;
+            while (rs.next() && index < searchQueryDisp.length) {
+                String query = rs.getString("searchTerm");
+                String result = rs.getString("searchResult");
+                String createdAt = rs.getString("createdAt");
 
-            if (rs.next()) {
-                maxId = rs.getInt(1);
+                // Display text
+                searchQueryDisp[index].setText(query);
+                searchResultDisp[index].setText(result);
+                searchTimeDisp[index].setText(formatRelativeTime(createdAt));
+
+                index++;
             }
 
+            // Clear remaining slots if fewer than 4 entries
+            for (int i = index; i < searchQueryDisp.length; i++) {
+                searchQueryDisp[i].setText("");
+                searchResultDisp[i].setText("");
+                searchTimeDisp[i].setText("");
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return maxId;
     }
 
+    private String formatRelativeTime(String createdAt) {
+        try {
+            // Parse the timestamp from SQLite (format: "YYYY-MM-DD HH:MM:SS") as UTC
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern(
+                "yyyy-MM-dd HH:mm:ss"
+            );
+            java.time.LocalDateTime utcTime = java.time.LocalDateTime.parse(
+                createdAt,
+                fmt
+            );
+
+            // Convert from UTC to local system timezone (e.g., UTC+3)
+            java.time.ZonedDateTime localTime = utcTime
+                .atZone(java.time.ZoneOffset.UTC)
+                .withZoneSameInstant(java.time.ZoneId.systemDefault());
+
+            java.time.Duration diff = java.time.Duration.between(
+                localTime,
+                java.time.ZonedDateTime.now()
+            );
+
+            long seconds = diff.getSeconds();
+            long minutes = seconds / 60;
+            long hours = minutes / 60;
+            long days = hours / 24;
+            long weeks = days / 7;
+
+            if (seconds < 60) return "Just now";
+            else if (minutes < 60) return (
+                minutes + (minutes == 1 ? " min ago" : " mins ago")
+            );
+            else if (hours < 24) return (
+                hours + (hours == 1 ? " hour ago" : " hours ago")
+            );
+            else if (days < 7) return (
+                days + (days == 1 ? " day ago" : " days ago")
+            );
+            else return weeks + (weeks == 1 ? " week ago" : " weeks ago");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -2637,7 +2718,6 @@ public class mainWindow extends javax.swing.JFrame {
         lastSearch3 = new javax.swing.JPanel();
         recentSearchQuery3 = new javax.swing.JLabel();
         recentSearchResult3 = new javax.swing.JLabel();
-        goToRecent3 = new javax.swing.JButton();
         searchTime3 = new javax.swing.JLabel();
         separator2 = new javax.swing.JProgressBar();
         lastSearch4 = new javax.swing.JPanel();
@@ -2648,7 +2728,6 @@ public class mainWindow extends javax.swing.JFrame {
         lastSearch5 = new javax.swing.JPanel();
         recentSearchQuery5 = new javax.swing.JLabel();
         recentSearchResult5 = new javax.swing.JLabel();
-        goToRecent5 = new javax.swing.JButton();
         searchTime5 = new javax.swing.JLabel();
         separator3 = new javax.swing.JProgressBar();
         lastSearch6 = new javax.swing.JPanel();
@@ -2658,6 +2737,7 @@ public class mainWindow extends javax.swing.JFrame {
         searchTime6 = new javax.swing.JLabel();
         separator4 = new javax.swing.JProgressBar();
         searchHistoryTitle = new javax.swing.JLabel();
+        separator5 = new javax.swing.JProgressBar();
         searchTabResults = new javax.swing.JPanel();
         searchBar = new javax.swing.JTextField();
         search = new javax.swing.JButton();
@@ -7139,7 +7219,7 @@ public class mainWindow extends javax.swing.JFrame {
                 goToRecent1ActionPerformed(evt);
             }
         });
-        lastSearch1.add(goToRecent1, new org.netbeans.lib.awtextra.AbsoluteConstraints(680, 0, -1, 50));
+        lastSearch1.add(goToRecent1, new org.netbeans.lib.awtextra.AbsoluteConstraints(680, 0, 60, 50));
 
         searchTime1.setFont(new java.awt.Font("Helvetica", 0, 14)); // NOI18N
         searchTime1.setText("2h Ago");
@@ -7164,7 +7244,7 @@ public class mainWindow extends javax.swing.JFrame {
                 goToRecent2ActionPerformed(evt);
             }
         });
-        lastSearch2.add(goToRecent2, new org.netbeans.lib.awtextra.AbsoluteConstraints(680, 0, -1, 50));
+        lastSearch2.add(goToRecent2, new org.netbeans.lib.awtextra.AbsoluteConstraints(680, 0, 60, 50));
 
         searchTime2.setFont(new java.awt.Font("Helvetica", 0, 14)); // NOI18N
         searchTime2.setText("2h Ago");
@@ -7179,17 +7259,6 @@ public class mainWindow extends javax.swing.JFrame {
         recentSearchResult3.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         recentSearchResult3.setText("The first result shoud look something like this, willl be displayed here, it will reach to the end of the line here to the");
         lastSearch3.add(recentSearchResult3, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 31, 670, -1));
-
-        goToRecent3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/slantArrow25.png"))); // NOI18N
-        goToRecent3.setBorderPainted(false);
-        goToRecent3.setContentAreaFilled(false);
-        goToRecent3.setFocusPainted(false);
-        goToRecent3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                goToRecent3ActionPerformed(evt);
-            }
-        });
-        lastSearch3.add(goToRecent3, new org.netbeans.lib.awtextra.AbsoluteConstraints(680, 0, -1, 50));
 
         searchTime3.setFont(new java.awt.Font("Helvetica", 0, 14)); // NOI18N
         searchTime3.setText("2h Ago");
@@ -7218,7 +7287,7 @@ public class mainWindow extends javax.swing.JFrame {
                 goToRecent4ActionPerformed(evt);
             }
         });
-        lastSearch4.add(goToRecent4, new org.netbeans.lib.awtextra.AbsoluteConstraints(680, 0, -1, 50));
+        lastSearch4.add(goToRecent4, new org.netbeans.lib.awtextra.AbsoluteConstraints(680, 0, 60, 50));
 
         searchTime4.setFont(new java.awt.Font("Helvetica", 0, 14)); // NOI18N
         searchTime4.setText("2h Ago");
@@ -7233,17 +7302,6 @@ public class mainWindow extends javax.swing.JFrame {
         recentSearchResult5.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         recentSearchResult5.setText("The first result shoud look something like this, willl be displayed here, it will reach to the end of the line here to the");
         lastSearch5.add(recentSearchResult5, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 31, 670, -1));
-
-        goToRecent5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/slantArrow25.png"))); // NOI18N
-        goToRecent5.setBorderPainted(false);
-        goToRecent5.setContentAreaFilled(false);
-        goToRecent5.setFocusPainted(false);
-        goToRecent5.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                goToRecent5ActionPerformed(evt);
-            }
-        });
-        lastSearch5.add(goToRecent5, new org.netbeans.lib.awtextra.AbsoluteConstraints(680, 0, -1, 50));
 
         searchTime5.setFont(new java.awt.Font("Helvetica", 0, 14)); // NOI18N
         searchTime5.setText("2h Ago");
@@ -7272,7 +7330,7 @@ public class mainWindow extends javax.swing.JFrame {
                 goToRecent6ActionPerformed(evt);
             }
         });
-        lastSearch6.add(goToRecent6, new org.netbeans.lib.awtextra.AbsoluteConstraints(680, 0, -1, 50));
+        lastSearch6.add(goToRecent6, new org.netbeans.lib.awtextra.AbsoluteConstraints(680, 0, 60, 50));
 
         searchTime6.setFont(new java.awt.Font("Helvetica", 0, 14)); // NOI18N
         searchTime6.setText("2h Ago");
@@ -7347,6 +7405,8 @@ public class mainWindow extends javax.swing.JFrame {
         searchHistoryTitle.setFont(new java.awt.Font("Helvetica", 0, 24)); // NOI18N
         searchHistoryTitle.setText("Search History");
 
+        separator5.setBackground(new java.awt.Color(40, 43, 45));
+
         javax.swing.GroupLayout searchTabNoHistoryLayout = new javax.swing.GroupLayout(searchTabNoHistory);
         searchTabNoHistory.setLayout(searchTabNoHistoryLayout);
         searchTabNoHistoryLayout.setHorizontalGroup(
@@ -7359,9 +7419,12 @@ public class mainWindow extends javax.swing.JFrame {
                     .addComponent(searchNoHistoryPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
                         .addGap(323, 323, 323)
-                        .addComponent(normalSearchNoHistory)
-                        .addGap(6, 6, 6)
-                        .addComponent(nlsRadioNoHistory)))
+                        .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(separator5, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
+                                .addComponent(normalSearchNoHistory)
+                                .addGap(6, 6, 6)
+                                .addComponent(nlsRadioNoHistory)))))
                 .addGap(366, 366, 366))
             .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
                 .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -7392,14 +7455,17 @@ public class mainWindow extends javax.swing.JFrame {
                 .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(normalSearchNoHistory)
                     .addComponent(nlsRadioNoHistory))
-                .addGap(49, 49, 49)
-                .addComponent(searchHistoryTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addGap(68, 68, 68)
+                .addComponent(searchHistoryTitle)
+                .addGap(5, 5, 5)
+                .addComponent(separator5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(9, 9, 9)
                 .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
                         .addGap(114, 114, 114)
                         .addComponent(noSearchHistory))
-                    .addComponent(lastSearches, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(lastSearches, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(42, 42, 42))
         );
 
         nlsRadioNoHistory.setToolTipText("<html>"
@@ -8129,6 +8195,12 @@ public class mainWindow extends javax.swing.JFrame {
                 noSearchHistory.setVisible(false);
                 lastSearches.setVisible(true);
                 searchHistoryTitle.setVisible(true);
+            }
+        });
+
+        tabs.addChangeListener(e -> {
+            if (tabs.getSelectedIndex() == 4) {
+                lastSearchDisp();
             }
         });
 
@@ -9650,20 +9722,10 @@ public class mainWindow extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_goToRecent2ActionPerformed
 
-    private void goToRecent3ActionPerformed(java.awt.event.ActionEvent evt) {
-//GEN-FIRST:event_goToRecent3ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_goToRecent3ActionPerformed
-
     private void goToRecent4ActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_goToRecent4ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_goToRecent4ActionPerformed
-
-    private void goToRecent5ActionPerformed(java.awt.event.ActionEvent evt) {
-//GEN-FIRST:event_goToRecent5ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_goToRecent5ActionPerformed
 
     private void goToRecent6ActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_goToRecent6ActionPerformed
@@ -9784,9 +9846,7 @@ public class mainWindow extends javax.swing.JFrame {
     private javax.swing.JSlider fontSizeSlider;
     private javax.swing.JButton goToRecent1;
     private javax.swing.JButton goToRecent2;
-    private javax.swing.JButton goToRecent3;
     private javax.swing.JButton goToRecent4;
-    private javax.swing.JButton goToRecent5;
     private javax.swing.JButton goToRecent6;
     private javax.swing.JButton goto1;
     private javax.swing.JButton goto10;
@@ -9946,6 +10006,7 @@ public class mainWindow extends javax.swing.JFrame {
     private javax.swing.JProgressBar separator2;
     private javax.swing.JProgressBar separator3;
     private javax.swing.JProgressBar separator4;
+    private javax.swing.JProgressBar separator5;
     private javax.swing.JButton settingsBtn;
     private javax.swing.JLabel settingsLabel;
     private javax.swing.JButton showMore;
