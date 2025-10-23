@@ -7258,7 +7258,7 @@ public class mainWindow extends javax.swing.JFrame {
         nlsRadioNoHistory.setToolTipText("<html>"
             + "<b>Natural Language Search (NL Search)</b><br>"
             + "Lets you search the Bible using everyday language.<br><br>"
-            + "<b>Example:</b> Type <i>“God’s love for humanity”</i><br>"
+            + "<b>Example:</b> Type <i>“peter denied”</i><br>"
             + "and it will find verses related to that meaning — not just exact words."
             + "</html>");
 
@@ -7311,6 +7311,17 @@ public class mainWindow extends javax.swing.JFrame {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 // Trigger the button click when ENTER is pressed
                 searchNoHistory.doClick();
+            }
+        });
+        // Add a caret listener to the search bar
+        searchBarNoHistory.addCaretListener(new javax.swing.event.CaretListener() {
+            @Override
+            public void caretUpdate(javax.swing.event.CaretEvent e) {
+                // Change the button color
+                searchNoHistory.setBackground(new java.awt.Color(40, 43, 45));
+
+                // Change the label foreground color
+                noMatchFound.setForeground(new java.awt.Color(242, 242, 242));
             }
         });
 
