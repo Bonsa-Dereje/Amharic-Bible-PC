@@ -422,6 +422,11 @@ public class mainWindow extends javax.swing.JFrame {
         searchTime5.setVisible(false);
 
         noMatchFound.setForeground(new Color(242, 242, 242));
+
+        normalSearchNoHistory.setSelected(true);
+        
+        noMatchWarning.setVisible(false);
+
     }
 
     private void updateBookChooser() {
@@ -2787,6 +2792,7 @@ public class mainWindow extends javax.swing.JFrame {
         themer = new javax.swing.JLabel();
         spacer = new javax.swing.JButton();
         searchTabNoHistory = new javax.swing.JPanel();
+        visSetFalse = new javax.swing.JPanel();
         noSearchHistory = new javax.swing.JLabel();
         nlsRadioNoHistory = new javax.swing.JRadioButton();
         normalSearchNoHistory = new javax.swing.JRadioButton();
@@ -2832,6 +2838,7 @@ public class mainWindow extends javax.swing.JFrame {
         searchHistoryTitle = new javax.swing.JLabel();
         separator5 = new javax.swing.JProgressBar();
         noMatchFound = new javax.swing.JLabel();
+        noMatchWarning = new javax.swing.JLabel();
         searchTabResults = new javax.swing.JPanel();
         searchBar = new javax.swing.JTextField();
         search = new javax.swing.JButton();
@@ -7216,9 +7223,25 @@ public class mainWindow extends javax.swing.JFrame {
             }
         });
 
+        searchTabNoHistory.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        javax.swing.GroupLayout visSetFalseLayout = new javax.swing.GroupLayout(visSetFalse);
+        visSetFalse.setLayout(visSetFalseLayout);
+        visSetFalseLayout.setHorizontalGroup(
+            visSetFalseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 30, Short.MAX_VALUE)
+        );
+        visSetFalseLayout.setVerticalGroup(
+            visSetFalseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 40, Short.MAX_VALUE)
+        );
+
+        searchTabNoHistory.add(visSetFalse, new org.netbeans.lib.awtextra.AbsoluteConstraints(690, 50, 30, 40));
+
         noSearchHistory.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         noSearchHistory.setForeground(new java.awt.Color(204, 204, 204));
         noSearchHistory.setText("No Search History");
+        searchTabNoHistory.add(noSearchHistory, new org.netbeans.lib.awtextra.AbsoluteConstraints(707, 697, -1, -1));
 
         nlsRadioNoHistory.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         nlsRadioNoHistory.setText("NL Search");
@@ -7227,6 +7250,13 @@ public class mainWindow extends javax.swing.JFrame {
                 nlsRadioNoHistoryActionPerformed(evt);
             }
         });
+        searchTabNoHistory.add(nlsRadioNoHistory, new org.netbeans.lib.awtextra.AbsoluteConstraints(808, 447, -1, -1));
+        nlsRadioNoHistory.setToolTipText("<html>"
+            + "<b>Natural Language Search (NL Search)</b><br>"
+            + "Lets you search the Bible using everyday language.<br><br>"
+            + "<b>Example:</b> Type <i>“God’s love for humanity”</i><br>"
+            + "and it will find verses related to that meaning — not just exact words."
+            + "</html>");
 
         normalSearchNoHistory.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         normalSearchNoHistory.setText("Normal Search");
@@ -7235,10 +7265,12 @@ public class mainWindow extends javax.swing.JFrame {
                 normalSearchNoHistoryActionPerformed(evt);
             }
         });
+        searchTabNoHistory.add(normalSearchNoHistory, new org.netbeans.lib.awtextra.AbsoluteConstraints(692, 447, -1, -1));
 
         helpBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/help20.png"))); // NOI18N
         helpBtn.setBorderPainted(false);
         helpBtn.setContentAreaFilled(false);
+        searchTabNoHistory.add(helpBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(1548, 53, -1, -1));
 
         searchNoHistoryPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
@@ -7289,8 +7321,11 @@ public class mainWindow extends javax.swing.JFrame {
         });
         searchNoHistoryPanel.add(searchNoHistory, new org.netbeans.lib.awtextra.AbsoluteConstraints(717, 16, 128, 49));
 
+        searchTabNoHistory.add(searchNoHistoryPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(369, 347, -1, -1));
+
         verseSearchMainTitle.setFont(new java.awt.Font("Helvetica", 0, 48)); // NOI18N
         verseSearchMainTitle.setText("Verse Search");
+        searchTabNoHistory.add(verseSearchMainTitle, new org.netbeans.lib.awtextra.AbsoluteConstraints(630, 287, -1, -1));
 
         separator1.setBackground(new java.awt.Color(204, 204, 204));
 
@@ -7496,86 +7531,40 @@ public class mainWindow extends javax.swing.JFrame {
                     .addGap(63, 63, 63)))
         );
 
+        searchTabNoHistory.add(lastSearches, new org.netbeans.lib.awtextra.AbsoluteConstraints(145, 583, -1, -1));
+
         searchHistoryTitle.setFont(new java.awt.Font("Helvetica", 0, 24)); // NOI18N
         searchHistoryTitle.setText("Search History");
+        searchTabNoHistory.add(searchHistoryTitle, new org.netbeans.lib.awtextra.AbsoluteConstraints(717, 540, -1, -1));
 
         separator5.setBackground(new java.awt.Color(40, 43, 45));
+        searchTabNoHistory.add(separator5, new org.netbeans.lib.awtextra.AbsoluteConstraints(692, 570, 214, -1));
 
         noMatchFound.setFont(new java.awt.Font("Helvetica", 1, 14)); // NOI18N
         noMatchFound.setForeground(new java.awt.Color(255, 102, 102));
         noMatchFound.setText("No Match Found");
+        searchTabNoHistory.add(noMatchFound, new org.netbeans.lib.awtextra.AbsoluteConstraints(723, 65, -1, -1));
+        noMatchFound.addPropertyChangeListener("foreground", evt -> {
+            Color currentColor = noMatchFound.getForeground();
 
-        javax.swing.GroupLayout searchTabNoHistoryLayout = new javax.swing.GroupLayout(searchTabNoHistory);
-        searchTabNoHistory.setLayout(searchTabNoHistoryLayout);
-        searchTabNoHistoryLayout.setHorizontalGroup(
-            searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchTabNoHistoryLayout.createSequentialGroup()
-                .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                        .addGap(261, 261, 261)
-                        .addComponent(verseSearchMainTitle))
-                    .addComponent(searchNoHistoryPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                        .addGap(323, 323, 323)
-                        .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(separator5, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                                .addComponent(normalSearchNoHistory)
-                                .addGap(6, 6, 6)
-                                .addComponent(nlsRadioNoHistory)))))
-                .addGap(366, 366, 366))
-            .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                        .addGap(723, 723, 723)
-                        .addComponent(noMatchFound)
-                        .addGap(714, 714, 714)
-                        .addComponent(helpBtn))
-                    .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                        .addGap(707, 707, 707)
-                        .addComponent(noSearchHistory))
-                    .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                        .addGap(717, 717, 717)
-                        .addComponent(searchHistoryTitle))
-                    .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                        .addGap(145, 145, 145)
-                        .addComponent(lastSearches, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(6, 6, 6))
-        );
-        searchTabNoHistoryLayout.setVerticalGroup(
-            searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                .addGap(53, 53, 53)
-                .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(helpBtn)
-                    .addComponent(noMatchFound))
-                .addGap(207, 207, 207)
-                .addComponent(verseSearchMainTitle)
-                .addGap(12, 12, 12)
-                .addComponent(searchNoHistoryPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(35, 35, 35)
-                .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(normalSearchNoHistory)
-                    .addComponent(nlsRadioNoHistory))
-                .addGap(68, 68, 68)
-                .addComponent(searchHistoryTitle)
-                .addGap(5, 5, 5)
-                .addComponent(separator5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(9, 9, 9)
-                .addGroup(searchTabNoHistoryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(searchTabNoHistoryLayout.createSequentialGroup()
-                        .addGap(114, 114, 114)
-                        .addComponent(noSearchHistory))
-                    .addComponent(lastSearches, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(42, 42, 42))
-        );
+            if (currentColor.equals(new Color(255, 102, 102))) {
+                // Label is red → show the warning button
+                visSetFalse.setVisible(false);
+                searchNoHistory.setBackground(new Color(40, 43, 45));
+            } else if (currentColor.equals(new Color(242, 242, 242))) {
+                // Label is gray → hide the warning button
+                visSetFalse.setVisible(true);
+                //searchNoHistory.setBackground(new Color(150, 150, 150));
+            }
 
-        nlsRadioNoHistory.setToolTipText("<html>"
-            + "<b>Natural Language Search (NL Search)</b><br>"
-            + "Lets you search the Bible using everyday language.<br><br>"
-            + "<b>Example:</b> Type <i>“God’s love for humanity”</i><br>"
-            + "and it will find verses related to that meaning — not just exact words."
-            + "</html>");
+            noMatchWarning.revalidate();
+            noMatchWarning.repaint();
+            searchNoHistory.repaint();
+        });
+
+        noMatchWarning.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/warning25.png"))); // NOI18N
+        noMatchWarning.setFocusable(false);
+        searchTabNoHistory.add(noMatchWarning, new org.netbeans.lib.awtextra.AbsoluteConstraints(692, 53, -1, 35));
 
         tabs.addTab("Settings", searchTabNoHistory);
 
@@ -10076,6 +10065,7 @@ public class mainWindow extends javax.swing.JFrame {
     private javax.swing.JRadioButton nlsRadio;
     private javax.swing.JRadioButton nlsRadioNoHistory;
     private javax.swing.JLabel noMatchFound;
+    private javax.swing.JLabel noMatchWarning;
     private javax.swing.JLabel noSearchHistory;
     private javax.swing.JRadioButton normalSearch;
     private javax.swing.JRadioButton normalSearchNoHistory;
@@ -10548,6 +10538,7 @@ public class mainWindow extends javax.swing.JFrame {
     private javax.swing.JButton treeTheme;
     private javax.swing.JButton unmute;
     private javax.swing.JLabel verseSearchMainTitle;
+    private javax.swing.JPanel visSetFalse;
     private javax.swing.JTextField volDisp;
     private javax.swing.JButton volMinus;
     private javax.swing.JButton volPLus;
