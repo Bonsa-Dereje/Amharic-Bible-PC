@@ -8969,7 +8969,7 @@
                 <Property name="useNullLayout" type="boolean" value="false"/>
               </Layout>
               <SubComponents>
-                <Container class="javax.swing.JPanel" name="visSetFalse">
+                <Container class="javax.swing.JPanel" name="noVisPanel">
                   <Constraints>
                     <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
                       <AbsoluteConstraints x="690" y="50" width="30" height="40"/>
@@ -8989,6 +8989,19 @@
                     </DimensionLayout>
                   </Layout>
                 </Container>
+                <Component class="javax.swing.JLabel" name="noMatchWarning">
+                  <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/icons/warning25.png"/>
+                    </Property>
+                    <Property name="focusable" type="boolean" value="false"/>
+                  </Properties>
+                  <Constraints>
+                    <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
+                      <AbsoluteConstraints x="692" y="53" width="-1" height="35"/>
+                    </Constraint>
+                  </Constraints>
+                </Component>
                 <Component class="javax.swing.JLabel" name="noSearchHistory">
                   <Properties>
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
@@ -9657,24 +9670,11 @@
                     <Property name="text" type="java.lang.String" value="No Match Found"/>
                   </Properties>
                   <AuxValues>
-                    <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="noMatchFound.addPropertyChangeListener(&quot;foreground&quot;, evt -&gt; {&#xa;    Color currentColor = noMatchFound.getForeground();&#xa;&#xa;    if (currentColor.equals(new Color(255, 102, 102))) {&#xa;        // Label is red &#x2192; show the warning button&#xa;        visSetFalse.setVisible(false);&#xa;        searchNoHistory.setBackground(new Color(40, 43, 45));&#xa;    } else if (currentColor.equals(new Color(242, 242, 242))) {&#xa;        // Label is gray &#x2192; hide the warning button&#xa;        visSetFalse.setVisible(true);&#xa;        //searchNoHistory.setBackground(new Color(150, 150, 150));&#xa;    }&#xa;&#xa;    noMatchWarning.revalidate();&#xa;    noMatchWarning.repaint();&#xa;    searchNoHistory.repaint();&#xa;});"/>
+                    <AuxValue name="JavaCodeGenerator_AddingCodePost" type="java.lang.String" value="noMatchFound.addPropertyChangeListener(&quot;foreground&quot;, evt -&gt; {&#xa;    Color currentColor = noMatchFound.getForeground();&#xa;&#xa;    if (currentColor.equals(new Color(255, 102, 102))) {&#xa;        // Label is red &#x2192; show the warning button&#xa;        noVisPanel.setVisible(false); //shows&#xa;        searchNoHistory.setBackground(new Color(40, 43, 45));&#xa;    } else if (currentColor.equals(new Color(242, 242, 242))) {&#xa;        // Label is gray &#x2192; hide the warning button&#xa;        noVisPanel.setVisible(true); //hides&#xa;        //searchNoHistory.setBackground(new Color(150, 150, 150));&#xa;    }&#xa;&#xa;    noMatchWarning.revalidate();&#xa;    noMatchWarning.repaint();&#xa;    searchNoHistory.repaint();&#xa;});"/>
                   </AuxValues>
                   <Constraints>
                     <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
                       <AbsoluteConstraints x="723" y="65" width="-1" height="-1"/>
-                    </Constraint>
-                  </Constraints>
-                </Component>
-                <Component class="javax.swing.JLabel" name="noMatchWarning">
-                  <Properties>
-                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                      <Image iconType="3" name="/icons/warning25.png"/>
-                    </Property>
-                    <Property name="focusable" type="boolean" value="false"/>
-                  </Properties>
-                  <Constraints>
-                    <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-                      <AbsoluteConstraints x="692" y="53" width="-1" height="35"/>
                     </Constraint>
                   </Constraints>
                 </Component>

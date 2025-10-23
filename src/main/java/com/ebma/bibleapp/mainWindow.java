@@ -425,7 +425,7 @@ public class mainWindow extends javax.swing.JFrame {
 
         normalSearchNoHistory.setSelected(true);
         
-        noMatchWarning.setVisible(false);
+        
 
     }
 
@@ -2792,7 +2792,8 @@ public class mainWindow extends javax.swing.JFrame {
         themer = new javax.swing.JLabel();
         spacer = new javax.swing.JButton();
         searchTabNoHistory = new javax.swing.JPanel();
-        visSetFalse = new javax.swing.JPanel();
+        noVisPanel = new javax.swing.JPanel();
+        noMatchWarning = new javax.swing.JLabel();
         noSearchHistory = new javax.swing.JLabel();
         nlsRadioNoHistory = new javax.swing.JRadioButton();
         normalSearchNoHistory = new javax.swing.JRadioButton();
@@ -2838,7 +2839,6 @@ public class mainWindow extends javax.swing.JFrame {
         searchHistoryTitle = new javax.swing.JLabel();
         separator5 = new javax.swing.JProgressBar();
         noMatchFound = new javax.swing.JLabel();
-        noMatchWarning = new javax.swing.JLabel();
         searchTabResults = new javax.swing.JPanel();
         searchBar = new javax.swing.JTextField();
         search = new javax.swing.JButton();
@@ -7225,18 +7225,22 @@ public class mainWindow extends javax.swing.JFrame {
 
         searchTabNoHistory.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        javax.swing.GroupLayout visSetFalseLayout = new javax.swing.GroupLayout(visSetFalse);
-        visSetFalse.setLayout(visSetFalseLayout);
-        visSetFalseLayout.setHorizontalGroup(
-            visSetFalseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout noVisPanelLayout = new javax.swing.GroupLayout(noVisPanel);
+        noVisPanel.setLayout(noVisPanelLayout);
+        noVisPanelLayout.setHorizontalGroup(
+            noVisPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 30, Short.MAX_VALUE)
         );
-        visSetFalseLayout.setVerticalGroup(
-            visSetFalseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        noVisPanelLayout.setVerticalGroup(
+            noVisPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 40, Short.MAX_VALUE)
         );
 
-        searchTabNoHistory.add(visSetFalse, new org.netbeans.lib.awtextra.AbsoluteConstraints(690, 50, 30, 40));
+        searchTabNoHistory.add(noVisPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(690, 50, 30, 40));
+
+        noMatchWarning.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/warning25.png"))); // NOI18N
+        noMatchWarning.setFocusable(false);
+        searchTabNoHistory.add(noMatchWarning, new org.netbeans.lib.awtextra.AbsoluteConstraints(692, 53, -1, 35));
 
         noSearchHistory.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         noSearchHistory.setForeground(new java.awt.Color(204, 204, 204));
@@ -7549,11 +7553,11 @@ public class mainWindow extends javax.swing.JFrame {
 
             if (currentColor.equals(new Color(255, 102, 102))) {
                 // Label is red → show the warning button
-                visSetFalse.setVisible(false);
+                noVisPanel.setVisible(false); //shows
                 searchNoHistory.setBackground(new Color(40, 43, 45));
             } else if (currentColor.equals(new Color(242, 242, 242))) {
                 // Label is gray → hide the warning button
-                visSetFalse.setVisible(true);
+                noVisPanel.setVisible(true); //hides
                 //searchNoHistory.setBackground(new Color(150, 150, 150));
             }
 
@@ -7561,10 +7565,6 @@ public class mainWindow extends javax.swing.JFrame {
             noMatchWarning.repaint();
             searchNoHistory.repaint();
         });
-
-        noMatchWarning.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/warning25.png"))); // NOI18N
-        noMatchWarning.setFocusable(false);
-        searchTabNoHistory.add(noMatchWarning, new org.netbeans.lib.awtextra.AbsoluteConstraints(692, 53, -1, 35));
 
         tabs.addTab("Settings", searchTabNoHistory);
 
@@ -10067,6 +10067,7 @@ public class mainWindow extends javax.swing.JFrame {
     private javax.swing.JLabel noMatchFound;
     private javax.swing.JLabel noMatchWarning;
     private javax.swing.JLabel noSearchHistory;
+    private javax.swing.JPanel noVisPanel;
     private javax.swing.JRadioButton normalSearch;
     private javax.swing.JRadioButton normalSearchNoHistory;
     private javax.swing.JLabel notesBtnLabel;
@@ -10538,7 +10539,6 @@ public class mainWindow extends javax.swing.JFrame {
     private javax.swing.JButton treeTheme;
     private javax.swing.JButton unmute;
     private javax.swing.JLabel verseSearchMainTitle;
-    private javax.swing.JPanel visSetFalse;
     private javax.swing.JTextField volDisp;
     private javax.swing.JButton volMinus;
     private javax.swing.JButton volPLus;
