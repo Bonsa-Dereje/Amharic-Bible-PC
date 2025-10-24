@@ -1,35 +1,18 @@
-import faiss
+from sentence_transformers import SentenceTransformer
 import numpy as np
+import faiss
 import json
-import sys
 import os
+import sys
 import re
 
-# -----------------------------
-# Config paths
-# -----------------------------
-if getattr(sys, "frozen", False):
-    BASE_DIR = os.path.dirname(sys.executable)
-else:
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Load model (same one you used before)
+model = SentenceTransformer('all-MiniLM-L6-v2')
 
-VECTOR_FILE = os.path.join(BASE_DIR, "nlsVectors.json")
-
-# -----------------------------
-# Load precomputed vectors
-# -----------------------------
-if not os.path.exists(VECTOR_FILE):
-    print("no match")
-    sys.exit(0)
-
-with open(VECTOR_FILE, "r", encoding="utf-8") as f:
+# Load precomputed verse vectors
+with open("nlsVectors.json", "r", encoding="utf-8") as f:
     entries = json.load(f)
 
-if not entries:
-    print("no match")
-    sys.exit(0)
-
-# Convert vectors to NumPy array
 vectors = np.array([e["vector"] for e in entries], dtype=np.float32)
 dim = vectors.shape[1]
 
@@ -38,46 +21,24 @@ index = faiss.IndexFlatIP(dim)
 faiss.normalize_L2(vectors)
 index.add(vectors)
 
-# -----------------------------
-# Parse command-line arguments
-# -----------------------------
-if len(sys.argv) < 2:
-    print("no match")
-    sys.exit(0)
-
+# Get user query
 query_arg = sys.argv[1]
 k = int(sys.argv[2]) if len(sys.argv) > 2 else 5
 
-# -----------------------------
-# Find query vector
-# -----------------------------
-found = next((e for e in entries if query_arg.lower() in e["text"].lower()), None)
-if not found:
-    print("no match")
-    sys.exit(0)
+# Embed the query text
+query_vec = model.encode(query_arg, normalize_embeddings=True)
+query_vec = np.array(query_vec, dtype=np.float32).reshape(1, -1)
 
-query_vec = np.array(found["vector"], dtype=np.float32).reshape(1, -1)
-faiss.normalize_L2(query_vec)
-
-# -----------------------------
-# Search top k matches
-# -----------------------------
+# Search
 scores, indices = index.search(query_vec, k)
 
-# -----------------------------
 # Print results
-# -----------------------------
 print(f'\nTop {k} matches for query: "{query_arg}"\n')
 for rank, (idx, score) in enumerate(zip(indices[0], scores[0]), start=1):
     entry = entries[idx]
     book = entry.get("book", "Unknown")
     chapter = entry.get("chapter", "N/A")
     verse = entry.get("verse", "N/A")
-
-    text = entry.get("text", "")
-    text = text.replace("\r", " ").replace("\n", " ")
-    text = re.sub(r"\s+", " ", text).strip()
-
+    text = re.sub(r"\s+", " ", entry["text"]).strip()
     snippet = text[:150] + "..." if len(text) > 150 else text
-    # Use a dot instead of any dash or symbol
     print(f"{rank}. {book} {chapter}:{verse}. {snippet} (score: {score:.4f})")

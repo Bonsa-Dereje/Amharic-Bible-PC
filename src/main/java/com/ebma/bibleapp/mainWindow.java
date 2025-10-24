@@ -2300,6 +2300,20 @@ public class mainWindow extends javax.swing.JFrame {
         }
     }
      */
+    
+    
+    
+private int getBookNumber(String matchText) {
+    try {
+        Pattern p = Pattern.compile("Book (\\d+)");
+        Matcher m = p.matcher(matchText);
+        if (m.find()) {
+            return Integer.parseInt(m.group(1));
+        }
+    } catch (Exception ignored) {}
+    return 1;
+}
+    
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -9323,6 +9337,112 @@ public class mainWindow extends javax.swing.JFrame {
 //GEN-FIRST:event_searchNoHistoryActionPerformed
         //markAsAlreadySearched(true);
         //System.out.println("is it matched? " + matched);
+if (normalSearchNoHistory.isSelected()) { // ✅ add parentheses
+    searched = true;
+    loading30BW.setVisible(true);
+    searchNoHistory.setBackground(new Color(150, 150, 150));
+    searchNoHistory.setForeground(new Color(200, 200, 200));
+
+    String query = searchBarNoHistory.getText().trim();
+    if (query.isEmpty() || query.equals("Search for verses")) {
+        loading30BW.setVisible(false);
+        return;
+    }
+
+    // 🟢 Detect Amharic vs English characters
+    boolean isAmharic = query.matches(".*[\\u1200-\\u137F]+.*"); // Amharic Unicode range
+    int langIndex = isAmharic ? 0 : 1;
+    langChooser.setSelectedIndex(langIndex);
+
+    // Use relative paths
+    String baseDir = "src/main/resources/files/books/";
+    String targetDir = baseDir + (isAmharic ? "amh" : "eng");
+
+    File rootDir = new File(targetDir);
+    if (!rootDir.exists()) {
+        System.err.println("Directory not found: " + rootDir.getAbsolutePath());
+        loading30BW.setVisible(false);
+        return;
+    }
+
+    List<String> foundMatches = new ArrayList<>();
+
+    // Loop through 1–66 books
+    for (int i = 1; i <= 66; i++) {
+        File bookDir = new File(rootDir, String.valueOf(i));
+        if (!bookDir.exists()) continue;
+
+        File[] chapterFiles = bookDir.listFiles((dir, name) -> name.endsWith(".txt"));
+        if (chapterFiles == null) continue;
+
+        for (File chapter : chapterFiles) {
+            try (BufferedReader br = new BufferedReader(new FileReader(chapter))) {
+                String line;
+                int verseNum = 1;
+                while ((line = br.readLine()) != null) {
+                    // exact match (case insensitive)
+                    if (line.trim().equalsIgnoreCase(query)) {
+                        String match = String.format(
+                            "Book %d — %s (verse %d)",
+                            i,
+                            chapter.getName().replace(".txt", ""),
+                            verseNum
+                        );
+                        foundMatches.add(match);
+                    }
+                    verseNum++;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // 🟢 Show results
+    if (foundMatches.isEmpty()) {
+        noMatchFound.setForeground(new Color(255, 102, 102));
+        noMatchFlag = true;
+        loading30BW.setVisible(false);
+        return;
+    }
+
+    // Determine testament
+    int firstBook = getBookNumber(foundMatches.get(0));
+    int testamentIndex = (firstBook <= 39) ? 0 : 1; // 0 = Old, 1 = New
+    testamentChooser.setSelectedIndex(testamentIndex);
+
+    // 🟢 Display top 14 matches
+    JEditorPane[] resultPanes = {
+        searchResult1, searchResult2, searchResult3, searchResult4,
+        searchResult5, searchResult6, searchResult7, searchResult8,
+        searchResult9, searchResult10, searchResult11, searchResult12,
+        searchResult13, searchResult14
+    };
+
+    JLabel[] matchLabels = {
+        matchRate1, matchRate2, matchRate3, matchRate4,
+        matchRate5, matchRate6, matchRate7, matchRate8,
+        matchRate9, matchRate10, matchRate11, matchRate12,
+        matchRate13, matchRate14
+    };
+
+    for (int i = 0; i < 14; i++) {
+        resultPanes[i].setText("");
+        matchLabels[i].setText("");
+    }
+
+    int limit = Math.min(foundMatches.size(), 14);
+    for (int i = 0; i < limit; i++) {
+        resultPanes[i].setText(foundMatches.get(i));
+        matchLabels[i].setText(String.valueOf(i + 1));
+    }
+
+    loading30BW.setVisible(false);
+    tabs.setSelectedIndex(5);
+    noMatchFound.setForeground(new Color(242, 242, 242));
+    noMatchFlag = false;
+    return;
+}
 
         homed = false;
         if (!nlsOn) {
