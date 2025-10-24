@@ -63,6 +63,10 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
 //import io.documentnode.epub4j.domain.Book;
 //import io.documentnode.epub4j.epub.EpubReader;
 //import org.apache.tika.Tika;
@@ -416,11 +420,11 @@ public class mainWindow extends javax.swing.JFrame {
         cmtryName.setVisible(false);
         loading30BW.setVisible(false);
 
-        recentSearchQuery3.setVisible(false);
+        
         recentSearchQuery5.setVisible(false);
-        recentSearchResult3.setVisible(false);
+        
         recentSearchResult5.setVisible(false);
-        searchTime3.setVisible(false);
+        
         searchTime5.setVisible(false);
 
         noMatchFound.setForeground(new Color(242, 242, 242));
@@ -2317,6 +2321,33 @@ private int getBookNumber(String matchText) {
 }
     
 
+    private void smoothMinimize() {
+        // Make sure the frame supports transparency
+        this.setOpacity(1.0f);
+
+        Timer timer = new Timer(10, null); // 20ms delay for smooth fade
+        timer.setRepeats(true);
+
+        final float[] opacity = {1.0f};
+
+        timer.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                opacity[0] -= 0.08f; // Adjust speed here
+
+                if (opacity[0] <= 0.1f) {
+                    ((Timer)e.getSource()).stop();
+                    setState(JFrame.ICONIFIED);
+                    setOpacity(1.0f); // Restore opacity when minimized
+                } else {
+                    setOpacity(opacity[0]);
+                }
+            }
+        });
+
+        timer.start();
+    }
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -2831,10 +2862,6 @@ private int getBookNumber(String matchText) {
         recentSearchResult2 = new javax.swing.JLabel();
         goToRecent2 = new javax.swing.JButton();
         searchTime2 = new javax.swing.JLabel();
-        lastSearch3 = new javax.swing.JPanel();
-        recentSearchQuery3 = new javax.swing.JLabel();
-        recentSearchResult3 = new javax.swing.JLabel();
-        searchTime3 = new javax.swing.JLabel();
         separator2 = new javax.swing.JProgressBar();
         lastSearch4 = new javax.swing.JPanel();
         recentSearchQuery4 = new javax.swing.JLabel();
@@ -7428,22 +7455,6 @@ private int getBookNumber(String matchText) {
         searchTime2.setText("2h Ago");
         lastSearch2.add(searchTime2, new org.netbeans.lib.awtextra.AbsoluteConstraints(610, 10, -1, -1));
 
-        lastSearch3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        recentSearchQuery3.setFont(new java.awt.Font("Helvetica", 0, 18)); // NOI18N
-        recentSearchQuery3.setText("Search History1");
-        lastSearch3.add(recentSearchQuery3, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 6, -1, -1));
-
-        recentSearchResult3.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        recentSearchResult3.setText("The first result shoud look something like this, willl be displayed here, it will reach to the end of the line here to the");
-        lastSearch3.add(recentSearchResult3, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 31, 670, -1));
-
-        searchTime3.setFont(new java.awt.Font("Helvetica", 0, 14)); // NOI18N
-        searchTime3.setText("2h Ago");
-        lastSearch3.add(searchTime3, new org.netbeans.lib.awtextra.AbsoluteConstraints(610, 10, -1, -1));
-
-        lastSearch2.add(lastSearch3, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 10, -1, -1));
-
         separator2.setBackground(new java.awt.Color(204, 204, 204));
 
         lastSearch4.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -7562,7 +7573,7 @@ private int getBookNumber(String matchText) {
                 .addComponent(lastSearch4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(lastSearch6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(74, Short.MAX_VALUE))
+                .addContainerGap(84, Short.MAX_VALUE))
             .addGroup(lastSearchesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(lastSearchesLayout.createSequentialGroup()
                     .addGap(143, 143, 143)
@@ -8240,7 +8251,7 @@ private int getBookNumber(String matchText) {
 
     private void minimizeBtnActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_minimizeBtnActionPerformed
-        this.setState(JFrame.ICONIFIED);
+        smoothMinimize();
     }//GEN-LAST:event_minimizeBtnActionPerformed
 
     private void settingsBtnActionPerformed(java.awt.event.ActionEvent evt) {
@@ -10230,7 +10241,6 @@ if (normalSearchNoHistory.isSelected()) {
     private javax.swing.JButton lastSearch;
     private javax.swing.JPanel lastSearch1;
     private javax.swing.JPanel lastSearch2;
-    private javax.swing.JPanel lastSearch3;
     private javax.swing.JPanel lastSearch4;
     private javax.swing.JPanel lastSearch5;
     private javax.swing.JPanel lastSearch6;
@@ -10287,13 +10297,11 @@ if (normalSearchNoHistory.isSelected()) {
     private javax.swing.JPanel readStatus;
     private javax.swing.JLabel recentSearchQuery1;
     private javax.swing.JLabel recentSearchQuery2;
-    private javax.swing.JLabel recentSearchQuery3;
     private javax.swing.JLabel recentSearchQuery4;
     private javax.swing.JLabel recentSearchQuery5;
     private javax.swing.JLabel recentSearchQuery6;
     private javax.swing.JLabel recentSearchResult1;
     private javax.swing.JLabel recentSearchResult2;
-    private javax.swing.JLabel recentSearchResult3;
     private javax.swing.JLabel recentSearchResult4;
     private javax.swing.JLabel recentSearchResult5;
     private javax.swing.JLabel recentSearchResult6;
@@ -10340,7 +10348,6 @@ if (normalSearchNoHistory.isSelected()) {
     private javax.swing.JPanel searchTabResults;
     private javax.swing.JLabel searchTime1;
     private javax.swing.JLabel searchTime2;
-    private javax.swing.JLabel searchTime3;
     private javax.swing.JLabel searchTime4;
     private javax.swing.JLabel searchTime5;
     private javax.swing.JLabel searchTime6;
