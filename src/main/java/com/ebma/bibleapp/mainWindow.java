@@ -354,6 +354,8 @@ public class mainWindow extends javax.swing.JFrame {
     public int maxSearchId;
 
     public boolean noMatchFlag = false;
+    
+    public int gotoId;
 
     public mainWindow() {
         setUndecorated(true);
@@ -2919,6 +2921,7 @@ private int getBookNumber(String matchText) {
         lastSearch = new javax.swing.JButton();
         backToSearch = new javax.swing.JButton();
         nextSearch = new javax.swing.JButton();
+        bookmarks = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -2982,6 +2985,23 @@ private int getBookNumber(String matchText) {
                             .addComponent(closeBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
+
+        closeBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                closeBtn.setBackground(new java.awt.Color(255, 0, 0)); // Red color on hover
+                closeBtn.setForeground(new java.awt.Color(255, 255, 255)); // Optional: change text color to white
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                closeBtn.setBackground(null); // Reset to default background
+                closeBtn.setForeground(null); // Reset to default text color
+                // Or set specific colors if you want:
+                // closeBtn.setBackground(originalBackgroundColor);
+                // closeBtn.setForeground(originalTextColor);
+            }
+        });
 
         mainPanel_layered.add(topBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1650, 35));
 
@@ -7422,7 +7442,7 @@ private int getBookNumber(String matchText) {
         searchTime3.setText("2h Ago");
         lastSearch3.add(searchTime3, new org.netbeans.lib.awtextra.AbsoluteConstraints(610, 10, -1, -1));
 
-        lastSearch2.add(lastSearch3, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
+        lastSearch2.add(lastSearch3, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 10, -1, -1));
 
         separator2.setBackground(new java.awt.Color(204, 204, 204));
 
@@ -7547,15 +7567,15 @@ private int getBookNumber(String matchText) {
                 .addGroup(lastSearchesLayout.createSequentialGroup()
                     .addGap(143, 143, 143)
                     .addComponent(separator2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(203, Short.MAX_VALUE)))
+                    .addContainerGap(213, Short.MAX_VALUE)))
             .addGroup(lastSearchesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(lastSearchesLayout.createSequentialGroup()
                     .addGap(217, 217, 217)
                     .addComponent(separator3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(129, Short.MAX_VALUE)))
+                    .addContainerGap(139, Short.MAX_VALUE)))
             .addGroup(lastSearchesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, lastSearchesLayout.createSequentialGroup()
-                    .addContainerGap(283, Short.MAX_VALUE)
+                    .addContainerGap(293, Short.MAX_VALUE)
                     .addComponent(separator4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGap(63, 63, 63)))
         );
@@ -7990,6 +8010,19 @@ private int getBookNumber(String matchText) {
 
         tabs.addTab("tab6", searchTabResults);
 
+        javax.swing.GroupLayout bookmarksLayout = new javax.swing.GroupLayout(bookmarks);
+        bookmarks.setLayout(bookmarksLayout);
+        bookmarksLayout.setHorizontalGroup(
+            bookmarksLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 1580, Short.MAX_VALUE)
+        );
+        bookmarksLayout.setVerticalGroup(
+            bookmarksLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 975, Short.MAX_VALUE)
+        );
+
+        tabs.addTab("tab7", bookmarks);
+
         mainPanel_layered.add(tabs, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, -50, 1580, 1010));
         tabs.addChangeListener(e -> {
             int selectedIndex = tabs.getSelectedIndex();
@@ -8207,7 +8240,7 @@ private int getBookNumber(String matchText) {
 
     private void minimizeBtnActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_minimizeBtnActionPerformed
-        // TODO add your handling code here:
+        this.setState(JFrame.ICONIFIED);
     }//GEN-LAST:event_minimizeBtnActionPerformed
 
     private void settingsBtnActionPerformed(java.awt.event.ActionEvent evt) {
@@ -9337,69 +9370,102 @@ private int getBookNumber(String matchText) {
 //GEN-FIRST:event_searchNoHistoryActionPerformed
         //markAsAlreadySearched(true);
         //System.out.println("is it matched? " + matched);
-if (normalSearchNoHistory.isSelected()) { // ✅ add parentheses
+if (normalSearchNoHistory.isSelected()) {
+    System.out.println("normalSearchNoHistory selected");
     searched = true;
     loading30BW.setVisible(true);
+    System.out.println("Loading spinner visible");
+
     searchNoHistory.setBackground(new Color(150, 150, 150));
     searchNoHistory.setForeground(new Color(200, 200, 200));
+    System.out.println("Search button color updated");
 
     String query = searchBarNoHistory.getText().trim();
+    System.out.println("Query entered: '" + query + "'");
+
     if (query.isEmpty() || query.equals("Search for verses")) {
+        System.out.println("Query empty — stopping");
         loading30BW.setVisible(false);
         return;
     }
 
-    // 🟢 Detect Amharic vs English characters
-    boolean isAmharic = query.matches(".*[\\u1200-\\u137F]+.*"); // Amharic Unicode range
+    // Detect Amharic vs English
+    boolean isAmharic = query.matches(".*[\\u1200-\\u137F]+.*");
+    System.out.println("Language detected: " + (isAmharic ? "Amharic" : "English"));
+
     int langIndex = isAmharic ? 0 : 1;
     langChooser.setSelectedIndex(langIndex);
 
-    // Use relative paths
     String baseDir = "src/main/resources/files/books/";
     String targetDir = baseDir + (isAmharic ? "amh" : "eng");
+    System.out.println("Target directory: " + targetDir);
 
     File rootDir = new File(targetDir);
+    System.out.println("Checking rootDir: " + rootDir.getAbsolutePath());
     if (!rootDir.exists()) {
-        System.err.println("Directory not found: " + rootDir.getAbsolutePath());
+        System.out.println("Directory not found");
         loading30BW.setVisible(false);
         return;
     }
 
     List<String> foundMatches = new ArrayList<>();
+    int totalBooks = 0;
+    int totalChapters = 0;
+    int totalVerses = 0;
 
-    // Loop through 1–66 books
+    // Loop through 1–66 book folders
     for (int i = 1; i <= 66; i++) {
         File bookDir = new File(rootDir, String.valueOf(i));
-        if (!bookDir.exists()) continue;
+        if (!bookDir.exists()) {
+            System.out.println("Skipping book " + i + " — not found");
+            continue;
+        }
+        totalBooks++;
+        System.out.println("Reading Book " + i);
 
-        File[] chapterFiles = bookDir.listFiles((dir, name) -> name.endsWith(".txt"));
-        if (chapterFiles == null) continue;
+        File[] chapterFiles = bookDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
+        if (chapterFiles == null || chapterFiles.length == 0) {
+            System.out.println("No PDF chapters found in book " + i);
+            continue;
+        }
 
         for (File chapter : chapterFiles) {
-            try (BufferedReader br = new BufferedReader(new FileReader(chapter))) {
-                String line;
+            totalChapters++;
+            System.out.println("Reading chapter PDF: " + chapter.getName());
+            try (PDDocument document = PDDocument.load(chapter)) {
+                PDFTextStripper stripper = new PDFTextStripper();
+                String text = stripper.getText(document);
+
+                String[] lines = text.split("\\r?\\n");
                 int verseNum = 1;
-                while ((line = br.readLine()) != null) {
-                    // exact match (case insensitive)
+                for (String line : lines) {
+                    totalVerses++;
                     if (line.trim().equalsIgnoreCase(query)) {
                         String match = String.format(
                             "Book %d — %s (verse %d)",
                             i,
-                            chapter.getName().replace(".txt", ""),
+                            chapter.getName().replace(".pdf", ""),
                             verseNum
                         );
                         foundMatches.add(match);
+                        System.out.println("MATCH FOUND: " + match);
                     }
                     verseNum++;
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
+                System.out.println("Error reading PDF: " + chapter.getAbsolutePath());
                 e.printStackTrace();
             }
         }
     }
 
-    // 🟢 Show results
+    System.out.println("Search complete. Books read: " + totalBooks +
+        ", Chapters: " + totalChapters +
+        ", Verses checked: " + totalVerses +
+        ", Matches: " + foundMatches.size());
+
     if (foundMatches.isEmpty()) {
+        System.out.println("No matches found");
         noMatchFound.setForeground(new Color(255, 102, 102));
         noMatchFlag = true;
         loading30BW.setVisible(false);
@@ -9408,10 +9474,11 @@ if (normalSearchNoHistory.isSelected()) { // ✅ add parentheses
 
     // Determine testament
     int firstBook = getBookNumber(foundMatches.get(0));
-    int testamentIndex = (firstBook <= 39) ? 0 : 1; // 0 = Old, 1 = New
+    int testamentIndex = (firstBook <= 39) ? 0 : 1;
     testamentChooser.setSelectedIndex(testamentIndex);
+    System.out.println("First match in " + (testamentIndex == 0 ? "Old" : "New") + " Testament");
 
-    // 🟢 Display top 14 matches
+    // Display top 14 matches
     JEditorPane[] resultPanes = {
         searchResult1, searchResult2, searchResult3, searchResult4,
         searchResult5, searchResult6, searchResult7, searchResult8,
@@ -9426,23 +9493,28 @@ if (normalSearchNoHistory.isSelected()) { // ✅ add parentheses
         matchRate13, matchRate14
     };
 
+    System.out.println("Clearing previous results");
     for (int i = 0; i < 14; i++) {
         resultPanes[i].setText("");
         matchLabels[i].setText("");
     }
 
     int limit = Math.min(foundMatches.size(), 14);
+    System.out.println("Displaying top " + limit + " matches");
     for (int i = 0; i < limit; i++) {
         resultPanes[i].setText(foundMatches.get(i));
         matchLabels[i].setText(String.valueOf(i + 1));
+        System.out.println("#" + (i + 1) + ": " + foundMatches.get(i));
     }
 
     loading30BW.setVisible(false);
     tabs.setSelectedIndex(5);
     noMatchFound.setForeground(new Color(242, 242, 242));
     noMatchFlag = false;
-    return;
+
+    System.out.println("Done. Results displayed");
 }
+
 
         homed = false;
         if (!nlsOn) {
@@ -9983,34 +10055,34 @@ if (normalSearchNoHistory.isSelected()) { // ✅ add parentheses
 
     private void goToRecent1ActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_goToRecent1ActionPerformed
-        int maxId = getMaxId();
+        gotoId = getSearchResultIdIfExists(recentSearchQuery1.getText());
         tabs.setSelectedIndex(5);
-        searchHistoryNav(maxId);
-        currentSearchResultIndex = maxId;
+        searchHistoryNav(gotoId);
+        currentSearchResultIndex = gotoId;
     }//GEN-LAST:event_goToRecent1ActionPerformed
 
     private void goToRecent2ActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_goToRecent2ActionPerformed
-        int maxId = getMaxId();
+        gotoId = getSearchResultIdIfExists(recentSearchQuery2.getText());
         tabs.setSelectedIndex(5);
-        searchHistoryNav(maxId - 1);
-        currentSearchResultIndex = maxId - 1;
+        searchHistoryNav(gotoId);
+        currentSearchResultIndex = gotoId;
     }//GEN-LAST:event_goToRecent2ActionPerformed
 
     private void goToRecent4ActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_goToRecent4ActionPerformed
-        int maxId = getMaxId();
+        gotoId = getSearchResultIdIfExists(recentSearchQuery4.getText());
         tabs.setSelectedIndex(5);
-        searchHistoryNav(maxId - 2);
-        currentSearchResultIndex = maxId - 2;
+        searchHistoryNav(gotoId);
+        currentSearchResultIndex = gotoId;
     }//GEN-LAST:event_goToRecent4ActionPerformed
 
     private void goToRecent6ActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_goToRecent6ActionPerformed
-        int maxId = getMaxId();
+        gotoId = getSearchResultIdIfExists(recentSearchQuery6.getText());
         tabs.setSelectedIndex(5);
-        searchHistoryNav(maxId - 3);
-        currentSearchResultIndex = maxId - 3;
+        searchHistoryNav(gotoId);
+        currentSearchResultIndex = gotoId;
     }//GEN-LAST:event_goToRecent6ActionPerformed
 
     /**
@@ -10107,6 +10179,7 @@ if (normalSearchNoHistory.isSelected()) { // ✅ add parentheses
     private javax.swing.JButton bookmark;
     private javax.swing.JButton bookmarkBtn;
     private javax.swing.JLabel bookmarkSavedNotif;
+    private javax.swing.JPanel bookmarks;
     private javax.swing.JLabel bookmarksBtn;
     private javax.swing.JButton cafeTheme;
     private javax.swing.JComboBox<String> chapterChooser;
