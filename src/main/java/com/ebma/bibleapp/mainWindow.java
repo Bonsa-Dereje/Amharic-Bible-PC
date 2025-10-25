@@ -73,6 +73,10 @@ import java.nio.charset.StandardCharsets;
 import javax.swing.SwingConstants;
 
 
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.KeyEvent;
+
 //import io.documentnode.epub4j.domain.Book;
 //import io.documentnode.epub4j.epub.EpubReader;
 //import org.apache.tika.Tika;
@@ -368,7 +372,7 @@ public class mainWindow extends javax.swing.JFrame {
     public int gotoId;
 
     public int normalSearchResultNo;
-    
+    private boolean recentClicked = false;
     
     public mainWindow() {
         setUndecorated(true);
@@ -439,6 +443,8 @@ public class mainWindow extends javax.swing.JFrame {
         noMatchFound.setForeground(new Color(242, 242, 242));
 
         normalSearchNoHistory.setSelected(true);
+        
+        deepSearch.setVisible(false);
         
         
 
@@ -2994,6 +3000,7 @@ public void cutOff(int normalSearchResultNo) {
         searchHistoryTitle = new javax.swing.JLabel();
         separator5 = new javax.swing.JProgressBar();
         noMatchFound = new javax.swing.JLabel();
+        deepSearch = new javax.swing.JButton();
         searchTabResults = new javax.swing.JPanel();
         searchBar = new javax.swing.JTextField();
         search = new javax.swing.JButton();
@@ -7725,10 +7732,12 @@ public void cutOff(int normalSearchResultNo) {
             if (currentColor.equals(new Color(255, 102, 102))) {
                 // Label is red → show the warning button
                 noVisPanel.setVisible(false); //shows
+                deepSearch.setVisible(true);
                 searchNoHistory.setBackground(new Color(40, 43, 45));
             } else if (currentColor.equals(new Color(242, 242, 242))) {
                 // Label is gray → hide the warning button
-                noVisPanel.setVisible(true); //hides
+                noVisPanel.setVisible(true);
+                deepSearch.setVisible(false);//hides
                 //searchNoHistory.setBackground(new Color(150, 150, 150));
             }
 
@@ -7736,6 +7745,16 @@ public void cutOff(int normalSearchResultNo) {
             noMatchWarning.repaint();
             searchNoHistory.repaint();
         });
+
+        deepSearch.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 12)); // NOI18N
+        deepSearch.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/icons8-arrow-right-15.png"))); // NOI18N
+        deepSearch.setText("Deep Search");
+        deepSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deepSearchActionPerformed(evt);
+            }
+        });
+        searchTabNoHistory.add(deepSearch, new org.netbeans.lib.awtextra.AbsoluteConstraints(850, 60, -1, -1));
 
         tabs.addTab("Settings", searchTabNoHistory);
 
@@ -7791,6 +7810,11 @@ public void cutOff(int normalSearchResultNo) {
 
         normalSearch.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         normalSearch.setText("Normal Search");
+        normalSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                normalSearchActionPerformed(evt);
+            }
+        });
         searchTabResults.add(normalSearch, new org.netbeans.lib.awtextra.AbsoluteConstraints(650, 130, -1, -1));
 
         searchResult1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
@@ -8412,46 +8436,109 @@ public void cutOff(int normalSearchResultNo) {
         });
 
         tabs.addChangeListener(e -> {
-            if (tabs.getSelectedIndex() == 5) {
-                System.out.println("Tab 5 selected, normalSearchResultNo = " + normalSearchResultNo);
+            int selectedIndex = tabs.getSelectedIndex();
+            //System.out.println("Tab changed to index " + selectedIndex + ", normalSearchResultNo = " + normalSearchResultNo);
 
-                JEditorPane[] resultPanes = {
-                    searchResult1, searchResult2, searchResult3, searchResult4,
-                    searchResult5, searchResult6, searchResult7, searchResult8,
-                    searchResult9, searchResult10, searchResult11, searchResult12,
-                    searchResult13, searchResult14
-                };
+            JEditorPane[] resultPanes = {
+                searchResult1, searchResult2, searchResult3, searchResult4,
+                searchResult5, searchResult6, searchResult7, searchResult8,
+                searchResult9, searchResult10, searchResult11, searchResult12,
+                searchResult13, searchResult14
+            };
 
-                JLabel[] matchLabels = {
-                    matchRate1, matchRate2, matchRate3, matchRate4,
-                    matchRate5, matchRate6, matchRate7, matchRate8,
-                    matchRate9, matchRate10, matchRate11, matchRate12,
-                    matchRate13, matchRate14
-                };
+            JLabel[] matchLabels = {
+                matchRate1, matchRate2, matchRate3, matchRate4,
+                matchRate5, matchRate6, matchRate7, matchRate8,
+                matchRate9, matchRate10, matchRate11, matchRate12,
+                matchRate13, matchRate14
+            };
 
-                JButton[] gotoButtons = {
-                    goto1, goto2, goto3, goto4,
-                    goto5, goto6, goto7, goto8,
-                    goto9, goto10, goto11, goto12,
-                    goto13, goto14
-                };
+            JButton[] gotoButtons = {
+                goto1, goto2, goto3, goto4,
+                goto5, goto6, goto7, goto8,
+                goto9, goto10, goto11, goto12,
+                goto13, goto14
+            };
 
-                // Show only components corresponding to the number of results
-                for (int i = 0; i < 14; i++) {
-                    boolean visible = i < normalSearchResultNo;
-                    resultPanes[i].setVisible(visible);
-                    matchLabels[i].setVisible(visible);
-                    gotoButtons[i].setVisible(visible);
+            JScrollPane[] scrolls = {
+                scroll1, scroll2, scroll3, scroll4,
+                scroll5, scroll6, scroll7, scroll8,
+                scroll9, scroll10, scroll11, scroll12,
+                scroll13, scroll14
+            };
 
-                    // Disable horizontal scrollbar
-                    if (resultPanes[i].getParent() instanceof JScrollPane scroll) {
-                        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            if (selectedIndex == 5) {
+                if(normalSearch.isSelected()){
+                    nlsRadio.setSelected(false);
+                }
+                if(nlsRadio.isSelected()){
+                    normalSearch.setSelected(false);
+                }
+                if (normalSearchNoHistory.isSelected()) {
+                    // ✅ Tab 5 + No History mode → limit visible results
+                    for (int i = 0; i < 14; i++) {
+                        boolean visible = i < normalSearchResultNo;
+
+                        resultPanes[i].setVisible(visible);
+                        matchLabels[i].setVisible(visible);
+                        gotoButtons[i].setVisible(visible);
+                        scrolls[i].setVisible(visible);
+
+                        scrolls[i].setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
                     }
+
+                    showMore.setVisible(normalSearchResultNo >= 14);
+
+                } else {
+                    // ✅ Tab 5 + Normal Search → show ALL results
+                    for (int i = 0; i < 14; i++) {
+                        resultPanes[i].setVisible(true);
+                        matchLabels[i].setVisible(true);
+                        gotoButtons[i].setVisible(true);
+                        scrolls[i].setVisible(true);
+
+                        scrolls[i].setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+                    }
+
+                    showMore.setVisible(false);
                 }
 
-                // Show "showMore" only if results >= 14
-                showMore.setVisible(normalSearchResultNo >= 14);
+            } else {
+                // ✅ All other tabs → show all
+                for (int i = 0; i < 14; i++) {
+                    resultPanes[i].setVisible(true);
+                    matchLabels[i].setVisible(true);
+                    gotoButtons[i].setVisible(true);
+                    scrolls[i].setVisible(true);
+
+                    scrolls[i].setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+                }
+
+                showMore.setVisible(false);
             }
+        });
+
+        // Global Backspace listener for Tab 5
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
+            // Make sure components are initialized
+            if (tabs == null || backToSearch == null) return false;
+
+            // Only act when Tab 5 is selected
+            if (tabs.getSelectedIndex() == 5 &&
+                e.getID() == KeyEvent.KEY_PRESSED &&
+                e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+
+                System.out.println("Backspace pressed on Tab 5 → Clicking backToSearch");
+
+                // Run button click safely on the Swing Event Dispatch Thread
+                SwingUtilities.invokeLater(() -> backToSearch.doClick());
+
+                // Consume event so it doesn’t delete text or do other actions
+                return true;
+            }
+
+            // Let all other keys and events work normally
+            return false;
         });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -10100,6 +10187,10 @@ if (normalSearchNoHistory.isSelected()) {
 
     private void nlsRadioActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_nlsRadioActionPerformed
+        nlsOn = true;
+        normalSearchOn = false;
+        normalSearch.setSelected(false);
+        //nlsRadioNoHistory.setSelected(false);
     }//GEN-LAST:event_nlsRadioActionPerformed
 
     private void showMoreActionPerformed(java.awt.event.ActionEvent evt) {
@@ -10323,33 +10414,53 @@ if (normalSearchNoHistory.isSelected()) {
     private void goToRecent1ActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_goToRecent1ActionPerformed
         gotoId = getSearchResultIdIfExists(recentSearchQuery1.getText());
+        nlsRadioNoHistory.setSelected(true);
+        nlsRadio.setSelected(true);
+        normalSearchNoHistory.setSelected(false);
+        normalSearch.setSelected(false);
         tabs.setSelectedIndex(5);
         searchHistoryNav(gotoId);
         currentSearchResultIndex = gotoId;
+        
     }//GEN-LAST:event_goToRecent1ActionPerformed
 
     private void goToRecent2ActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_goToRecent2ActionPerformed
         gotoId = getSearchResultIdIfExists(recentSearchQuery2.getText());
+        nlsRadioNoHistory.setSelected(true);
+        nlsRadio.setSelected(true);
+        normalSearchNoHistory.setSelected(false);
+        normalSearch.setSelected(false);
         tabs.setSelectedIndex(5);
         searchHistoryNav(gotoId);
         currentSearchResultIndex = gotoId;
+        
     }//GEN-LAST:event_goToRecent2ActionPerformed
 
     private void goToRecent4ActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_goToRecent4ActionPerformed
         gotoId = getSearchResultIdIfExists(recentSearchQuery4.getText());
+        nlsRadioNoHistory.setSelected(true);
+        nlsRadio.setSelected(true);
+        normalSearchNoHistory.setSelected(false);
+        normalSearch.setSelected(false);
         tabs.setSelectedIndex(5);
         searchHistoryNav(gotoId);
         currentSearchResultIndex = gotoId;
+        
     }//GEN-LAST:event_goToRecent4ActionPerformed
 
     private void goToRecent6ActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_goToRecent6ActionPerformed
         gotoId = getSearchResultIdIfExists(recentSearchQuery6.getText());
+        nlsRadioNoHistory.setSelected(true);
+        nlsRadio.setSelected(true);
+        normalSearchNoHistory.setSelected(false);
+        normalSearch.setSelected(false);
         tabs.setSelectedIndex(5);
         searchHistoryNav(gotoId);
         currentSearchResultIndex = gotoId;
+        
     }//GEN-LAST:event_goToRecent6ActionPerformed
 
     private void searchBarNormalSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBarNormalSearchActionPerformed
@@ -10359,6 +10470,212 @@ if (normalSearchNoHistory.isSelected()) {
     private void searchNormalSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchNormalSearchActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_searchNormalSearchActionPerformed
+
+    private void normalSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_normalSearchActionPerformed
+        normalSearchOn = true;
+        nlsOn = false;
+        nlsRadio.setSelected(false);
+        //normalSearchNoHistory.setSelected(true);
+    }//GEN-LAST:event_normalSearchActionPerformed
+
+    private void deepSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deepSearchActionPerformed
+        homed = false;
+        if (!nlsOn) {
+            return;
+        }
+
+        searched = true;
+        loading30BW.setVisible(true);
+        searchNoHistory.setBackground(new Color(150, 150, 150));
+        searchNoHistory.setForeground(new Color(200, 200, 200));
+        searchQuery = searchBarNoHistory.getText();
+
+        String query = searchBarNoHistory.getText().trim();
+        if (query.isEmpty() || query.equals("Search for verses")) {
+            loading30BW.setVisible(false);
+            return;
+        }
+
+        String dbPath = "searchResults.db";
+        String url = "jdbc:sqlite:" + dbPath;
+
+        try (Connection conn = DriverManager.getConnection(url)) {
+            String checkSql = "SELECT id FROM searchResults WHERE LOWER(searchTerm) = LOWER(?)";
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                checkStmt.setString(1, query);
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next()) {
+                        int existingId = rs.getInt("id");
+                        String maxSql = "SELECT MAX(id) AS maxId FROM searchResults";
+                        int maxId = 0;
+                        try (Statement stmt = conn.createStatement();
+                             ResultSet maxRs = stmt.executeQuery(maxSql)) {
+                            if (maxRs.next()) {
+                                maxId = maxRs.getInt("maxId");
+                            }
+                        }
+
+                        String bumpSql = """
+                            UPDATE searchResults
+                            SET id = ?, createdAt = CURRENT_TIMESTAMP
+                            WHERE id = ?
+                            """;
+                        try (PreparedStatement bumpStmt = conn.prepareStatement(bumpSql)) {
+                            bumpStmt.setInt(1, maxId + 1);
+                            currentSearchResultIndex = maxId;
+                            bumpStmt.setInt(2, existingId);
+                            bumpStmt.executeUpdate();
+                        }
+
+                        loading30BW.setVisible(true);
+                        searchHistoryNav(maxId + 1);
+                        tabs.setSelectedIndex(5);
+                        matched = true;
+                        return;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // If not found → run DEEP search
+        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            private boolean noMatch = false;
+            private boolean tracebackError = false;
+
+            @Override
+            protected Void doInBackground() throws Exception {
+                // <-- only change is here: use nlsDeepSearch.exe
+                ProcessBuilder pb = new ProcessBuilder(
+                    "nlsEngine/nlsDeepSearch.exe",
+                    query,
+                    "14"
+                );
+                pb.redirectErrorStream(true);
+                Process process = pb.start();
+                currentSearchResultIndex = getMaxId() + 1;
+
+                BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream())
+                );
+                rawResults.clear();
+                List<String> results = new ArrayList<>();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.trim().isEmpty()) continue;
+
+                    if (line.toLowerCase().contains("traceback")) {
+                        tracebackError = true;
+                        break;
+                    }
+                    if (line.contains("❌") || line.toLowerCase().contains("could not find any verse")) {
+                        noMatch = true;
+                        break;
+                    }
+
+                    if (line.startsWith("Top ")) continue;
+                    results.add(line.trim());
+                    rawResults.add(line.trim());
+                }
+                if (!noMatch && !tracebackError && !rawResults.isEmpty()) {
+                    searchNoHistory.setBackground(new Color(242, 242, 242));
+                }
+                process.waitFor();
+
+                JEditorPane[] resultPanes = {
+                    searchResult1, searchResult2, searchResult3, searchResult4,
+                    searchResult5, searchResult6, searchResult7, searchResult8,
+                    searchResult9, searchResult10, searchResult11, searchResult12,
+                    searchResult13, searchResult14
+                };
+                JLabel[] matchLabels = {
+                    matchRate1, matchRate2, matchRate3, matchRate4,
+                    matchRate5, matchRate6, matchRate7, matchRate8,
+                    matchRate9, matchRate10, matchRate11, matchRate12,
+                    matchRate13, matchRate14
+                };
+
+                for (int i = 0; i < 14; i++) {
+                    resultPanes[i].setText("");
+                    matchLabels[i].setText("");
+                }
+
+                for (String raw : results) {
+                    int dotIndex = raw.indexOf('.');
+                    if (dotIndex == -1) continue;
+
+                    int resultIndex;
+                    try {
+                        resultIndex = Integer.parseInt(raw.substring(0, dotIndex).trim()) - 1;
+                    } catch (NumberFormatException e) {
+                        continue;
+                    }
+                    if (resultIndex < 0 || resultIndex >= 14) continue;
+
+                    double score = 0.0;
+                    int scoreIndex = raw.lastIndexOf("(score:");
+                    if (scoreIndex != -1) {
+                        String scoreStr = raw.substring(scoreIndex + 7).replace(")", "").trim();
+                        try { score = Double.parseDouble(scoreStr); } catch (NumberFormatException ignored) {}
+                        raw = raw.substring(dotIndex + 1, scoreIndex).trim();
+                    } else {
+                        raw = raw.substring(dotIndex + 1).trim();
+                    }
+
+                    int dashIndex = raw.indexOf("—");
+                    if (dashIndex == -1) dashIndex = raw.indexOf("-");
+                    String reference = (dashIndex != -1) ? raw.substring(0, dashIndex).trim() : "";
+                    String verseText = (dashIndex != -1) ? raw.substring(dashIndex + 1).trim() : raw;
+
+                    String highlighted = verseText.replaceAll(
+                        "(?i)" + Pattern.quote(query),
+                        "<span style='color:#2b7b2b;'>" + query + "</span>"
+                    );
+
+                    String textHtml = "<html><body style='font-family:\"Nokia Pure Headline Ultra Light\", sans-serif;" +
+                            "font-size:14px; font-weight:100; line-height:1.4; color:#222;'>" +
+                            reference + " — " + highlighted + "</body></html>";
+
+                    resultPanes[resultIndex].setContentType("text/html");
+                    resultPanes[resultIndex].setText(textHtml);
+                    resultPanes[resultIndex].setCaretPosition(0);
+
+                    matchLabels[resultIndex].setText(String.format("%.0f%%", score * 100));
+                    matchLabels[resultIndex].setOpaque(true);
+                    matchLabels[resultIndex].setBackground(getScoreColor(score));
+                    matchLabels[resultIndex].setHorizontalAlignment(SwingConstants.CENTER);
+                    matchLabels[resultIndex].setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 12));
+                }
+
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                loading30BW.setVisible(false);
+
+                if (tracebackError) {
+                    noMatchFound.setForeground(new Color(255, 102, 102));
+                    noMatchFlag = true;
+                    return;
+                }
+
+                if (noMatch || rawResults.isEmpty() || rawResults.get(0).toLowerCase().contains("could not find")) {
+                    noMatchFound.setForeground(new Color(255, 102, 102));
+                    noMatchFlag = true;
+                    return;
+                }
+
+                tabs.setSelectedIndex(5);
+                noMatchFound.setForeground(new Color(242, 242, 242));
+                noMatchFlag = false;
+                saveSearchResults(query, rawResults);
+            }
+        };
+
+        worker.execute();
+    }//GEN-LAST:event_deepSearchActionPerformed
 
     /**
      * @param args the command line arguments
@@ -10467,6 +10784,7 @@ if (normalSearchNoHistory.isSelected()) {
     private javax.swing.JTabbedPane cmtryTabbedPanel;
     private javax.swing.JButton continueReading;
     private javax.swing.JLabel dec;
+    private javax.swing.JButton deepSearch;
     private javax.swing.JLabel description;
     private javax.swing.JButton exploreMoreBtn1;
     private javax.swing.JButton eyeHide;
