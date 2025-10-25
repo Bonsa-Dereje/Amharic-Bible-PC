@@ -9659,7 +9659,7 @@ if (normalSearchNoHistory.isSelected()) {
             }
         }
 
-        //  Save total matches to your variable
+        // Save total matches
         normalSearchResultNo = matches.size();
         System.out.println("Total matches found: " + normalSearchResultNo);
 
@@ -9692,8 +9692,8 @@ if (normalSearchNoHistory.isSelected()) {
 
             // Highlight query
             String highlighted = verseText.replaceAll(
-                "(?i)" + Pattern.quote(query),
-                "<span style='color:#2b7b2b;'>" + query + "</span>"
+                    "(?i)" + Pattern.quote(query),
+                    "<span style='color:#2b7b2b;'>" + query + "</span>"
             );
 
             String html = "<html><body style='white-space: nowrap;'>" +
@@ -9714,12 +9714,67 @@ if (normalSearchNoHistory.isSelected()) {
         } else {
             noMatchFound.setText("");
         }
-cutOff(normalSearchResultNo);
+
+        // Call cutOff method
+        cutOff(normalSearchResultNo);
+
+        // --------------------------------------------
+        // Simulate 10 mouse clicks on the far left of each displayed result
+        // --------------------------------------------
+        for (int i = 0; i < resultsToShow; i++) {
+            JEditorPane pane = resultPanes[i];
+            if (pane.isVisible()) {
+                int x = 5; // far left
+                int y = pane.getHeight() / 2; // vertically centered
+
+                for (int click = 0; click < 10; click++) {
+                    MouseEvent press = new MouseEvent(
+                            pane,
+                            MouseEvent.MOUSE_PRESSED,
+                            System.currentTimeMillis(),
+                            0,
+                            x,
+                            y,
+                            1,
+                            false,
+                            MouseEvent.BUTTON1
+                    );
+                    MouseEvent release = new MouseEvent(
+                            pane,
+                            MouseEvent.MOUSE_RELEASED,
+                            System.currentTimeMillis(),
+                            0,
+                            x,
+                            y,
+                            1,
+                            false,
+                            MouseEvent.BUTTON1
+                    );
+                    MouseEvent clicked = new MouseEvent(
+                            pane,
+                            MouseEvent.MOUSE_CLICKED,
+                            System.currentTimeMillis(),
+                            0,
+                            x,
+                            y,
+                            1,
+                            false,
+                            MouseEvent.BUTTON1
+                    );
+
+                    pane.dispatchEvent(press);
+                    pane.dispatchEvent(release);
+                    pane.dispatchEvent(clicked);
+                }
+            }
+        }
+
     } catch (Exception e) {
         e.printStackTrace();
         JOptionPane.showMessageDialog(this, "Error");
     }
 }
+
 
 
 
