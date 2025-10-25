@@ -70,6 +70,8 @@ import java.awt.event.ActionEvent;
 import org.json.JSONTokener;
 
 import java.nio.charset.StandardCharsets;
+import javax.swing.SwingConstants;
+
 
 //import io.documentnode.epub4j.domain.Book;
 //import io.documentnode.epub4j.epub.EpubReader;
@@ -365,6 +367,9 @@ public class mainWindow extends javax.swing.JFrame {
     
     public int gotoId;
 
+    public int normalSearchResultNo;
+    
+    
     public mainWindow() {
         setUndecorated(true);
         initComponents();
@@ -2351,6 +2356,109 @@ private int getBookNumber(String matchText) {
 
         timer.start();
     }
+
+    
+    
+    public void displaySearchResults(int normalSearchResultNo) {
+    System.out.println("Displaying " + normalSearchResultNo + " search results.");
+
+    JEditorPane[] resultPanes = {
+        searchResult1, searchResult2, searchResult3, searchResult4,
+        searchResult5, searchResult6, searchResult7, searchResult8,
+        searchResult9, searchResult10, searchResult11, searchResult12,
+        searchResult13, searchResult14
+    };
+
+    JLabel[] matchLabels = {
+        matchRate1, matchRate2, matchRate3, matchRate4,
+        matchRate5, matchRate6, matchRate7, matchRate8,
+        matchRate9, matchRate10, matchRate11, matchRate12,
+        matchRate13, matchRate14
+    };
+
+    JButton[] gotoButtons = {
+        goto1, goto2, goto3, goto4,
+        goto5, goto6, goto7, goto8,
+        goto9, goto10, goto11, goto12,
+        goto13, goto14
+    };
+
+    for (int i = 0; i < 14; i++) {
+        boolean visible = i < normalSearchResultNo;
+        resultPanes[i].setVisible(visible);
+        matchLabels[i].setVisible(visible);
+        gotoButtons[i].setVisible(visible);
+
+        // Center match rate
+        matchLabels[i].setHorizontalAlignment(SwingConstants.CENTER);
+
+        // Apply font
+        resultPanes[i].setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 14));
+
+        // Disable horizontal scrollbar
+        if (resultPanes[i].getParent() instanceof JScrollPane scroll) {
+            scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        }
+    }
+
+    // Show "showMore" only if results >= 14
+    showMore.setVisible(normalSearchResultNo >= 14);
+}
+
+public void cutOff(int normalSearchResultNo) {
+    System.out.println("Displaying " + normalSearchResultNo + " search results.");
+
+    JEditorPane[] resultPanes = {
+        searchResult1, searchResult2, searchResult3, searchResult4,
+        searchResult5, searchResult6, searchResult7, searchResult8,
+        searchResult9, searchResult10, searchResult11, searchResult12,
+        searchResult13, searchResult14
+    };
+
+    JLabel[] matchLabels = {
+        matchRate1, matchRate2, matchRate3, matchRate4,
+        matchRate5, matchRate6, matchRate7, matchRate8,
+        matchRate9, matchRate10, matchRate11, matchRate12,
+        matchRate13, matchRate14
+    };
+
+    JButton[] gotoButtons = {
+        goto1, goto2, goto3, goto4,
+        goto5, goto6, goto7, goto8,
+        goto9, goto10, goto11, goto12,
+        goto13, goto14
+    };
+    
+    JScrollPane[] scrollPanes = {
+        scroll1, scroll2, scroll3, scroll4,
+        scroll5, scroll6, scroll7, scroll8,
+        scroll9, scroll10, scroll11, scroll12,
+        scroll13, scroll14
+    };
+
+    for (int i = 0; i < 14; i++) {
+        boolean visible = i < normalSearchResultNo;
+
+        // Set visibility
+        resultPanes[i].setVisible(visible);
+        matchLabels[i].setVisible(visible);
+        gotoButtons[i].setVisible(visible);
+        scrollPanes[i].setVisible(visible);
+
+        // Center match rate
+        matchLabels[i].setHorizontalAlignment(SwingConstants.CENTER);
+
+        // Disable horizontal scrollbar
+        scrollPanes[i].setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    }
+
+    // Show "showMore" only if results >= 14
+    showMore.setVisible(normalSearchResultNo >= 14);
+}
+
+
+
+
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -8303,6 +8411,49 @@ private int getBookNumber(String matchText) {
 
         });
 
+        tabs.addChangeListener(e -> {
+            if (tabs.getSelectedIndex() == 5) {
+                System.out.println("Tab 5 selected, normalSearchResultNo = " + normalSearchResultNo);
+
+                JEditorPane[] resultPanes = {
+                    searchResult1, searchResult2, searchResult3, searchResult4,
+                    searchResult5, searchResult6, searchResult7, searchResult8,
+                    searchResult9, searchResult10, searchResult11, searchResult12,
+                    searchResult13, searchResult14
+                };
+
+                JLabel[] matchLabels = {
+                    matchRate1, matchRate2, matchRate3, matchRate4,
+                    matchRate5, matchRate6, matchRate7, matchRate8,
+                    matchRate9, matchRate10, matchRate11, matchRate12,
+                    matchRate13, matchRate14
+                };
+
+                JButton[] gotoButtons = {
+                    goto1, goto2, goto3, goto4,
+                    goto5, goto6, goto7, goto8,
+                    goto9, goto10, goto11, goto12,
+                    goto13, goto14
+                };
+
+                // Show only components corresponding to the number of results
+                for (int i = 0; i < 14; i++) {
+                    boolean visible = i < normalSearchResultNo;
+                    resultPanes[i].setVisible(visible);
+                    matchLabels[i].setVisible(visible);
+                    gotoButtons[i].setVisible(visible);
+
+                    // Disable horizontal scrollbar
+                    if (resultPanes[i].getParent() instanceof JScrollPane scroll) {
+                        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+                    }
+                }
+
+                // Show "showMore" only if results >= 14
+                showMore.setVisible(normalSearchResultNo >= 14);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -9454,13 +9605,16 @@ private int getBookNumber(String matchText) {
         //markAsAlreadySearched(true);
         //System.out.println("is it matched? " + matched);
 
+        
 if (normalSearchNoHistory.isSelected()) {
+    normalSearch.setSelected(true);
     searched = true;
     loading30BW.setVisible(true);
     tabs.setSelectedIndex(5);
-String query = searchBarNoHistory.getText();
-    if (query == null || query.trim().isEmpty()) return;
 
+    String query = searchBarNoHistory.getText();
+    searchBar.setText(query);
+    if (query == null || query.trim().isEmpty()) return;
     query = query.trim().toLowerCase();
 
     JEditorPane[] resultPanes = {
@@ -9477,6 +9631,13 @@ String query = searchBarNoHistory.getText();
         matchRate13, matchRate14
     };
 
+    JButton[] gotoButtons = {
+        goto1, goto2, goto3, goto4,
+        goto5, goto6, goto7, goto8,
+        goto9, goto10, goto11, goto12,
+        goto13, goto14
+    };
+
     try {
         String path = "src/main/resources/files/books/NIV/NIV_bible.json";
         FileInputStream fis = new FileInputStream(path);
@@ -9484,6 +9645,7 @@ String query = searchBarNoHistory.getText();
 
         List<String[]> matches = new ArrayList<>();
 
+        // Search all verses
         for (String book : bible.keySet()) {
             JSONObject chapters = bible.getJSONObject(book);
             for (String ch : chapters.keySet()) {
@@ -9497,14 +9659,30 @@ String query = searchBarNoHistory.getText();
             }
         }
 
+        //  Save total matches to your variable
+        normalSearchResultNo = matches.size();
+        System.out.println("Total matches found: " + normalSearchResultNo);
+
         int resultsToShow = Math.min(matches.size(), 14);
 
-        // Clear all first
+        // Clear text but keep all panes visible
         for (int i = 0; i < 14; i++) {
-            resultPanes[i].setVisible(false);
-            matchLabels[i].setVisible(false);
+            resultPanes[i].setText("");
+            resultPanes[i].setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 18));
+            resultPanes[i].setEditable(false);
+
+            matchLabels[i].setText("");
+            matchLabels[i].setBackground(new Color(86, 211, 100));
+            matchLabels[i].setOpaque(true);
+            matchLabels[i].setHorizontalAlignment(SwingConstants.CENTER);
+
+            // Leave all components visible
+            resultPanes[i].setVisible(true);
+            matchLabels[i].setVisible(true);
+            gotoButtons[i].setVisible(true);
         }
 
+        // Display only the matches
         for (int i = 0; i < resultsToShow; i++) {
             String[] m = matches.get(i);
             String book = m[0];
@@ -9512,40 +9690,39 @@ String query = searchBarNoHistory.getText();
             String verseNum = m[2];
             String verseText = m[3];
 
+            // Highlight query
             String highlighted = verseText.replaceAll(
                 "(?i)" + Pattern.quote(query),
                 "<span style='color:#2b7b2b;'>" + query + "</span>"
             );
 
-            String html = "<html><body style='font-family:Arial; font-size:14px; color:#222;'>" +
+            String html = "<html><body style='white-space: nowrap;'>" +
                     book + " " + ch + ":" + verseNum + " — " + highlighted +
                     "</body></html>";
 
             resultPanes[i].setContentType("text/html");
             resultPanes[i].setText(html);
-            resultPanes[i].setVisible(true);
 
             matchLabels[i].setText("100%");
-            matchLabels[i].setBackground(new Color(86, 211, 100));
-            matchLabels[i].setOpaque(true);
-            matchLabels[i].setVisible(true);
         }
 
-        // If fewer than 14, hide showMore button or extra components
         showMore.setVisible(matches.size() > 14);
 
         if (matches.isEmpty()) {
             noMatchFound.setForeground(new Color(255, 102, 102));
-            noMatchFound.setText("❌ No verses matched your query.");
+            noMatchFound.setText(" No verses matched your query.");
         } else {
             noMatchFound.setText("");
         }
-
+cutOff(normalSearchResultNo);
     } catch (Exception e) {
         e.printStackTrace();
-        JOptionPane.showMessageDialog(this, "Error loading Bible JSON:\n" + e.getMessage());
+        JOptionPane.showMessageDialog(this, "Error");
     }
 }
+
+
+
 
 
         
