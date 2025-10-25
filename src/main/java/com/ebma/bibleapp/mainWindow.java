@@ -67,6 +67,10 @@ import org.json.JSONObject;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
+import org.json.JSONTokener;
+
+import java.nio.charset.StandardCharsets;
+
 //import io.documentnode.epub4j.domain.Book;
 //import io.documentnode.epub4j.epub.EpubReader;
 //import org.apache.tika.Tika;
@@ -2949,6 +2953,9 @@ private int getBookNumber(String matchText) {
         backToSearch = new javax.swing.JButton();
         nextSearch = new javax.swing.JButton();
         bookmarks = new javax.swing.JPanel();
+        searchBarNormalSearch = new javax.swing.JTextField();
+        searchNormalSearch = new javax.swing.JButton();
+        jPanel1 = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -8021,16 +8028,81 @@ private int getBookNumber(String matchText) {
 
         tabs.addTab("tab6", searchTabResults);
 
+        searchBarNormalSearch.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
+        searchBarNormalSearch.setForeground(new java.awt.Color(102, 102, 102));
+        searchBarNormalSearch.setText("Search for verses");
+        searchBarNormalSearch.setFocusable(false);
+        searchBarNormalSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchBarNormalSearchActionPerformed(evt);
+            }
+        });
+
+        searchNormalSearch.setBackground(new java.awt.Color(40, 43, 45));
+        searchNormalSearch.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        searchNormalSearch.setForeground(new java.awt.Color(255, 255, 255));
+        searchNormalSearch.setText("Search");
+        searchNormalSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchNormalSearchActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 812, Short.MAX_VALUE)
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
+        );
+
         javax.swing.GroupLayout bookmarksLayout = new javax.swing.GroupLayout(bookmarks);
         bookmarks.setLayout(bookmarksLayout);
         bookmarksLayout.setHorizontalGroup(
             bookmarksLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1580, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookmarksLayout.createSequentialGroup()
+                .addContainerGap(407, Short.MAX_VALUE)
+                .addComponent(searchBarNormalSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 705, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(6, 6, 6)
+                .addComponent(searchNormalSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(334, 334, 334))
+            .addGroup(bookmarksLayout.createSequentialGroup()
+                .addGap(310, 310, 310)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         bookmarksLayout.setVerticalGroup(
             bookmarksLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 975, Short.MAX_VALUE)
+            .addGroup(bookmarksLayout.createSequentialGroup()
+                .addGap(73, 73, 73)
+                .addGroup(bookmarksLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(searchBarNormalSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(searchNormalSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(765, Short.MAX_VALUE))
         );
+
+        searchBarNoHistory.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                if (searchBarNoHistory.getText().equals("Search for verses")) {
+                    searchBarNoHistory.setText("");
+                    searchBarNoHistory.setForeground(new java.awt.Color(0, 0, 0)); // optional: set text color to black
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                if (searchBarNoHistory.getText().trim().isEmpty()) {
+                    searchBarNoHistory.setText("Search for verses");
+                    searchBarNoHistory.setForeground(new java.awt.Color(204, 204, 204)); // gray placeholder color
+                }
+            }
+        });
 
         tabs.addTab("tab7", bookmarks);
 
@@ -9381,115 +9453,16 @@ private int getBookNumber(String matchText) {
 //GEN-FIRST:event_searchNoHistoryActionPerformed
         //markAsAlreadySearched(true);
         //System.out.println("is it matched? " + matched);
+
 if (normalSearchNoHistory.isSelected()) {
-    System.out.println("normalSearchNoHistory selected");
     searched = true;
     loading30BW.setVisible(true);
-    System.out.println("Loading spinner visible");
+    tabs.setSelectedIndex(5);
+String query = searchBarNoHistory.getText();
+    if (query == null || query.trim().isEmpty()) return;
 
-    searchNoHistory.setBackground(new Color(150, 150, 150));
-    searchNoHistory.setForeground(new Color(200, 200, 200));
-    System.out.println("Search button color updated");
+    query = query.trim().toLowerCase();
 
-    String query = searchBarNoHistory.getText().trim();
-    System.out.println("Query entered: '" + query + "'");
-
-    if (query.isEmpty() || query.equals("Search for verses")) {
-        System.out.println("Query empty — stopping");
-        loading30BW.setVisible(false);
-        return;
-    }
-
-    // Detect Amharic vs English
-    boolean isAmharic = query.matches(".*[\\u1200-\\u137F]+.*");
-    System.out.println("Language detected: " + (isAmharic ? "Amharic" : "English"));
-
-    int langIndex = isAmharic ? 0 : 1;
-    langChooser.setSelectedIndex(langIndex);
-
-    String baseDir = "src/main/resources/files/books/";
-    String targetDir = baseDir + (isAmharic ? "amh" : "eng");
-    System.out.println("Target directory: " + targetDir);
-
-    File rootDir = new File(targetDir);
-    System.out.println("Checking rootDir: " + rootDir.getAbsolutePath());
-    if (!rootDir.exists()) {
-        System.out.println("Directory not found");
-        loading30BW.setVisible(false);
-        return;
-    }
-
-    List<String> foundMatches = new ArrayList<>();
-    int totalBooks = 0;
-    int totalChapters = 0;
-    int totalVerses = 0;
-
-    // Loop through 1–66 book folders
-    for (int i = 1; i <= 66; i++) {
-        File bookDir = new File(rootDir, String.valueOf(i));
-        if (!bookDir.exists()) {
-            System.out.println("Skipping book " + i + " — not found");
-            continue;
-        }
-        totalBooks++;
-        System.out.println("Reading Book " + i);
-
-        File[] chapterFiles = bookDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
-        if (chapterFiles == null || chapterFiles.length == 0) {
-            System.out.println("No PDF chapters found in book " + i);
-            continue;
-        }
-
-        for (File chapter : chapterFiles) {
-            totalChapters++;
-            System.out.println("Reading chapter PDF: " + chapter.getName());
-            try (PDDocument document = PDDocument.load(chapter)) {
-                PDFTextStripper stripper = new PDFTextStripper();
-                String text = stripper.getText(document);
-
-                String[] lines = text.split("\\r?\\n");
-                int verseNum = 1;
-                for (String line : lines) {
-                    totalVerses++;
-                    if (line.trim().equalsIgnoreCase(query)) {
-                        String match = String.format(
-                            "Book %d — %s (verse %d)",
-                            i,
-                            chapter.getName().replace(".pdf", ""),
-                            verseNum
-                        );
-                        foundMatches.add(match);
-                        System.out.println("MATCH FOUND: " + match);
-                    }
-                    verseNum++;
-                }
-            } catch (Exception e) {
-                System.out.println("Error reading PDF: " + chapter.getAbsolutePath());
-                e.printStackTrace();
-            }
-        }
-    }
-
-    System.out.println("Search complete. Books read: " + totalBooks +
-        ", Chapters: " + totalChapters +
-        ", Verses checked: " + totalVerses +
-        ", Matches: " + foundMatches.size());
-
-    if (foundMatches.isEmpty()) {
-        System.out.println("No matches found");
-        noMatchFound.setForeground(new Color(255, 102, 102));
-        noMatchFlag = true;
-        loading30BW.setVisible(false);
-        return;
-    }
-
-    // Determine testament
-    int firstBook = getBookNumber(foundMatches.get(0));
-    int testamentIndex = (firstBook <= 39) ? 0 : 1;
-    testamentChooser.setSelectedIndex(testamentIndex);
-    System.out.println("First match in " + (testamentIndex == 0 ? "Old" : "New") + " Testament");
-
-    // Display top 14 matches
     JEditorPane[] resultPanes = {
         searchResult1, searchResult2, searchResult3, searchResult4,
         searchResult5, searchResult6, searchResult7, searchResult8,
@@ -9504,27 +9477,78 @@ if (normalSearchNoHistory.isSelected()) {
         matchRate13, matchRate14
     };
 
-    System.out.println("Clearing previous results");
-    for (int i = 0; i < 14; i++) {
-        resultPanes[i].setText("");
-        matchLabels[i].setText("");
+    try {
+        String path = "src/main/resources/files/books/NIV/NIV_bible.json";
+        FileInputStream fis = new FileInputStream(path);
+        JSONObject bible = new JSONObject(new JSONTokener(new java.io.InputStreamReader(fis, StandardCharsets.UTF_8)));
+
+        List<String[]> matches = new ArrayList<>();
+
+        for (String book : bible.keySet()) {
+            JSONObject chapters = bible.getJSONObject(book);
+            for (String ch : chapters.keySet()) {
+                JSONObject verses = chapters.getJSONObject(ch);
+                for (String vnum : verses.keySet()) {
+                    String verseText = verses.getString(vnum);
+                    if (verseText.toLowerCase().contains(query)) {
+                        matches.add(new String[]{book, ch, vnum, verseText});
+                    }
+                }
+            }
+        }
+
+        int resultsToShow = Math.min(matches.size(), 14);
+
+        // Clear all first
+        for (int i = 0; i < 14; i++) {
+            resultPanes[i].setVisible(false);
+            matchLabels[i].setVisible(false);
+        }
+
+        for (int i = 0; i < resultsToShow; i++) {
+            String[] m = matches.get(i);
+            String book = m[0];
+            String ch = m[1];
+            String verseNum = m[2];
+            String verseText = m[3];
+
+            String highlighted = verseText.replaceAll(
+                "(?i)" + Pattern.quote(query),
+                "<span style='color:#2b7b2b;'>" + query + "</span>"
+            );
+
+            String html = "<html><body style='font-family:Arial; font-size:14px; color:#222;'>" +
+                    book + " " + ch + ":" + verseNum + " — " + highlighted +
+                    "</body></html>";
+
+            resultPanes[i].setContentType("text/html");
+            resultPanes[i].setText(html);
+            resultPanes[i].setVisible(true);
+
+            matchLabels[i].setText("100%");
+            matchLabels[i].setBackground(new Color(86, 211, 100));
+            matchLabels[i].setOpaque(true);
+            matchLabels[i].setVisible(true);
+        }
+
+        // If fewer than 14, hide showMore button or extra components
+        showMore.setVisible(matches.size() > 14);
+
+        if (matches.isEmpty()) {
+            noMatchFound.setForeground(new Color(255, 102, 102));
+            noMatchFound.setText("❌ No verses matched your query.");
+        } else {
+            noMatchFound.setText("");
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Error loading Bible JSON:\n" + e.getMessage());
     }
-
-    int limit = Math.min(foundMatches.size(), 14);
-    System.out.println("Displaying top " + limit + " matches");
-    for (int i = 0; i < limit; i++) {
-        resultPanes[i].setText(foundMatches.get(i));
-        matchLabels[i].setText(String.valueOf(i + 1));
-        System.out.println("#" + (i + 1) + ": " + foundMatches.get(i));
-    }
-
-    loading30BW.setVisible(false);
-    tabs.setSelectedIndex(5);
-    noMatchFound.setForeground(new Color(242, 242, 242));
-    noMatchFlag = false;
-
-    System.out.println("Done. Results displayed");
 }
+
+
+        
 
 
         homed = false;
@@ -10096,6 +10120,14 @@ if (normalSearchNoHistory.isSelected()) {
         currentSearchResultIndex = gotoId;
     }//GEN-LAST:event_goToRecent6ActionPerformed
 
+    private void searchBarNormalSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBarNormalSearchActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_searchBarNormalSearchActionPerformed
+
+    private void searchNormalSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchNormalSearchActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_searchNormalSearchActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -10233,6 +10265,7 @@ if (normalSearchNoHistory.isSelected()) {
     private javax.swing.JLabel homeBtnLabel;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel jan;
     private javax.swing.JButton journalBtn;
     private javax.swing.JLabel jul;
@@ -10325,11 +10358,13 @@ if (normalSearchNoHistory.isSelected()) {
     private javax.swing.JButton search;
     private javax.swing.JTextField searchBar;
     private javax.swing.JTextField searchBarNoHistory;
+    private javax.swing.JTextField searchBarNormalSearch;
     private javax.swing.JButton searchBtn;
     private javax.swing.JLabel searchBtnLabel;
     private javax.swing.JLabel searchHistoryTitle;
     private javax.swing.JButton searchNoHistory;
     private javax.swing.JPanel searchNoHistoryPanel;
+    private javax.swing.JButton searchNormalSearch;
     private javax.swing.JEditorPane searchResult1;
     private javax.swing.JEditorPane searchResult10;
     private javax.swing.JEditorPane searchResult11;

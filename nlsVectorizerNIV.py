@@ -13,7 +13,7 @@ OUTPUT_FILE = os.path.join(BASE_DIR, "nlsVectors.json")
 # Check if file exists
 # -----------------------------
 if not os.path.exists(NIV_FILE):
-    raise FileNotFoundError(f"❌ NIV JSON file not found in project folder: {NIV_FILE}")
+    raise FileNotFoundError(f" NIV JSON file not found in project folder: {NIV_FILE}")
 else:
     print(f"✅ Found NIV JSON file: {NIV_FILE}")
 
