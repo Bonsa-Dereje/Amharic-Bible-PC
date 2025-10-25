@@ -374,6 +374,7 @@ public class mainWindow extends javax.swing.JFrame {
     public int normalSearchResultNo;
     private boolean recentClicked = false;
     
+    private boolean deepSearchOpened = false;
     public mainWindow() {
         setUndecorated(true);
         initComponents();
@@ -1654,151 +1655,106 @@ public class mainWindow extends javax.swing.JFrame {
                chapterChooser.setSelectedIndex(bResumeA);
            }
 */
-    private void saveSearchResults(String searchTerm, List<String> rawResults) {
-        SwingWorker<Void, Void> dbWorker = new SwingWorker<>() {
-            @Override
-            protected Void doInBackground() throws Exception {
-                // Skip saving if no results
-                boolean noResults = rawResults
-                    .stream()
-                    .anyMatch(line ->
-                        line.toLowerCase().contains("could not find any verse")
-                    );
-                if (noResults) {
-                    System.out.println(
-                        "No valid results found → skipping database save."
-                    );
-                    System.out.println("=== saveSearchResults() END ===\n");
-                    return null;
-                }
+private void saveSearchResults(String searchTerm, List<String> rawResults) { 
+    SwingWorker<Void, Void> dbWorker = new SwingWorker<>() { 
+        @Override 
+        protected Void doInBackground() throws Exception { 
+            // Skip saving if no results 
+            boolean noResults = rawResults
+                .stream()
+                .anyMatch(line -> line.toLowerCase().contains("could not find any verse"));
+            if (noResults) { 
+                System.out.println("No valid results found → skipping database save."); 
+                System.out.println("=== saveSearchResults() END ===\n"); 
+                return null; 
+            } 
+            
+            String dbPath = "searchResults.db"; 
+            String url = "jdbc:sqlite:" + dbPath; 
+            
+            try (Connection conn = DriverManager.getConnection(url)) { 
+                conn.setAutoCommit(false); 
+                
+                // --- Check if searchTerm exists (case-insensitive) 
+                String checkSql = "SELECT id, searchResult FROM searchResults WHERE LOWER(searchTerm) = LOWER(?)"; 
+                String existingResult = null; 
+                Integer existingId = null; 
+                
+                try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) { 
+                    checkStmt.setString(1, searchTerm); 
+                    try (ResultSet rs = checkStmt.executeQuery()) { 
+                        if (rs.next()) { 
+                            existingId = rs.getInt("id"); 
+                            existingResult = rs.getString("searchResult"); 
+                            System.out.println("Existing term found → ID " + existingId); 
+                        } else { 
+                            System.out.println("No existing entry found for \"" + searchTerm + "\""); 
+                        } 
+                    } 
+                } 
+                
+                if (existingResult != null) { 
+                    // --- Delete old record 
+                    String deleteSql = "DELETE FROM searchResults WHERE id = ?"; 
+                    try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSql)) { 
+                        deleteStmt.setInt(1, existingId); 
+                        int deleted = deleteStmt.executeUpdate(); 
+                        System.out.println("Rows deleted: " + deleted); 
+                    } 
+                    
+                    String insertSql = "INSERT INTO searchResults(searchTerm, searchResult) VALUES (?, ?)"; 
+                    try (PreparedStatement insertStmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) { 
+                        insertStmt.setString(1, searchTerm); 
+                        insertStmt.setString(2, existingResult); 
+                        int rows = insertStmt.executeUpdate(); 
+                        System.out.println("Rows inserted: " + rows); 
+                        try (ResultSet keys = insertStmt.getGeneratedKeys()) { 
+                            if (keys.next()) { 
+                                currentSearchResultIndex = keys.getInt(1); 
+                                System.out.println("Reinserted with new ID → " + currentSearchResultIndex); 
+                            } else { 
+                                System.out.println(" No generated key returned!"); 
+                            } 
+                        } 
+                    } 
+                    
+                    conn.commit(); 
+                    System.out.println("=== saveSearchResults() END ===\n"); 
+                    return null; 
+                } 
+                
+                String allResults = String.join("\n", rawResults); 
+                String insertSql = "INSERT INTO searchResults(searchTerm, searchResult) VALUES (?, ?)"; 
+                
+                try (PreparedStatement pstmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) { 
+                    pstmt.setString(1, searchTerm); 
+                    pstmt.setString(2, allResults); 
+                    int rows = pstmt.executeUpdate(); 
+                    System.out.println("Rows inserted: " + rows); 
+                    try (ResultSet keys = pstmt.getGeneratedKeys()) { 
+                        if (keys.next()) { 
+                            currentSearchResultIndex = keys.getInt(1); 
+                        } else { 
+                            System.out.println(" No generated key returned!"); 
+                        } 
+                    } 
+                } 
+                
+                conn.commit(); 
+                System.out.println("Transaction committed. (New search saved)"); 
+            } catch (SQLException e) { 
+                System.err.println("SQL ERROR in saveSearchResults:"); 
+                e.printStackTrace(); 
+            } 
+            
+            System.out.println("=== saveSearchResults() END ===\n"); 
+            return null; 
+        } 
+    }; 
+    
+    dbWorker.execute(); 
+}
 
-                String dbPath = "searchResults.db";
-                String url = "jdbc:sqlite:" + dbPath;
-
-                try (Connection conn = DriverManager.getConnection(url)) {
-                    conn.setAutoCommit(false);
-
-                    // --- Check if searchTerm exists (case-insensitive)
-                    String checkSql =
-                        "SELECT id, searchResult FROM searchResults WHERE LOWER(searchTerm) = LOWER(?)";
-                    String existingResult = null;
-                    Integer existingId = null;
-
-                    try (
-                        PreparedStatement checkStmt = conn.prepareStatement(
-                            checkSql
-                        )
-                    ) {
-                        checkStmt.setString(1, searchTerm);
-                        try (ResultSet rs = checkStmt.executeQuery()) {
-                            if (rs.next()) {
-                                existingId = rs.getInt("id");
-                                existingResult = rs.getString("searchResult");
-                                System.out.println(
-                                    "Existing term found → ID " + existingId
-                                );
-                            } else {
-                                System.out.println(
-                                    "No existing entry found for \"" +
-                                        searchTerm +
-                                        "\""
-                                );
-                            }
-                        }
-                    }
-
-                    if (existingResult != null) {
-                        // --- Delete old record
-
-                        String deleteSql =
-                            "DELETE FROM searchResults WHERE id = ?";
-                        try (
-                            PreparedStatement deleteStmt =
-                                conn.prepareStatement(deleteSql)
-                        ) {
-                            deleteStmt.setInt(1, existingId);
-                            int deleted = deleteStmt.executeUpdate();
-                            System.out.println("Rows deleted: " + deleted);
-                        }
-
-                        String insertSql =
-                            "INSERT INTO searchResults(searchTerm, searchResult) VALUES (?, ?)";
-                        try (
-                            PreparedStatement insertStmt =
-                                conn.prepareStatement(
-                                    insertSql,
-                                    Statement.RETURN_GENERATED_KEYS
-                                )
-                        ) {
-                            insertStmt.setString(1, searchTerm);
-                            insertStmt.setString(2, existingResult);
-                            int rows = insertStmt.executeUpdate();
-                            System.out.println("Rows inserted: " + rows);
-
-                            try (
-                                ResultSet keys = insertStmt.getGeneratedKeys()
-                            ) {
-                                if (keys.next()) {
-                                    currentSearchResultIndex = keys.getInt(1);
-                                    System.out.println(
-                                        "Reinserted with new ID → " +
-                                            currentSearchResultIndex
-                                    );
-                                } else {
-                                    System.out.println(
-                                        "  No generated key returned!"
-                                    );
-                                }
-                            }
-                        }
-
-                        conn.commit();
-
-                        System.out.println("=== saveSearchResults() END ===\n");
-                        return null;
-                    }
-
-                    String allResults = String.join("\n", rawResults);
-                    String insertSql =
-                        "INSERT INTO searchResults(searchTerm, searchResult) VALUES (?, ?)";
-                    try (
-                        PreparedStatement pstmt = conn.prepareStatement(
-                            insertSql,
-                            Statement.RETURN_GENERATED_KEYS
-                        )
-                    ) {
-                        pstmt.setString(1, searchTerm);
-                        pstmt.setString(2, allResults);
-                        int rows = pstmt.executeUpdate();
-                        System.out.println("Rows inserted: " + rows);
-
-                        try (ResultSet keys = pstmt.getGeneratedKeys()) {
-                            if (keys.next()) {
-                                currentSearchResultIndex = keys.getInt(1);
-                            } else {
-                                System.out.println(
-                                    "  No generated key returned!"
-                                );
-                            }
-                        }
-                    }
-
-                    conn.commit();
-                    System.out.println(
-                        "Transaction committed. (New search saved)"
-                    );
-                } catch (SQLException e) {
-                    System.err.println("SQL ERROR in saveSearchResults:");
-                    e.printStackTrace();
-                }
-
-                System.out.println("=== saveSearchResults() END ===\n");
-                return null;
-            }
-        };
-
-        dbWorker.execute();
-    }
 
     public void gotoVerse(int index) {
         try {
@@ -2365,54 +2321,9 @@ private int getBookNumber(String matchText) {
 
     
     
-    public void displaySearchResults(int normalSearchResultNo) {
-    System.out.println("Displaying " + normalSearchResultNo + " search results.");
-
-    JEditorPane[] resultPanes = {
-        searchResult1, searchResult2, searchResult3, searchResult4,
-        searchResult5, searchResult6, searchResult7, searchResult8,
-        searchResult9, searchResult10, searchResult11, searchResult12,
-        searchResult13, searchResult14
-    };
-
-    JLabel[] matchLabels = {
-        matchRate1, matchRate2, matchRate3, matchRate4,
-        matchRate5, matchRate6, matchRate7, matchRate8,
-        matchRate9, matchRate10, matchRate11, matchRate12,
-        matchRate13, matchRate14
-    };
-
-    JButton[] gotoButtons = {
-        goto1, goto2, goto3, goto4,
-        goto5, goto6, goto7, goto8,
-        goto9, goto10, goto11, goto12,
-        goto13, goto14
-    };
-
-    for (int i = 0; i < 14; i++) {
-        boolean visible = i < normalSearchResultNo;
-        resultPanes[i].setVisible(visible);
-        matchLabels[i].setVisible(visible);
-        gotoButtons[i].setVisible(visible);
-
-        // Center match rate
-        matchLabels[i].setHorizontalAlignment(SwingConstants.CENTER);
-
-        // Apply font
-        resultPanes[i].setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 14));
-
-        // Disable horizontal scrollbar
-        if (resultPanes[i].getParent() instanceof JScrollPane scroll) {
-            scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        }
-    }
-
-    // Show "showMore" only if results >= 14
-    showMore.setVisible(normalSearchResultNo >= 14);
-}
 
 public void cutOff(int normalSearchResultNo) {
-    System.out.println("Displaying " + normalSearchResultNo + " search results.");
+    //System.out.println("Displaying " + normalSearchResultNo + " search results.");
 
     JEditorPane[] resultPanes = {
         searchResult1, searchResult2, searchResult3, searchResult4,
@@ -2458,7 +2369,8 @@ public void cutOff(int normalSearchResultNo) {
         scrollPanes[i].setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
     }
 
-    // Show "showMore" only if results >= 14
+    
+    
     showMore.setVisible(normalSearchResultNo >= 14);
 }
 
@@ -3002,6 +2914,7 @@ public void cutOff(int normalSearchResultNo) {
         noMatchFound = new javax.swing.JLabel();
         deepSearch = new javax.swing.JButton();
         searchTabResults = new javax.swing.JPanel();
+        showMore = new javax.swing.JButton();
         searchBar = new javax.swing.JTextField();
         search = new javax.swing.JButton();
         nlsRadio = new javax.swing.JRadioButton();
@@ -3062,15 +2975,11 @@ public void cutOff(int normalSearchResultNo) {
         matchRate14 = new javax.swing.JLabel();
         scroll14 = new javax.swing.JScrollPane();
         searchResult14 = new javax.swing.JEditorPane();
-        showMore = new javax.swing.JButton();
         backAndHome = new javax.swing.JPanel();
         lastSearch = new javax.swing.JButton();
         backToSearch = new javax.swing.JButton();
         nextSearch = new javax.swing.JButton();
         bookmarks = new javax.swing.JPanel();
-        searchBarNormalSearch = new javax.swing.JTextField();
-        searchNormalSearch = new javax.swing.JButton();
-        jPanel1 = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -7749,6 +7658,7 @@ public void cutOff(int normalSearchResultNo) {
         deepSearch.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 12)); // NOI18N
         deepSearch.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/icons8-arrow-right-15.png"))); // NOI18N
         deepSearch.setText("Deep Search");
+        deepSearch.setBorderPainted(false);
         deepSearch.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 deepSearchActionPerformed(evt);
@@ -7760,10 +7670,19 @@ public void cutOff(int normalSearchResultNo) {
 
         searchTabResults.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        showMore.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        showMore.setIcon(new javax.swing.ImageIcon(getClass().getResource("/animatedIcons/loading30.gif"))); // NOI18N
+        showMore.setText("Show More");
+        showMore.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showMoreActionPerformed(evt);
+            }
+        });
+        searchTabResults.add(showMore, new org.netbeans.lib.awtextra.AbsoluteConstraints(729, 873, -1, -1));
+
         searchBar.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
         searchBar.setForeground(new java.awt.Color(102, 102, 102));
         searchBar.setText("Search for verses");
-        searchBar.setFocusable(false);
         searchBar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 searchBarActionPerformed(evt);
@@ -8097,16 +8016,6 @@ public void cutOff(int normalSearchResultNo) {
 
         searchTabResults.add(scroll14, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 818, 1344, 37));
 
-        showMore.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        showMore.setIcon(new javax.swing.ImageIcon(getClass().getResource("/animatedIcons/loading30.gif"))); // NOI18N
-        showMore.setText("Show More");
-        showMore.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                showMoreActionPerformed(evt);
-            }
-        });
-        searchTabResults.add(showMore, new org.netbeans.lib.awtextra.AbsoluteConstraints(729, 873, -1, -1));
-
         lastSearch.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/backCircle25.png"))); // NOI18N
         lastSearch.setBorderPainted(false);
         lastSearch.setContentAreaFilled(false);
@@ -8160,81 +8069,16 @@ public void cutOff(int normalSearchResultNo) {
 
         tabs.addTab("tab6", searchTabResults);
 
-        searchBarNormalSearch.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
-        searchBarNormalSearch.setForeground(new java.awt.Color(102, 102, 102));
-        searchBarNormalSearch.setText("Search for verses");
-        searchBarNormalSearch.setFocusable(false);
-        searchBarNormalSearch.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                searchBarNormalSearchActionPerformed(evt);
-            }
-        });
-
-        searchNormalSearch.setBackground(new java.awt.Color(40, 43, 45));
-        searchNormalSearch.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        searchNormalSearch.setForeground(new java.awt.Color(255, 255, 255));
-        searchNormalSearch.setText("Search");
-        searchNormalSearch.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                searchNormalSearchActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 812, Short.MAX_VALUE)
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 100, Short.MAX_VALUE)
-        );
-
         javax.swing.GroupLayout bookmarksLayout = new javax.swing.GroupLayout(bookmarks);
         bookmarks.setLayout(bookmarksLayout);
         bookmarksLayout.setHorizontalGroup(
             bookmarksLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, bookmarksLayout.createSequentialGroup()
-                .addContainerGap(407, Short.MAX_VALUE)
-                .addComponent(searchBarNormalSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 705, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(6, 6, 6)
-                .addComponent(searchNormalSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(334, 334, 334))
-            .addGroup(bookmarksLayout.createSequentialGroup()
-                .addGap(310, 310, 310)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGap(0, 1580, Short.MAX_VALUE)
         );
         bookmarksLayout.setVerticalGroup(
             bookmarksLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(bookmarksLayout.createSequentialGroup()
-                .addGap(73, 73, 73)
-                .addGroup(bookmarksLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(searchBarNormalSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(searchNormalSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(765, Short.MAX_VALUE))
+            .addGap(0, 975, Short.MAX_VALUE)
         );
-
-        searchBarNoHistory.addFocusListener(new java.awt.event.FocusAdapter() {
-            @Override
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                if (searchBarNoHistory.getText().equals("Search for verses")) {
-                    searchBarNoHistory.setText("");
-                    searchBarNoHistory.setForeground(new java.awt.Color(0, 0, 0)); // optional: set text color to black
-                }
-            }
-
-            @Override
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                if (searchBarNoHistory.getText().trim().isEmpty()) {
-                    searchBarNoHistory.setText("Search for verses");
-                    searchBarNoHistory.setForeground(new java.awt.Color(204, 204, 204)); // gray placeholder color
-                }
-            }
-        });
 
         tabs.addTab("tab7", bookmarks);
 
@@ -8518,26 +8362,26 @@ public void cutOff(int normalSearchResultNo) {
             }
         });
 
-        // Global Backspace listener for Tab 5
+        // Global Backspace & Enter listener for Tab 5
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
-            // Make sure components are initialized
-            if (tabs == null || backToSearch == null) return false;
+            // Ensure components are initialized
+            if (tabs == null || backToSearch == null || searchNoHistory == null) return false;
 
             // Only act when Tab 5 is selected
-            if (tabs.getSelectedIndex() == 5 &&
-                e.getID() == KeyEvent.KEY_PRESSED &&
-                e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-
-                System.out.println("Backspace pressed on Tab 5 → Clicking backToSearch");
-
-                // Run button click safely on the Swing Event Dispatch Thread
-                SwingUtilities.invokeLater(() -> backToSearch.doClick());
-
-                // Consume event so it doesn’t delete text or do other actions
-                return true;
+            if (tabs.getSelectedIndex() == 5 && e.getID() == KeyEvent.KEY_PRESSED) {
+                if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+                    System.out.println("Backspace pressed on Tab 5 → Clicking backToSearch");
+                    SwingUtilities.invokeLater(() -> backToSearch.doClick());
+                    return true; // consume event
+                }
+                else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    System.out.println("Enter pressed on Tab 5 → Clicking searchNoHistory");
+                    SwingUtilities.invokeLater(() -> searchNoHistory.doClick());
+                    return true; // consume event
+                }
             }
 
-            // Let all other keys and events work normally
+            // Let all other keys behave normally
             return false;
         });
 
@@ -9691,176 +9535,185 @@ public void cutOff(int normalSearchResultNo) {
 //GEN-FIRST:event_searchNoHistoryActionPerformed
         //markAsAlreadySearched(true);
         //System.out.println("is it matched? " + matched);
+        if (normalSearchResultNo == 0 && !nlsRadioNoHistory.isSelected()) {
+            JOptionPane.showMessageDialog(
+                null,
+                "No matches were found for your search.",
+                "No Results",
+                JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+         showMore.setVisible(nlsRadioNoHistory.isSelected());    
+         //System.out.println("show more button: " +nlsRadioNoHistory.isSelected());
+        if (normalSearchNoHistory.isSelected()) {
+            normalSearch.setSelected(true);
+            searched = true;
+            loading30BW.setVisible(true);
+            tabs.setSelectedIndex(5);
 
-        
-if (normalSearchNoHistory.isSelected()) {
-    normalSearch.setSelected(true);
-    searched = true;
-    loading30BW.setVisible(true);
-    tabs.setSelectedIndex(5);
+            String query = searchBarNoHistory.getText();
+            searchBar.setText(query);
+            if (query == null || query.trim().isEmpty()) return;
+            query = query.trim().toLowerCase();
 
-    String query = searchBarNoHistory.getText();
-    searchBar.setText(query);
-    if (query == null || query.trim().isEmpty()) return;
-    query = query.trim().toLowerCase();
+            JEditorPane[] resultPanes = {
+                searchResult1, searchResult2, searchResult3, searchResult4,
+                searchResult5, searchResult6, searchResult7, searchResult8,
+                searchResult9, searchResult10, searchResult11, searchResult12,
+                searchResult13, searchResult14
+            };
 
-    JEditorPane[] resultPanes = {
-        searchResult1, searchResult2, searchResult3, searchResult4,
-        searchResult5, searchResult6, searchResult7, searchResult8,
-        searchResult9, searchResult10, searchResult11, searchResult12,
-        searchResult13, searchResult14
-    };
+            JLabel[] matchLabels = {
+                matchRate1, matchRate2, matchRate3, matchRate4,
+                matchRate5, matchRate6, matchRate7, matchRate8,
+                matchRate9, matchRate10, matchRate11, matchRate12,
+                matchRate13, matchRate14
+            };
 
-    JLabel[] matchLabels = {
-        matchRate1, matchRate2, matchRate3, matchRate4,
-        matchRate5, matchRate6, matchRate7, matchRate8,
-        matchRate9, matchRate10, matchRate11, matchRate12,
-        matchRate13, matchRate14
-    };
+            JButton[] gotoButtons = {
+                goto1, goto2, goto3, goto4,
+                goto5, goto6, goto7, goto8,
+                goto9, goto10, goto11, goto12,
+                goto13, goto14
+            };
 
-    JButton[] gotoButtons = {
-        goto1, goto2, goto3, goto4,
-        goto5, goto6, goto7, goto8,
-        goto9, goto10, goto11, goto12,
-        goto13, goto14
-    };
+            try {
+                String path = "src/main/resources/files/books/NIV/NIV_bible.json";
+                FileInputStream fis = new FileInputStream(path);
+                JSONObject bible = new JSONObject(new JSONTokener(new java.io.InputStreamReader(fis, StandardCharsets.UTF_8)));
 
-    try {
-        String path = "src/main/resources/files/books/NIV/NIV_bible.json";
-        FileInputStream fis = new FileInputStream(path);
-        JSONObject bible = new JSONObject(new JSONTokener(new java.io.InputStreamReader(fis, StandardCharsets.UTF_8)));
+                List<String[]> matches = new ArrayList<>();
 
-        List<String[]> matches = new ArrayList<>();
-
-        // Search all verses
-        for (String book : bible.keySet()) {
-            JSONObject chapters = bible.getJSONObject(book);
-            for (String ch : chapters.keySet()) {
-                JSONObject verses = chapters.getJSONObject(ch);
-                for (String vnum : verses.keySet()) {
-                    String verseText = verses.getString(vnum);
-                    if (verseText.toLowerCase().contains(query)) {
-                        matches.add(new String[]{book, ch, vnum, verseText});
+                // Search all verses
+                for (String book : bible.keySet()) {
+                    JSONObject chapters = bible.getJSONObject(book);
+                    for (String ch : chapters.keySet()) {
+                        JSONObject verses = chapters.getJSONObject(ch);
+                        for (String vnum : verses.keySet()) {
+                            String verseText = verses.getString(vnum);
+                            if (verseText.toLowerCase().contains(query)) {
+                                matches.add(new String[]{book, ch, vnum, verseText});
+                            }
+                        }
                     }
                 }
-            }
-        }
 
-        // Save total matches
-        normalSearchResultNo = matches.size();
-        System.out.println("Total matches found: " + normalSearchResultNo);
+                // Save total matches
+                normalSearchResultNo = matches.size();
+                //System.out.println("Total matches found: " + normalSearchResultNo);
 
-        int resultsToShow = Math.min(matches.size(), 14);
+                int resultsToShow = Math.min(matches.size(), 14);
 
-        // Clear text but keep all panes visible
-        for (int i = 0; i < 14; i++) {
-            resultPanes[i].setText("");
-            resultPanes[i].setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 18));
-            resultPanes[i].setEditable(false);
+                // Clear text but keep all panes visible
+                for (int i = 0; i < 14; i++) {
+                    resultPanes[i].setText("");
+                    resultPanes[i].setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 18));
+                    resultPanes[i].setEditable(false);
 
-            matchLabels[i].setText("");
-            matchLabels[i].setBackground(new Color(86, 211, 100));
-            matchLabels[i].setOpaque(true);
-            matchLabels[i].setHorizontalAlignment(SwingConstants.CENTER);
+                    matchLabels[i].setText("");
+                    matchLabels[i].setBackground(new Color(86, 211, 100));
+                    matchLabels[i].setOpaque(true);
+                    matchLabels[i].setHorizontalAlignment(SwingConstants.CENTER);
 
-            // Leave all components visible
-            resultPanes[i].setVisible(true);
-            matchLabels[i].setVisible(true);
-            gotoButtons[i].setVisible(true);
-        }
-
-        // Display only the matches
-        for (int i = 0; i < resultsToShow; i++) {
-            String[] m = matches.get(i);
-            String book = m[0];
-            String ch = m[1];
-            String verseNum = m[2];
-            String verseText = m[3];
-
-            // Highlight query
-            String highlighted = verseText.replaceAll(
-                    "(?i)" + Pattern.quote(query),
-                    "<span style='color:#2b7b2b;'>" + query + "</span>"
-            );
-
-            String html = "<html><body style='white-space: nowrap;'>" +
-                    book + " " + ch + ":" + verseNum + " — " + highlighted +
-                    "</body></html>";
-
-            resultPanes[i].setContentType("text/html");
-            resultPanes[i].setText(html);
-
-            matchLabels[i].setText("100%");
-        }
-
-        showMore.setVisible(matches.size() > 14);
-
-        if (matches.isEmpty()) {
-            noMatchFound.setForeground(new Color(255, 102, 102));
-            noMatchFound.setText(" No verses matched your query.");
-        } else {
-            noMatchFound.setText("");
-        }
-
-        // Call cutOff method
-        cutOff(normalSearchResultNo);
-
-        // --------------------------------------------
-        // Simulate 10 mouse clicks on the far left of each displayed result
-        // --------------------------------------------
-        for (int i = 0; i < resultsToShow; i++) {
-            JEditorPane pane = resultPanes[i];
-            if (pane.isVisible()) {
-                int x = 5; // far left
-                int y = pane.getHeight() / 2; // vertically centered
-
-                for (int click = 0; click < 10; click++) {
-                    MouseEvent press = new MouseEvent(
-                            pane,
-                            MouseEvent.MOUSE_PRESSED,
-                            System.currentTimeMillis(),
-                            0,
-                            x,
-                            y,
-                            1,
-                            false,
-                            MouseEvent.BUTTON1
-                    );
-                    MouseEvent release = new MouseEvent(
-                            pane,
-                            MouseEvent.MOUSE_RELEASED,
-                            System.currentTimeMillis(),
-                            0,
-                            x,
-                            y,
-                            1,
-                            false,
-                            MouseEvent.BUTTON1
-                    );
-                    MouseEvent clicked = new MouseEvent(
-                            pane,
-                            MouseEvent.MOUSE_CLICKED,
-                            System.currentTimeMillis(),
-                            0,
-                            x,
-                            y,
-                            1,
-                            false,
-                            MouseEvent.BUTTON1
-                    );
-
-                    pane.dispatchEvent(press);
-                    pane.dispatchEvent(release);
-                    pane.dispatchEvent(clicked);
+                    // Leave all components visible
+                    resultPanes[i].setVisible(true);
+                    matchLabels[i].setVisible(true);
+                    gotoButtons[i].setVisible(true);
                 }
+
+                // Display only the matches
+                for (int i = 0; i < resultsToShow; i++) {
+                    String[] m = matches.get(i);
+                    String book = m[0];
+                    String ch = m[1];
+                    String verseNum = m[2];
+                    String verseText = m[3];
+
+                    // Highlight query
+                    String highlighted = verseText.replaceAll(
+                            "(?i)" + Pattern.quote(query),
+                            "<span style='color:#2b7b2b;'>" + query + "</span>"
+                    );
+
+                    String html = "<html><body style='white-space: nowrap;'>" +
+                            book + " " + ch + ":" + verseNum + " — " + highlighted +
+                            "</body></html>";
+
+                    resultPanes[i].setContentType("text/html");
+                    resultPanes[i].setText(html);
+
+                    matchLabels[i].setText("100%");
+                }
+
+                showMore.setVisible(matches.size() > 14);
+
+                if (matches.isEmpty()) {
+                    noMatchFound.setForeground(new Color(255, 102, 102));
+                    //noMatchFound.setText(" No verses matched your query.");
+                } else {
+                    noMatchFound.setText("");
+                }
+
+                // Call cutOff method
+                cutOff(normalSearchResultNo);
+
+                // --------------------------------------------
+                // Simulate 10 mouse clicks on the far left of each displayed result
+                // --------------------------------------------
+                for (int i = 0; i < resultsToShow; i++) {
+                    JEditorPane pane = resultPanes[i];
+                    if (pane.isVisible()) {
+                        int x = 5; // far left
+                        int y = pane.getHeight() / 2; // vertically centered
+
+                        for (int click = 0; click < 10; click++) {
+                            MouseEvent press = new MouseEvent(
+                                    pane,
+                                    MouseEvent.MOUSE_PRESSED,
+                                    System.currentTimeMillis(),
+                                    0,
+                                    x,
+                                    y,
+                                    1,
+                                    false,
+                                    MouseEvent.BUTTON1
+                            );
+                            MouseEvent release = new MouseEvent(
+                                    pane,
+                                    MouseEvent.MOUSE_RELEASED,
+                                    System.currentTimeMillis(),
+                                    0,
+                                    x,
+                                    y,
+                                    1,
+                                    false,
+                                    MouseEvent.BUTTON1
+                            );
+                            MouseEvent clicked = new MouseEvent(
+                                    pane,
+                                    MouseEvent.MOUSE_CLICKED,
+                                    System.currentTimeMillis(),
+                                    0,
+                                    x,
+                                    y,
+                                    1,
+                                    false,
+                                    MouseEvent.BUTTON1
+                            );
+
+                            pane.dispatchEvent(press);
+                            pane.dispatchEvent(release);
+                            pane.dispatchEvent(clicked);
+                        }
+                    }
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error");
             }
         }
-
-    } catch (Exception e) {
-        e.printStackTrace();
-        JOptionPane.showMessageDialog(this, "Error");
-    }
-}
 
 
 
@@ -9881,7 +9734,16 @@ if (normalSearchNoHistory.isSelected()) {
         searchNoHistory.setForeground(new Color(200, 200, 200));
         searchQuery = searchBarNoHistory.getText();
 
-        String query = searchBarNoHistory.getText().trim();
+            String query;
+            int selectedIndex = tabs.getSelectedIndex();
+
+            if (selectedIndex == 4) {
+                query = searchBarNoHistory.getText().trim();
+            } else if (selectedIndex == 5) {
+                query = searchBar.getText().trim();
+            } else {
+                query = ""; // fallback, or handle other tabs if needed
+            }
         if (query.isEmpty() || query.equals("Search for verses")) {
             loading30BW.setVisible(false);
             return;
@@ -10182,7 +10044,7 @@ if (normalSearchNoHistory.isSelected()) {
 
     private void searchActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_searchActionPerformed
-        // TODO add your handling code here:
+        searchNoHistory.doClick();
     }//GEN-LAST:event_searchActionPerformed
 
     private void nlsRadioActionPerformed(java.awt.event.ActionEvent evt) {
@@ -10294,6 +10156,7 @@ if (normalSearchNoHistory.isSelected()) {
         tabs.setSelectedIndex(4);
         searchNoHistory.setBackground(new java.awt.Color(40, 43, 45));
         loading30BW.setVisible(false);
+        noVisPanel.setVisible(true);
         homed = true;
         noMatchFound.setForeground(new Color(242, 242, 242));
     }//GEN-LAST:event_backToSearchActionPerformed
@@ -10463,14 +10326,6 @@ if (normalSearchNoHistory.isSelected()) {
         
     }//GEN-LAST:event_goToRecent6ActionPerformed
 
-    private void searchBarNormalSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBarNormalSearchActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_searchBarNormalSearchActionPerformed
-
-    private void searchNormalSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchNormalSearchActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_searchNormalSearchActionPerformed
-
     private void normalSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_normalSearchActionPerformed
         normalSearchOn = true;
         nlsOn = false;
@@ -10479,6 +10334,7 @@ if (normalSearchNoHistory.isSelected()) {
     }//GEN-LAST:event_normalSearchActionPerformed
 
     private void deepSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deepSearchActionPerformed
+        deepSearchOpened = true;
         homed = false;
         if (!nlsOn) {
             return;
@@ -10546,13 +10402,16 @@ if (normalSearchNoHistory.isSelected()) {
 
             @Override
             protected Void doInBackground() throws Exception {
-                // <-- only change is here: use nlsDeepSearch.exe
+                // Set .exe working directory to its own folder
+                File exeFile = new File("nlsEngine/nlsDeepSearch.exe");
                 ProcessBuilder pb = new ProcessBuilder(
-                    "nlsEngine/nlsDeepSearch.exe",
+                    exeFile.getAbsolutePath(),
                     query,
                     "14"
                 );
+                pb.directory(exeFile.getParentFile());
                 pb.redirectErrorStream(true);
+
                 Process process = pb.start();
                 currentSearchResultIndex = getMaxId() + 1;
 
@@ -10564,6 +10423,9 @@ if (normalSearchNoHistory.isSelected()) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     if (line.trim().isEmpty()) continue;
+
+                    // Print every raw line to console
+                    System.out.println(line);
 
                     if (line.toLowerCase().contains("traceback")) {
                         tracebackError = true;
@@ -10578,9 +10440,11 @@ if (normalSearchNoHistory.isSelected()) {
                     results.add(line.trim());
                     rawResults.add(line.trim());
                 }
+
                 if (!noMatch && !tracebackError && !rawResults.isEmpty()) {
                     searchNoHistory.setBackground(new Color(242, 242, 242));
                 }
+
                 process.waitFor();
 
                 JEditorPane[] resultPanes = {
@@ -10656,20 +10520,37 @@ if (normalSearchNoHistory.isSelected()) {
                 loading30BW.setVisible(false);
 
                 if (tracebackError) {
-                    noMatchFound.setForeground(new Color(255, 102, 102));
+                    noMatchFound.setForeground(new Color(242, 242, 242));
                     noMatchFlag = true;
+                    searchNoHistory.setBackground(new Color(40, 43, 45));
+                    deepSearch.setVisible(false);
+                    noVisPanel.setVisible(true);
+                    JOptionPane.showMessageDialog(
+                        null,
+                        "No Match Found",
+                        "Search Result",
+                        JOptionPane.ERROR_MESSAGE
+                    );
                     return;
                 }
 
                 if (noMatch || rawResults.isEmpty() || rawResults.get(0).toLowerCase().contains("could not find")) {
-                    noMatchFound.setForeground(new Color(255, 102, 102));
+                    noMatchFound.setForeground(new Color(242, 242, 242));
                     noMatchFlag = true;
+                    noVisPanel.setVisible(true);
+                    JOptionPane.showMessageDialog(
+                        null,
+                        "No matches were found for your search.",
+                        "No Results",
+                        JOptionPane.WARNING_MESSAGE
+                    );
                     return;
                 }
 
                 tabs.setSelectedIndex(5);
                 noMatchFound.setForeground(new Color(242, 242, 242));
                 noMatchFlag = false;
+                noVisPanel.setVisible(false);
                 saveSearchResults(query, rawResults);
             }
         };
@@ -10815,7 +10696,6 @@ if (normalSearchNoHistory.isSelected()) {
     private javax.swing.JLabel homeBtnLabel;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel jan;
     private javax.swing.JButton journalBtn;
     private javax.swing.JLabel jul;
@@ -10908,13 +10788,11 @@ if (normalSearchNoHistory.isSelected()) {
     private javax.swing.JButton search;
     private javax.swing.JTextField searchBar;
     private javax.swing.JTextField searchBarNoHistory;
-    private javax.swing.JTextField searchBarNormalSearch;
     private javax.swing.JButton searchBtn;
     private javax.swing.JLabel searchBtnLabel;
     private javax.swing.JLabel searchHistoryTitle;
     private javax.swing.JButton searchNoHistory;
     private javax.swing.JPanel searchNoHistoryPanel;
-    private javax.swing.JButton searchNormalSearch;
     private javax.swing.JEditorPane searchResult1;
     private javax.swing.JEditorPane searchResult10;
     private javax.swing.JEditorPane searchResult11;
