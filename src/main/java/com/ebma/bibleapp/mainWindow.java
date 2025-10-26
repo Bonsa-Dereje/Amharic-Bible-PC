@@ -375,6 +375,10 @@ public class mainWindow extends javax.swing.JFrame {
     private boolean recentClicked = false;
     
     private boolean deepSearchOpened = false;
+    
+
+    
+    
     public mainWindow() {
         setUndecorated(true);
         initComponents();
@@ -446,6 +450,9 @@ public class mainWindow extends javax.swing.JFrame {
         normalSearchNoHistory.setSelected(true);
         
         deepSearch.setVisible(false);
+        if(!normalSearch.isSelected()){
+            mayNotBeAccurate.setVisible(true);
+        }
         
         
 
@@ -2914,6 +2921,7 @@ public void cutOff(int normalSearchResultNo) {
         noMatchFound = new javax.swing.JLabel();
         deepSearch = new javax.swing.JButton();
         searchTabResults = new javax.swing.JPanel();
+        mayNotBeAccurate = new javax.swing.JLabel();
         showMore = new javax.swing.JButton();
         searchBar = new javax.swing.JTextField();
         search = new javax.swing.JButton();
@@ -7670,9 +7678,17 @@ public void cutOff(int normalSearchResultNo) {
 
         searchTabResults.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        mayNotBeAccurate.setBackground(new java.awt.Color(204, 204, 204));
+        mayNotBeAccurate.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        mayNotBeAccurate.setForeground(new java.awt.Color(153, 153, 153));
+        mayNotBeAccurate.setText("The results may not be fully accurate");
+        searchTabResults.add(mayNotBeAccurate, new org.netbeans.lib.awtextra.AbsoluteConstraints(690, 870, -1, -1));
+
+        showMore.setBackground(new java.awt.Color(242, 242, 242));
         showMore.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        showMore.setIcon(new javax.swing.ImageIcon(getClass().getResource("/animatedIcons/loading30.gif"))); // NOI18N
+        showMore.setForeground(new java.awt.Color(242, 242, 242));
         showMore.setText("Show More");
+        showMore.setBorderPainted(false);
         showMore.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 showMoreActionPerformed(evt);
@@ -9535,22 +9551,11 @@ public void cutOff(int normalSearchResultNo) {
 //GEN-FIRST:event_searchNoHistoryActionPerformed
         //markAsAlreadySearched(true);
         //System.out.println("is it matched? " + matched);
-        if (normalSearchResultNo == 0 && !nlsRadioNoHistory.isSelected()) {
-            JOptionPane.showMessageDialog(
-                null,
-                "No matches were found for your search.",
-                "No Results",
-                JOptionPane.WARNING_MESSAGE
-            );
-            return;
-        }
+
          showMore.setVisible(nlsRadioNoHistory.isSelected());    
          //System.out.println("show more button: " +nlsRadioNoHistory.isSelected());
         if (normalSearchNoHistory.isSelected()) {
-            normalSearch.setSelected(true);
-            searched = true;
-            loading30BW.setVisible(true);
-            tabs.setSelectedIndex(5);
+ 
 
             String query = searchBarNoHistory.getText();
             searchBar.setText(query);
@@ -9647,9 +9652,16 @@ public void cutOff(int normalSearchResultNo) {
                 }
 
                 showMore.setVisible(matches.size() > 14);
+            if(normalSearchResultNo != 0 ){
+                normalSearch.setSelected(true);
+                //searched = true;
+                loading30BW.setVisible(true);
+
+                tabs.setSelectedIndex(5);
+             }                
 
                 if (matches.isEmpty()) {
-                    noMatchFound.setForeground(new Color(255, 102, 102));
+                    //noMatchFound.setForeground(new Color(255, 102, 102));
                     //noMatchFound.setText(" No verses matched your query.");
                 } else {
                     noMatchFound.setText("");
@@ -9713,6 +9725,18 @@ public void cutOff(int normalSearchResultNo) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error");
             }
+            
+        
+        if (normalSearchResultNo == 0 && normalSearchNoHistory.isSelected()) {
+            JOptionPane.showMessageDialog(
+                null,
+                "No matches were found for your search.",
+                "No Results",
+                JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+                    
         }
 
 
@@ -10057,7 +10081,7 @@ public void cutOff(int normalSearchResultNo) {
 
     private void showMoreActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_showMoreActionPerformed
-        // TODO add your handling code here:
+        showMore.setVisible(false);
     }//GEN-LAST:event_showMoreActionPerformed
 
     private void normalSearchNoHistoryActionPerformed(
@@ -10735,6 +10759,7 @@ public void cutOff(int normalSearchResultNo) {
     private javax.swing.JLabel matchRate8;
     private javax.swing.JLabel matchRate9;
     private javax.swing.JLabel may;
+    private javax.swing.JLabel mayNotBeAccurate;
     private javax.swing.JButton minimizeBtn;
     private javax.swing.JButton mute;
     private javax.swing.JPanel navBar;
