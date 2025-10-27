@@ -2414,6 +2414,15 @@ public void cutOff(int normalSearchResultNo) {
         cmntrsBtn = new javax.swing.JButton();
         hostJoinBtn = new javax.swing.JButton();
         settingsBtn = new javax.swing.JButton();
+        bibleTabDoClick = new javax.swing.JButton();
+        libraryTabDoClick = new javax.swing.JButton();
+        searchTabDoClick = new javax.swing.JButton();
+        bookmarkTabDoClick = new javax.swing.JButton();
+        journalTabDoClick = new javax.swing.JButton();
+        audiobookDoClick = new javax.swing.JButton();
+        commentariesTabDoClick = new javax.swing.JButton();
+        hostJoinDoClick = new javax.swing.JButton();
+        settingsDoClick = new javax.swing.JButton();
         tabs = new javax.swing.JTabbedPane();
         bibleTab = new javax.swing.JPanel();
         mainTextScrollPanel = new javax.swing.JScrollPane();
@@ -3072,35 +3081,45 @@ public void cutOff(int normalSearchResultNo) {
         mainPanel_layered.add(topBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1650, 35));
 
         navBar.setBackground(new java.awt.Color(40, 43, 45));
+        navBar.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         homeBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
         homeBtnLabel.setText("Bible");
+        navBar.add(homeBtnLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(21, 56, -1, -1));
 
         bibleBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
         bibleBtnLabel.setText(" Library");
+        navBar.add(bibleBtnLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 131, 45, -1));
 
         searchBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
         searchBtnLabel.setText("Search");
+        navBar.add(searchBtnLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(21, 201, -1, -1));
 
         bookmarksBtn.setForeground(new java.awt.Color(255, 255, 255));
         bookmarksBtn.setText("Bookmarks");
+        navBar.add(bookmarksBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 271, -1, -1));
 
         notesBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
         notesBtnLabel.setText(" Journal");
+        navBar.add(notesBtnLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 347, -1, -1));
 
         audiobookLabel.setForeground(new java.awt.Color(255, 255, 255));
         audiobookLabel.setText("Audiobook");
+        navBar.add(audiobookLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 417, -1, -1));
 
         cmntrsBtnLabel.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
         cmntrsBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
         cmntrsBtnLabel.setText("Commentaries");
+        navBar.add(cmntrsBtnLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(2, 487, -1, -1));
 
         hostJoinBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
         hostJoinBtnLabel.setText(" Host/Join");
         hostJoinBtnLabel.setAlignmentX(0.5F);
+        navBar.add(hostJoinBtnLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 555, -1, -1));
 
         settingsLabel.setForeground(new java.awt.Color(255, 255, 255));
         settingsLabel.setText("   Settings");
+        navBar.add(settingsLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 625, -1, -1));
 
         homeBtn.setBackground(new java.awt.Color(40, 43, 45));
         homeBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/book.png"))); // NOI18N
@@ -3113,6 +3132,7 @@ public void cutOff(int normalSearchResultNo) {
                 homeBtnActionPerformed(evt);
             }
         });
+        navBar.add(homeBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(21, 20, -1, -1));
 
         libraryBtn.setBackground(new java.awt.Color(40, 43, 45));
         libraryBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/icons8-library-35 (1).png"))); // NOI18N
@@ -3125,10 +3145,12 @@ public void cutOff(int normalSearchResultNo) {
                 libraryBtnActionPerformed(evt);
             }
         });
+        navBar.add(libraryBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 90, 59, -1));
 
         searchBtn.setBackground(new java.awt.Color(40, 43, 45));
         searchBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/search.png"))); // NOI18N
         searchBtn.setBorder(null);
+        searchBtn.setBorderPainted(false);
         searchBtn.setContentAreaFilled(false);
         searchBtn.setFocusPainted(false);
         searchBtn.setFocusable(false);
@@ -3139,26 +3161,37 @@ public void cutOff(int normalSearchResultNo) {
                 searchBtnActionPerformed(evt);
             }
         });
+        navBar.add(searchBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(21, 165, -1, -1));
 
         bookmarkBtn.setBackground(new java.awt.Color(40, 43, 45));
         bookmarkBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/bookmark.png"))); // NOI18N
         bookmarkBtn.setBorder(null);
+        bookmarkBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookmarkBtnActionPerformed(evt);
+            }
+        });
+        navBar.add(bookmarkBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(21, 235, -1, -1));
 
         journalBtn.setBackground(new java.awt.Color(40, 43, 45));
         journalBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/notes.png"))); // NOI18N
         journalBtn.setBorder(null);
+        navBar.add(journalBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(18, 311, -1, -1));
 
         audiobookBtn.setBackground(new java.awt.Color(40, 43, 45));
         audiobookBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/audiobook.png"))); // NOI18N
         audiobookBtn.setBorder(null);
+        navBar.add(audiobookBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(18, 381, -1, -1));
 
         cmntrsBtn.setBackground(new java.awt.Color(40, 43, 45));
         cmntrsBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/commentaries.png"))); // NOI18N
         cmntrsBtn.setBorder(null);
+        navBar.add(cmntrsBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(19, 451, -1, -1));
 
         hostJoinBtn.setBackground(new java.awt.Color(40, 43, 45));
         hostJoinBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/hostJoin.png"))); // NOI18N
         hostJoinBtn.setBorder(null);
+        navBar.add(hostJoinBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 519, -1, -1));
 
         settingsBtn.setBackground(new java.awt.Color(40, 43, 45));
         settingsBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/settings.png"))); // NOI18N
@@ -3168,108 +3201,97 @@ public void cutOff(int normalSearchResultNo) {
                 settingsBtnActionPerformed(evt);
             }
         });
+        navBar.add(settingsBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(14, 589, 43, -1));
 
-        javax.swing.GroupLayout navBarLayout = new javax.swing.GroupLayout(navBar);
-        navBar.setLayout(navBarLayout);
-        navBarLayout.setHorizontalGroup(
-            navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, navBarLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(notesBtnLabel)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(navBarLayout.createSequentialGroup()
-                .addGroup(navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, navBarLayout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(cmntrsBtnLabel))
-                    .addGroup(navBarLayout.createSequentialGroup()
-                        .addGroup(navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(navBarLayout.createSequentialGroup()
-                                .addGap(21, 21, 21)
-                                .addGroup(navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(homeBtnLabel)
-                                    .addComponent(searchBtnLabel)
-                                    .addComponent(homeBtn)
-                                    .addComponent(searchBtn)
-                                    .addComponent(bookmarkBtn)))
-                            .addGroup(navBarLayout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(bookmarksBtn))
-                            .addGroup(navBarLayout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(audiobookLabel))
-                            .addGroup(navBarLayout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(hostJoinBtnLabel))
-                            .addGroup(navBarLayout.createSequentialGroup()
-                                .addGap(19, 19, 19)
-                                .addComponent(cmntrsBtn))
-                            .addGroup(navBarLayout.createSequentialGroup()
-                                .addGap(20, 20, 20)
-                                .addComponent(hostJoinBtn))
-                            .addGroup(navBarLayout.createSequentialGroup()
-                                .addGap(14, 14, 14)
-                                .addComponent(settingsBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(navBarLayout.createSequentialGroup()
-                                .addGap(18, 18, 18)
-                                .addGroup(navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(journalBtn)
-                                    .addComponent(audiobookBtn)))
-                            .addGroup(navBarLayout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(settingsLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(navBarLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(navBarLayout.createSequentialGroup()
-                                .addGap(6, 6, 6)
-                                .addComponent(bibleBtnLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addComponent(libraryBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                .addContainerGap())
-        );
-        navBarLayout.setVerticalGroup(
-            navBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(navBarLayout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addComponent(homeBtn)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(homeBtnLabel)
-                .addGap(18, 18, 18)
-                .addComponent(libraryBtn)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(bibleBtnLabel)
-                .addGap(18, 18, 18)
-                .addComponent(searchBtn)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(searchBtnLabel)
-                .addGap(18, 18, 18)
-                .addComponent(bookmarkBtn)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(bookmarksBtn)
-                .addGap(24, 24, 24)
-                .addComponent(journalBtn)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(notesBtnLabel)
-                .addGap(18, 18, 18)
-                .addComponent(audiobookBtn)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(audiobookLabel)
-                .addGap(18, 18, 18)
-                .addComponent(cmntrsBtn)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(cmntrsBtnLabel)
-                .addGap(18, 18, 18)
-                .addComponent(hostJoinBtn)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(hostJoinBtnLabel)
-                .addGap(18, 18, 18)
-                .addComponent(settingsBtn)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(settingsLabel)
-                .addContainerGap(289, Short.MAX_VALUE))
-        );
+        bibleTabDoClick.setBackground(new java.awt.Color(40, 43, 45));
+        bibleTabDoClick.setBorderPainted(false);
+        bibleTabDoClick.setFocusable(false);
+        bibleTabDoClick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bibleTabDoClickActionPerformed(evt);
+            }
+        });
+        navBar.add(bibleTabDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 10, -1, 70));
+
+        libraryTabDoClick.setBackground(new java.awt.Color(40, 43, 45));
+        libraryTabDoClick.setBorderPainted(false);
+        libraryTabDoClick.setFocusable(false);
+        libraryTabDoClick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                libraryTabDoClickActionPerformed(evt);
+            }
+        });
+        navBar.add(libraryTabDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 90, -1, 60));
+
+        searchTabDoClick.setBackground(new java.awt.Color(40, 43, 45));
+        searchTabDoClick.setBorderPainted(false);
+        searchTabDoClick.setFocusable(false);
+        searchTabDoClick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchTabDoClickActionPerformed(evt);
+            }
+        });
+        navBar.add(searchTabDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 150, -1, 70));
+
+        bookmarkTabDoClick.setBackground(new java.awt.Color(40, 43, 45));
+        bookmarkTabDoClick.setBorderPainted(false);
+        bookmarkTabDoClick.setFocusable(false);
+        bookmarkTabDoClick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookmarkTabDoClickActionPerformed(evt);
+            }
+        });
+        navBar.add(bookmarkTabDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 230, -1, 70));
+
+        journalTabDoClick.setBackground(new java.awt.Color(40, 43, 45));
+        journalTabDoClick.setBorderPainted(false);
+        journalTabDoClick.setFocusable(false);
+        journalTabDoClick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                journalTabDoClickActionPerformed(evt);
+            }
+        });
+        navBar.add(journalTabDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 300, -1, 70));
+
+        audiobookDoClick.setBackground(new java.awt.Color(40, 43, 45));
+        audiobookDoClick.setBorderPainted(false);
+        audiobookDoClick.setFocusable(false);
+        audiobookDoClick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                audiobookDoClickActionPerformed(evt);
+            }
+        });
+        navBar.add(audiobookDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 380, -1, 60));
+
+        commentariesTabDoClick.setBackground(new java.awt.Color(40, 43, 45));
+        commentariesTabDoClick.setBorderPainted(false);
+        commentariesTabDoClick.setFocusable(false);
+        commentariesTabDoClick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                commentariesTabDoClickActionPerformed(evt);
+            }
+        });
+        navBar.add(commentariesTabDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 450, -1, 60));
+
+        hostJoinDoClick.setBackground(new java.awt.Color(40, 43, 45));
+        hostJoinDoClick.setBorderPainted(false);
+        hostJoinDoClick.setFocusable(false);
+        hostJoinDoClick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                hostJoinDoClickActionPerformed(evt);
+            }
+        });
+        navBar.add(hostJoinDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 510, -1, 60));
+
+        settingsDoClick.setBackground(new java.awt.Color(40, 43, 45));
+        settingsDoClick.setBorderPainted(false);
+        settingsDoClick.setFocusable(false);
+        settingsDoClick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                settingsDoClickActionPerformed(evt);
+            }
+        });
+        navBar.add(settingsDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 580, -1, 70));
 
         mainPanel_layered.add(navBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 30, 70, 930));
 
@@ -10582,6 +10604,46 @@ public void cutOff(int normalSearchResultNo) {
         worker.execute();
     }//GEN-LAST:event_deepSearchActionPerformed
 
+    private void bookmarkBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookmarkBtnActionPerformed
+        tabs.setSelectedIndex(6);
+    }//GEN-LAST:event_bookmarkBtnActionPerformed
+
+    private void bibleTabDoClickActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bibleTabDoClickActionPerformed
+           homeBtn.doClick();
+    }//GEN-LAST:event_bibleTabDoClickActionPerformed
+
+    private void libraryTabDoClickActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_libraryTabDoClickActionPerformed
+            libraryBtn.doClick();
+    }//GEN-LAST:event_libraryTabDoClickActionPerformed
+
+    private void searchTabDoClickActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchTabDoClickActionPerformed
+        searchBtn.doClick();
+    }//GEN-LAST:event_searchTabDoClickActionPerformed
+
+    private void bookmarkTabDoClickActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookmarkTabDoClickActionPerformed
+        bookmarkBtn.doClick();
+    }//GEN-LAST:event_bookmarkTabDoClickActionPerformed
+
+    private void journalTabDoClickActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_journalTabDoClickActionPerformed
+        journalBtn.doClick();
+    }//GEN-LAST:event_journalTabDoClickActionPerformed
+
+    private void audiobookDoClickActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_audiobookDoClickActionPerformed
+        audiobookBtn.doClick();
+    }//GEN-LAST:event_audiobookDoClickActionPerformed
+
+    private void commentariesTabDoClickActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_commentariesTabDoClickActionPerformed
+        cmntrsBtn.doClick();
+    }//GEN-LAST:event_commentariesTabDoClickActionPerformed
+
+    private void hostJoinDoClickActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hostJoinDoClickActionPerformed
+        hostJoinBtn.doClick();
+    }//GEN-LAST:event_hostJoinDoClickActionPerformed
+
+    private void settingsDoClickActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsDoClickActionPerformed
+        settingsBtn.doClick();
+    }//GEN-LAST:event_settingsDoClickActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -10648,12 +10710,14 @@ public void cutOff(int normalSearchResultNo) {
     private javax.swing.JLabel appTitle;
     private javax.swing.JLabel apr;
     private javax.swing.JButton audiobookBtn;
+    private javax.swing.JButton audiobookDoClick;
     private javax.swing.JLabel audiobookLabel;
     private javax.swing.JLabel aug;
     private javax.swing.JPanel backAndHome;
     private javax.swing.JButton backToSearch;
     private javax.swing.JLabel bibleBtnLabel;
     private javax.swing.JPanel bibleTab;
+    private javax.swing.JButton bibleTabDoClick;
     private javax.swing.JLabel biblestudyTitle;
     private javax.swing.JButton boldBtn;
     private javax.swing.JComboBox<String> bookChooser;
@@ -10676,6 +10740,7 @@ public void cutOff(int normalSearchResultNo) {
     private javax.swing.JButton bookmark;
     private javax.swing.JButton bookmarkBtn;
     private javax.swing.JLabel bookmarkSavedNotif;
+    private javax.swing.JButton bookmarkTabDoClick;
     private javax.swing.JPanel bookmarks;
     private javax.swing.JLabel bookmarksBtn;
     private javax.swing.JButton cafeTheme;
@@ -10687,6 +10752,7 @@ public void cutOff(int normalSearchResultNo) {
     private javax.swing.JTextField cmtryLoad;
     private javax.swing.JLabel cmtryName;
     private javax.swing.JTabbedPane cmtryTabbedPanel;
+    private javax.swing.JButton commentariesTabDoClick;
     private javax.swing.JButton continueReading;
     private javax.swing.JLabel dec;
     private javax.swing.JButton deepSearch;
@@ -10720,8 +10786,10 @@ public void cutOff(int normalSearchResultNo) {
     private javax.swing.JLabel homeBtnLabel;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
+    private javax.swing.JButton hostJoinDoClick;
     private javax.swing.JLabel jan;
     private javax.swing.JButton journalBtn;
+    private javax.swing.JButton journalTabDoClick;
     private javax.swing.JLabel jul;
     private javax.swing.JLabel jun;
     private javax.swing.JComboBox<String> langChooser;
@@ -10735,6 +10803,7 @@ public void cutOff(int normalSearchResultNo) {
     private javax.swing.JButton libraryBtn;
     private javax.swing.JPanel libraryContent;
     private javax.swing.JPanel libraryTab;
+    private javax.swing.JButton libraryTabDoClick;
     private javax.swing.JLabel loading30BW;
     private javax.swing.JLabel loadingBook;
     private javax.swing.JLabel loadingLoop;
@@ -10832,6 +10901,7 @@ public void cutOff(int normalSearchResultNo) {
     private javax.swing.JEditorPane searchResult7;
     private javax.swing.JEditorPane searchResult8;
     private javax.swing.JEditorPane searchResult9;
+    private javax.swing.JButton searchTabDoClick;
     private javax.swing.JPanel searchTabNoHistory;
     private javax.swing.JPanel searchTabResults;
     private javax.swing.JLabel searchTime1;
@@ -10860,6 +10930,7 @@ public void cutOff(int normalSearchResultNo) {
     private javax.swing.JProgressBar separator4;
     private javax.swing.JProgressBar separator5;
     private javax.swing.JButton settingsBtn;
+    private javax.swing.JButton settingsDoClick;
     private javax.swing.JLabel settingsLabel;
     private javax.swing.JButton showMore;
     private javax.swing.JButton spacer;
