@@ -84,6 +84,12 @@ import java.awt.event.KeyEvent;
 //import java.util.stream.Stream;
 //import java.util.Optional;
 
+import java.util.LinkedHashMap;
+import java.awt.event.MouseWheelListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+
+
 public class mainWindow extends javax.swing.JFrame {
 
     private boolean isBoldActive = true;
@@ -2392,6 +2398,153 @@ public void cutOff(int normalSearchResultNo) {
 }
 
 
+private void loadBookmarksNodes() {
+    System.out.println("---- Start loadBookmarksNodes ----");
+
+    // Clear previous nodes
+    System.out.println("Clearing previous nodes...");
+    nodesPanel.removeAll();
+    nodesPanel.setLayout(null); // Absolute positioning like a canvas
+
+    // Load bookmarks from DB
+    Map<Integer, List<String>> bookmarkMap = new LinkedHashMap<>();
+    System.out.println("Connecting to DB and fetching bookmarks...");
+    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:bookStack.db");
+         Statement stmt = conn.createStatement();
+         ResultSet rs = stmt.executeQuery("SELECT bookindex, scrollindex FROM bookmarks")) { // fixed table name
+
+        while (rs.next()) {
+            int bookIndex = rs.getInt("bookindex");
+            int scrollIndex = rs.getInt("scrollindex");
+            String bookmarkFile = "src/main/userFiles/" + bookIndex + "_" + scrollIndex + ".png";
+            System.out.println("Found bookmark: bookIndex=" + bookIndex + ", scrollIndex=" + scrollIndex + ", file=" + bookmarkFile);
+            bookmarkMap.computeIfAbsent(bookIndex, k -> new ArrayList<>()).add(bookmarkFile);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        System.out.println("Error loading bookmarks from DB.");
+    }
+
+    int nodeWidth = 150;
+    int nodeHeight = 200;
+    int childWidth = 50;
+    int childHeight = 50;
+    int spacing = 50;
+
+    int xOffset = spacing;
+    int yOffset = spacing;
+
+    // Keep references to all JLabel nodes for zoom
+    List<JLabel> allNodes = new ArrayList<>();
+
+    System.out.println("Creating nodes...");
+    for (Map.Entry<Integer, List<String>> entry : bookmarkMap.entrySet()) {
+        int bookIndex = entry.getKey();
+        List<String> childImages = entry.getValue();
+
+        System.out.println("Processing bookIndex=" + bookIndex + " with " + childImages.size() + " child bookmarks.");
+
+        // Center node
+        JLabel centerLabel = new JLabel();
+        String centerImgPath = "src/main/resources/bookTiles/" + bookIndex + ".png";
+        try {
+            System.out.println("Loading center image: " + centerImgPath);
+            ImageIcon icon = new ImageIcon(centerImgPath);
+            Image img = icon.getImage().getScaledInstance(nodeWidth, nodeHeight, Image.SCALE_SMOOTH);
+            centerLabel.setIcon(new ImageIcon(img));
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error loading center image for bookIndex=" + bookIndex);
+        }
+
+        centerLabel.setBounds(xOffset, yOffset, nodeWidth, nodeHeight);
+        makeDraggable(centerLabel);
+        nodesPanel.add(centerLabel);
+        allNodes.add(centerLabel);
+        System.out.println("Added center node at (" + xOffset + "," + yOffset + ")");
+
+        // Child nodes below center
+        int childX = xOffset;
+        int childY = yOffset + nodeHeight + 10;
+        for (String childPath : childImages) {
+            JLabel childLabel = new JLabel();
+            try {
+                System.out.println("Loading child image: " + childPath);
+                ImageIcon icon = new ImageIcon(childPath);
+                Image img = icon.getImage().getScaledInstance(childWidth, childHeight, Image.SCALE_SMOOTH);
+                childLabel.setIcon(new ImageIcon(img));
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("Error loading child image: " + childPath);
+            }
+
+            childLabel.setBounds(childX, childY, childWidth, childHeight);
+            makeDraggable(childLabel);
+            nodesPanel.add(childLabel);
+            allNodes.add(childLabel);
+            System.out.println("Added child node at (" + childX + "," + childY + ")");
+
+            childX += childWidth + 5;
+        }
+
+        xOffset += nodeWidth + spacing;
+    }
+
+    // Scroll support
+    nodesPanel.revalidate();
+    nodesPanel.repaint();
+    System.out.println("Nodes panel revalidated and repainted.");
+
+    // Zoom support: Ctrl + scroll wheel
+    nodesPanel.addMouseWheelListener(new MouseWheelListener() {
+        double scale = 1.0;
+
+        @Override
+        public void mouseWheelMoved(MouseWheelEvent e) {
+            if (e.isControlDown()) {
+                scale += -0.1 * e.getPreciseWheelRotation();
+                scale = Math.max(0.3, Math.min(3.0, scale));
+                System.out.println("Zoom scale changed to: " + scale);
+
+                for (JLabel lbl : allNodes) {
+                    ImageIcon icon = (ImageIcon) lbl.getIcon();
+                    if (icon != null) {
+                        Image img = icon.getImage();
+                        int w = (int) (img.getWidth(null) * scale);
+                        int h = (int) (img.getHeight(null) * scale);
+                        lbl.setIcon(new ImageIcon(img.getScaledInstance(w, h, Image.SCALE_SMOOTH)));
+                    }
+                }
+                nodesPanel.revalidate();
+                nodesPanel.repaint();
+                System.out.println("Nodes panel updated after zoom.");
+            }
+        }
+    });
+
+    System.out.println("---- End loadBookmarksNodes ----");
+}
+
+// Helper method to make JLabel draggable
+private void makeDraggable(JLabel label) {
+    final Point[] startPt = {null};
+    label.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent e) {
+            startPt[0] = e.getPoint();
+        }
+    });
+
+    label.addMouseMotionListener(new MouseMotionAdapter() {
+        @Override
+        public void mouseDragged(MouseEvent e) {
+            Point loc = label.getLocation();
+            loc.translate(e.getX() - startPt[0].x, e.getY() - startPt[0].y);
+            label.setLocation(loc);
+            System.out.println("Dragged label to (" + loc.x + "," + loc.y + ")");
+        }
+    });
+}
 
 
 
@@ -3016,6 +3169,7 @@ public void cutOff(int normalSearchResultNo) {
         backToSearch = new javax.swing.JButton();
         nextSearch = new javax.swing.JButton();
         bookmarks = new javax.swing.JPanel();
+        nodesPanel = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -3109,7 +3263,7 @@ public void cutOff(int normalSearchResultNo) {
         navBar.add(libraryDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 100, -1, -1));
 
         searchDot.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/dot15.png"))); // NOI18N
-        navBar.add(searchDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 170, -1, -1));
+        navBar.add(searchDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 150, -1, 70));
 
         bookmarksDot.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/dot15.png"))); // NOI18N
         navBar.add(bookmarksDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 240, -1, -1));
@@ -3118,7 +3272,7 @@ public void cutOff(int normalSearchResultNo) {
         navBar.add(journalDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 320, -1, -1));
 
         audiobooksDot.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/dot15.png"))); // NOI18N
-        navBar.add(audiobooksDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 390, -1, -1));
+        navBar.add(audiobooksDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 385, -1, 20));
 
         cmtryDot.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/dot15.png"))); // NOI18N
         navBar.add(cmtryDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 455, -1, 20));
@@ -3290,6 +3444,23 @@ public void cutOff(int normalSearchResultNo) {
             }
         });
         navBar.add(homeBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(21, 20, -1, -1));
+        homeBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                // Use relative file path from project root
+                File imgFile = new File("src/main/resources/icons/vertical25.png");
+                if (imgFile.exists()) {
+                    homeDot.setIcon(new ImageIcon(imgFile.getAbsolutePath()));
+                } else {
+                    System.err.println("File not found: " + imgFile.getAbsolutePath());
+                }
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                homeDot.setIcon(null);
+            }
+        });
 
         libraryBtn.setBackground(new java.awt.Color(40, 43, 45));
         libraryBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/icons8-library-35 (1).png"))); // NOI18N
@@ -8200,15 +8371,29 @@ public void cutOff(int normalSearchResultNo) {
 
         tabs.addTab("tab6", searchTabResults);
 
+        javax.swing.GroupLayout nodesPanelLayout = new javax.swing.GroupLayout(nodesPanel);
+        nodesPanel.setLayout(nodesPanelLayout);
+        nodesPanelLayout.setHorizontalGroup(
+            nodesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 1580, Short.MAX_VALUE)
+        );
+        nodesPanelLayout.setVerticalGroup(
+            nodesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 918, Short.MAX_VALUE)
+        );
+
         javax.swing.GroupLayout bookmarksLayout = new javax.swing.GroupLayout(bookmarks);
         bookmarks.setLayout(bookmarksLayout);
         bookmarksLayout.setHorizontalGroup(
             bookmarksLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1580, Short.MAX_VALUE)
+            .addComponent(nodesPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         bookmarksLayout.setVerticalGroup(
             bookmarksLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 975, Short.MAX_VALUE)
+            .addGroup(bookmarksLayout.createSequentialGroup()
+                .addGap(51, 51, 51)
+                .addComponent(nodesPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         tabs.addTab("tab7", bookmarks);
@@ -8514,6 +8699,14 @@ public void cutOff(int normalSearchResultNo) {
 
             // Let all other keys behave normally
             return false;
+        });
+        tabs.addChangeListener(e -> {
+            int selectedIndex = tabs.getSelectedIndex();
+            System.out.println("Tab changed. Selected index: " + selectedIndex);
+            if (selectedIndex == 6) { // bookmarks tab
+                System.out.println("Loading bookmarks nodes...");
+                loadBookmarksNodes();
+            }
         });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -11058,6 +11251,7 @@ public void cutOff(int normalSearchResultNo) {
     private javax.swing.JLabel noMatchWarning;
     private javax.swing.JLabel noSearchHistory;
     private javax.swing.JPanel noVisPanel;
+    private javax.swing.JPanel nodesPanel;
     private javax.swing.JRadioButton normalSearch;
     private javax.swing.JRadioButton normalSearchNoHistory;
     private javax.swing.JLabel notesBtnLabel;
