@@ -454,15 +454,15 @@ public class mainWindow extends javax.swing.JFrame {
             mayNotBeAccurate.setVisible(true);
         }
        
-    homeDot.setVisible(false);
-    libraryDot.setVisible(false);
-    searchDot.setVisible(false);
-    bookmarksDot.setVisible(false);
-    journalDot.setVisible(false);
-    audiobooksDot.setVisible(false);
-    cmtryDot.setVisible(false);
-    hostJoinDot.setVisible(false);
-    settingsDot.setVisible(false);   
+        homeDot.setVisible(true);
+        libraryDot.setVisible(false);
+        searchDot.setVisible(false);
+        bookmarksDot.setVisible(false);
+        journalDot.setVisible(false);
+        audiobooksDot.setVisible(false);
+        cmtryDot.setVisible(false);
+        hostJoinDot.setVisible(false);
+        settingsDot.setVisible(false);   
         
         
 
@@ -9149,19 +9149,37 @@ public void cutOff(int normalSearchResultNo) {
         // Immediately switch to loading tab
         tabs.setSelectedIndex(2);
 
-        // Get the bookIndex early
-        int assignedNum = randomNums.get(currentSelected - 1);
+        // --- Get bookIndex from selectedBook icon filename ---
+        int assignedNum = -1;
+        Icon icon = selectedBook.getIcon();
+        if (icon instanceof ImageIcon) {
+            String path = ((ImageIcon) icon).getDescription(); // get the path or description
+            if (path != null) {
+                // Extract filename, e.g., "5.png"
+                String fileName = new File(path).getName();
+                try {
+                    assignedNum = Integer.parseInt(fileName.replace(".png", ""));
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "Invalid icon filename: " + fileName);
+                    return;
+                }
+            }
+        }
+
+        if (assignedNum == -1) {
+            JOptionPane.showMessageDialog(null, "Could not determine book index from selectedBook icon!");
+            return;
+        }
+
         loadedBook = assignedNum;
 
-        // Update lastRead table
+        // --- Update lastRead table ---
         int realBookIndex = -1;
         String dbPath = "bookStack.db";
 
-        // Query the real bookIndex from bookStack
         try (
-            Connection conn = DriverManager.getConnection(
-                "jdbc:sqlite:" + dbPath
-            );
+            Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
             PreparedStatement ps = conn.prepareStatement(
                 "SELECT bookIndex FROM bookStack WHERE CAST(TRIM(bookIndex) AS INTEGER) = ?"
             )
@@ -9176,23 +9194,15 @@ public void cutOff(int normalSearchResultNo) {
             ex.printStackTrace();
         }
 
-        // Save to lastRead table (clear previous row first)
         if (realBookIndex != -1) {
             try (
-                Connection conn = DriverManager.getConnection(
-                    "jdbc:sqlite:" + dbPath
-                );
+                Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
                 Statement stmt = conn.createStatement()
             ) {
-                // Delete old lastRead row
                 stmt.executeUpdate("DELETE FROM lastRead");
-
-                // Insert new lastRead row
-                try (
-                    PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO lastRead(bookIndex) VALUES(?)"
-                    )
-                ) {
+                try (PreparedStatement ps = conn.prepareStatement(
+                    "INSERT INTO lastRead(bookIndex) VALUES(?)"
+                )) {
                     ps.setInt(1, realBookIndex);
                     ps.executeUpdate();
                 }
@@ -9201,31 +9211,22 @@ public void cutOff(int normalSearchResultNo) {
             }
         }
 
-        // Background worker to load the PDF
+        // --- Background worker to load the PDF ---
         SwingWorker<JTextPane, Void> worker = new SwingWorker<>() {
             @Override
             protected JTextPane doInBackground() throws Exception {
                 String fileName = null;
 
-                // Query the database
-                try (
-                    Connection conn = DriverManager.getConnection(
-                        "jdbc:sqlite:bookStack.db"
-                    )
-                ) {
-                    String query =
-                        "SELECT fileName FROM bookStack WHERE bookIndex=?";
+                try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
+                    String query = "SELECT fileName FROM bookStack WHERE bookIndex=?";
                     try (PreparedStatement ps = conn.prepareStatement(query)) {
-                        ps.setInt(1, assignedNum);
+                        ps.setInt(1, loadedBook);
                         try (ResultSet rs = ps.executeQuery()) {
                             if (rs.next()) {
                                 fileName = rs.getString("fileName");
                             } else {
                                 SwingUtilities.invokeLater(() ->
-                                    JOptionPane.showMessageDialog(
-                                        null,
-                                        "Book not found in database!"
-                                    )
+                                    JOptionPane.showMessageDialog(null, "Book not found in database!")
                                 );
                                 return null;
                             }
@@ -9233,35 +9234,25 @@ public void cutOff(int normalSearchResultNo) {
                     }
                 }
 
-                // Load PDF file
-                File pdfFile = new File(
-                    "src/main/resources/bookStack/" + fileName
-                );
+                File pdfFile = new File("src/main/resources/bookStack/" + fileName);
                 if (!pdfFile.exists()) {
                     SwingUtilities.invokeLater(() ->
-                        JOptionPane.showMessageDialog(
-                            null,
-                            "PDF file not found: " + pdfFile.getAbsolutePath()
-                        )
+                        JOptionPane.showMessageDialog(null, "PDF file not found: " + pdfFile.getAbsolutePath())
                     );
                     return null;
                 }
 
-                // Extract text
                 String text;
                 try (PDDocument document = PDDocument.load(pdfFile)) {
                     PDFTextStripper stripper = new PDFTextStripper();
                     text = stripper.getText(document);
                 }
 
-                // Convert to HTML
-                String htmlText =
-                    "<html><body style='font-family:Serif; font-size:20pt; " +
-                    "text-align:center; background-color:rgb(255,251,247)'>" +
-                    text.replace("\n", "<br>") +
-                    "</body></html>";
+                String htmlText = "<html><body style='font-family:Serif; font-size:20pt; " +
+                        "text-align:center; background-color:rgb(255,251,247)'>" +
+                        text.replace("\n", "<br>") +
+                        "</body></html>";
 
-                // Prepare JTextPane
                 JTextPane pdfPane = new JTextPane();
                 pdfPane.setContentType("text/html");
                 pdfPane.setText(htmlText);
@@ -9276,22 +9267,14 @@ public void cutOff(int normalSearchResultNo) {
                     JTextPane pdfPane = get();
                     if (pdfPane != null) {
                         bookScroll.setViewportView(pdfPane);
-                        //bookScroll.getVerticalScrollBar().setValue(currentScrollState);
-
-                        // Switch to the book display tab
                         tabs.setSelectedIndex(3);
-
-                        // Refresh
                         bookScroll.requestFocusInWindow();
                         bookScroll.revalidate();
                         bookScroll.repaint();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    JOptionPane.showMessageDialog(
-                        null,
-                        "Error loading book: " + e.getMessage()
-                    );
+                    JOptionPane.showMessageDialog(null, "Error loading book: " + e.getMessage());
                 }
             }
         };
