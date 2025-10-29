@@ -453,6 +453,16 @@ public class mainWindow extends javax.swing.JFrame {
         if(!normalSearch.isSelected()){
             mayNotBeAccurate.setVisible(true);
         }
+       
+    homeDot.setVisible(false);
+    libraryDot.setVisible(false);
+    searchDot.setVisible(false);
+    bookmarksDot.setVisible(false);
+    journalDot.setVisible(false);
+    audiobooksDot.setVisible(false);
+    cmtryDot.setVisible(false);
+    hostJoinDot.setVisible(false);
+    settingsDot.setVisible(false);   
         
         
 
@@ -2396,6 +2406,15 @@ public void cutOff(int normalSearchResultNo) {
         restoreBtn = new javax.swing.JButton();
         minimizeBtn = new javax.swing.JButton();
         navBar = new javax.swing.JPanel();
+        homeDot = new javax.swing.JLabel();
+        libraryDot = new javax.swing.JLabel();
+        searchDot = new javax.swing.JLabel();
+        bookmarksDot = new javax.swing.JLabel();
+        journalDot = new javax.swing.JLabel();
+        audiobooksDot = new javax.swing.JLabel();
+        cmtryDot = new javax.swing.JLabel();
+        hostJoinDot = new javax.swing.JLabel();
+        settingsDot = new javax.swing.JLabel();
         homeBtnLabel = new javax.swing.JLabel();
         bibleBtnLabel = new javax.swing.JLabel();
         searchBtnLabel = new javax.swing.JLabel();
@@ -2405,15 +2424,6 @@ public void cutOff(int normalSearchResultNo) {
         cmntrsBtnLabel = new javax.swing.JLabel();
         hostJoinBtnLabel = new javax.swing.JLabel();
         settingsLabel = new javax.swing.JLabel();
-        homeBtn = new javax.swing.JButton();
-        libraryBtn = new javax.swing.JButton();
-        searchBtn = new javax.swing.JButton();
-        bookmarkBtn = new javax.swing.JButton();
-        journalBtn = new javax.swing.JButton();
-        audiobookBtn = new javax.swing.JButton();
-        cmntrsBtn = new javax.swing.JButton();
-        hostJoinBtn = new javax.swing.JButton();
-        settingsBtn = new javax.swing.JButton();
         bibleTabDoClick = new javax.swing.JButton();
         libraryTabDoClick = new javax.swing.JButton();
         searchTabDoClick = new javax.swing.JButton();
@@ -2423,6 +2433,15 @@ public void cutOff(int normalSearchResultNo) {
         commentariesTabDoClick = new javax.swing.JButton();
         hostJoinDoClick = new javax.swing.JButton();
         settingsDoClick = new javax.swing.JButton();
+        homeBtn = new javax.swing.JButton();
+        libraryBtn = new javax.swing.JButton();
+        searchBtn = new javax.swing.JButton();
+        bookmarkBtn = new javax.swing.JButton();
+        journalBtn = new javax.swing.JButton();
+        audiobookBtn = new javax.swing.JButton();
+        cmntrsBtn = new javax.swing.JButton();
+        hostJoinBtn = new javax.swing.JButton();
+        settingsBtn = new javax.swing.JButton();
         tabs = new javax.swing.JTabbedPane();
         bibleTab = new javax.swing.JPanel();
         mainTextScrollPanel = new javax.swing.JScrollPane();
@@ -3064,7 +3083,7 @@ public void cutOff(int normalSearchResultNo) {
         closeBtn.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                closeBtn.setBackground(new java.awt.Color(255, 0, 0)); // Red color on hover
+                closeBtn.setBackground(new java.awt.Color(255, 0, 0)); // Red color on hover3
                 closeBtn.setForeground(new java.awt.Color(255, 255, 255)); // Optional: change text color to white
             }
 
@@ -3082,6 +3101,33 @@ public void cutOff(int normalSearchResultNo) {
 
         navBar.setBackground(new java.awt.Color(40, 43, 45));
         navBar.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        homeDot.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/dot15.png"))); // NOI18N
+        navBar.add(homeDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 30, -1, -1));
+
+        libraryDot.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/dot15.png"))); // NOI18N
+        navBar.add(libraryDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 100, -1, -1));
+
+        searchDot.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/dot15.png"))); // NOI18N
+        navBar.add(searchDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 170, -1, -1));
+
+        bookmarksDot.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/dot15.png"))); // NOI18N
+        navBar.add(bookmarksDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 240, -1, -1));
+
+        journalDot.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/dot15.png"))); // NOI18N
+        navBar.add(journalDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 320, -1, -1));
+
+        audiobooksDot.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/dot15.png"))); // NOI18N
+        navBar.add(audiobooksDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 390, -1, -1));
+
+        cmtryDot.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/dot15.png"))); // NOI18N
+        navBar.add(cmtryDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 455, -1, 20));
+
+        hostJoinDot.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/dot15.png"))); // NOI18N
+        navBar.add(hostJoinDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 525, -1, 20));
+
+        settingsDot.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/dot15.png"))); // NOI18N
+        navBar.add(settingsDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 595, -1, 20));
 
         homeBtnLabel.setForeground(new java.awt.Color(255, 255, 255));
         homeBtnLabel.setText("Bible");
@@ -3120,6 +3166,117 @@ public void cutOff(int normalSearchResultNo) {
         settingsLabel.setForeground(new java.awt.Color(255, 255, 255));
         settingsLabel.setText("   Settings");
         navBar.add(settingsLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 625, -1, -1));
+
+        bibleTabDoClick.setBackground(new java.awt.Color(40, 43, 45));
+        bibleTabDoClick.setBorderPainted(false);
+        bibleTabDoClick.setContentAreaFilled(false);
+        bibleTabDoClick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bibleTabDoClickActionPerformed(evt);
+            }
+        });
+        navBar.add(bibleTabDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 10, -1, 60));
+
+        libraryTabDoClick.setBackground(new java.awt.Color(40, 43, 45));
+        libraryTabDoClick.setBorderPainted(false);
+        libraryTabDoClick.setContentAreaFilled(false);
+        libraryTabDoClick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                libraryTabDoClickActionPerformed(evt);
+            }
+        });
+        navBar.add(libraryTabDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 80, -1, 70));
+
+        searchTabDoClick.setBackground(new java.awt.Color(40, 43, 45));
+        searchTabDoClick.setBorderPainted(false);
+        searchTabDoClick.setContentAreaFilled(false);
+        searchTabDoClick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchTabDoClickActionPerformed(evt);
+            }
+        });
+        navBar.add(searchTabDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 150, -1, 70));
+        searchTabDoClick.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                searchBtn.getModel().setRollover(true);   // simulate hover3 on homeBtn
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                searchBtn.getModel().setRollover(false);  // remove hover3 on homeBtn
+            }
+
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                libraryBtn.getModel().setPressed(true);    // simulate click press on homeBtn
+            }
+
+            @Override
+            public void mouseReleased(java.awt.event.MouseEvent e) {
+                searchBtn.getModel().setPressed(false);   // release click animation
+            }
+        });
+
+        bookmarkTabDoClick.setBackground(new java.awt.Color(40, 43, 45));
+        bookmarkTabDoClick.setBorderPainted(false);
+        bookmarkTabDoClick.setContentAreaFilled(false);
+        bookmarkTabDoClick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookmarkTabDoClickActionPerformed(evt);
+            }
+        });
+        navBar.add(bookmarkTabDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 230, -1, 70));
+
+        journalTabDoClick.setBackground(new java.awt.Color(40, 43, 45));
+        journalTabDoClick.setBorderPainted(false);
+        journalTabDoClick.setContentAreaFilled(false);
+        journalTabDoClick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                journalTabDoClickActionPerformed(evt);
+            }
+        });
+        navBar.add(journalTabDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 300, -1, 70));
+
+        audiobookDoClick.setBackground(new java.awt.Color(40, 43, 45));
+        audiobookDoClick.setBorderPainted(false);
+        audiobookDoClick.setContentAreaFilled(false);
+        audiobookDoClick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                audiobookDoClickActionPerformed(evt);
+            }
+        });
+        navBar.add(audiobookDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 380, -1, 60));
+
+        commentariesTabDoClick.setBackground(new java.awt.Color(40, 43, 45));
+        commentariesTabDoClick.setBorderPainted(false);
+        commentariesTabDoClick.setContentAreaFilled(false);
+        commentariesTabDoClick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                commentariesTabDoClickActionPerformed(evt);
+            }
+        });
+        navBar.add(commentariesTabDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 450, -1, 60));
+
+        hostJoinDoClick.setBackground(new java.awt.Color(40, 43, 45));
+        hostJoinDoClick.setBorderPainted(false);
+        hostJoinDoClick.setContentAreaFilled(false);
+        hostJoinDoClick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                hostJoinDoClickActionPerformed(evt);
+            }
+        });
+        navBar.add(hostJoinDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 510, -1, 60));
+
+        settingsDoClick.setBackground(new java.awt.Color(40, 43, 45));
+        settingsDoClick.setBorderPainted(false);
+        settingsDoClick.setContentAreaFilled(false);
+        settingsDoClick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                settingsDoClickActionPerformed(evt);
+            }
+        });
+        navBar.add(settingsDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 580, -1, 70));
 
         homeBtn.setBackground(new java.awt.Color(40, 43, 45));
         homeBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/book.png"))); // NOI18N
@@ -3166,6 +3323,7 @@ public void cutOff(int normalSearchResultNo) {
         bookmarkBtn.setBackground(new java.awt.Color(40, 43, 45));
         bookmarkBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/bookmark.png"))); // NOI18N
         bookmarkBtn.setBorder(null);
+        bookmarkBtn.setOpaque(true);
         bookmarkBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 bookmarkBtnActionPerformed(evt);
@@ -3176,122 +3334,57 @@ public void cutOff(int normalSearchResultNo) {
         journalBtn.setBackground(new java.awt.Color(40, 43, 45));
         journalBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/notes.png"))); // NOI18N
         journalBtn.setBorder(null);
+        journalBtn.setOpaque(true);
+        journalBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                journalBtnActionPerformed(evt);
+            }
+        });
         navBar.add(journalBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(18, 311, -1, -1));
 
         audiobookBtn.setBackground(new java.awt.Color(40, 43, 45));
         audiobookBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/audiobook.png"))); // NOI18N
         audiobookBtn.setBorder(null);
+        audiobookBtn.setOpaque(true);
+        audiobookBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                audiobookBtnActionPerformed(evt);
+            }
+        });
         navBar.add(audiobookBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(18, 381, -1, -1));
 
         cmntrsBtn.setBackground(new java.awt.Color(40, 43, 45));
         cmntrsBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/commentaries.png"))); // NOI18N
         cmntrsBtn.setBorder(null);
+        cmntrsBtn.setOpaque(true);
+        cmntrsBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmntrsBtnActionPerformed(evt);
+            }
+        });
         navBar.add(cmntrsBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(19, 451, -1, -1));
 
         hostJoinBtn.setBackground(new java.awt.Color(40, 43, 45));
         hostJoinBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/hostJoin.png"))); // NOI18N
         hostJoinBtn.setBorder(null);
+        hostJoinBtn.setOpaque(true);
+        hostJoinBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                hostJoinBtnActionPerformed(evt);
+            }
+        });
         navBar.add(hostJoinBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 519, -1, -1));
 
         settingsBtn.setBackground(new java.awt.Color(40, 43, 45));
         settingsBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/settings.png"))); // NOI18N
         settingsBtn.setBorder(null);
+        settingsBtn.setOpaque(true);
         settingsBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 settingsBtnActionPerformed(evt);
             }
         });
         navBar.add(settingsBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(14, 589, 43, -1));
-
-        bibleTabDoClick.setBackground(new java.awt.Color(40, 43, 45));
-        bibleTabDoClick.setBorderPainted(false);
-        bibleTabDoClick.setFocusable(false);
-        bibleTabDoClick.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                bibleTabDoClickActionPerformed(evt);
-            }
-        });
-        navBar.add(bibleTabDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 10, -1, 70));
-
-        libraryTabDoClick.setBackground(new java.awt.Color(40, 43, 45));
-        libraryTabDoClick.setBorderPainted(false);
-        libraryTabDoClick.setFocusable(false);
-        libraryTabDoClick.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                libraryTabDoClickActionPerformed(evt);
-            }
-        });
-        navBar.add(libraryTabDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 90, -1, 60));
-
-        searchTabDoClick.setBackground(new java.awt.Color(40, 43, 45));
-        searchTabDoClick.setBorderPainted(false);
-        searchTabDoClick.setFocusable(false);
-        searchTabDoClick.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                searchTabDoClickActionPerformed(evt);
-            }
-        });
-        navBar.add(searchTabDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 150, -1, 70));
-
-        bookmarkTabDoClick.setBackground(new java.awt.Color(40, 43, 45));
-        bookmarkTabDoClick.setBorderPainted(false);
-        bookmarkTabDoClick.setFocusable(false);
-        bookmarkTabDoClick.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                bookmarkTabDoClickActionPerformed(evt);
-            }
-        });
-        navBar.add(bookmarkTabDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 230, -1, 70));
-
-        journalTabDoClick.setBackground(new java.awt.Color(40, 43, 45));
-        journalTabDoClick.setBorderPainted(false);
-        journalTabDoClick.setFocusable(false);
-        journalTabDoClick.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                journalTabDoClickActionPerformed(evt);
-            }
-        });
-        navBar.add(journalTabDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 300, -1, 70));
-
-        audiobookDoClick.setBackground(new java.awt.Color(40, 43, 45));
-        audiobookDoClick.setBorderPainted(false);
-        audiobookDoClick.setFocusable(false);
-        audiobookDoClick.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                audiobookDoClickActionPerformed(evt);
-            }
-        });
-        navBar.add(audiobookDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 380, -1, 60));
-
-        commentariesTabDoClick.setBackground(new java.awt.Color(40, 43, 45));
-        commentariesTabDoClick.setBorderPainted(false);
-        commentariesTabDoClick.setFocusable(false);
-        commentariesTabDoClick.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                commentariesTabDoClickActionPerformed(evt);
-            }
-        });
-        navBar.add(commentariesTabDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 450, -1, 60));
-
-        hostJoinDoClick.setBackground(new java.awt.Color(40, 43, 45));
-        hostJoinDoClick.setBorderPainted(false);
-        hostJoinDoClick.setFocusable(false);
-        hostJoinDoClick.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                hostJoinDoClickActionPerformed(evt);
-            }
-        });
-        navBar.add(hostJoinDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 510, -1, 60));
-
-        settingsDoClick.setBackground(new java.awt.Color(40, 43, 45));
-        settingsDoClick.setBorderPainted(false);
-        settingsDoClick.setFocusable(false);
-        settingsDoClick.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                settingsDoClickActionPerformed(evt);
-            }
-        });
-        navBar.add(settingsDoClick, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 580, -1, 70));
 
         mainPanel_layered.add(navBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 30, 70, 930));
 
@@ -8448,7 +8541,15 @@ public void cutOff(int normalSearchResultNo) {
 
     private void settingsBtnActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_settingsBtnActionPerformed
-        // TODO add your handling code here:
+        homeDot.setVisible(false);
+        libraryDot.setVisible(false);
+        searchDot.setVisible(false);
+        bookmarksDot.setVisible(false);
+        journalDot.setVisible(false);
+        audiobooksDot.setVisible(false);
+        cmtryDot.setVisible(false);
+        hostJoinDot.setVisible(false);
+        settingsDot.setVisible(true);
     }//GEN-LAST:event_settingsBtnActionPerformed
 
     private void closeBtnActionPerformed(java.awt.event.ActionEvent evt) {
@@ -8573,6 +8674,16 @@ public void cutOff(int normalSearchResultNo) {
     private void libraryBtnActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_libraryBtnActionPerformed
         tabs.setSelectedIndex(1);
+        
+    homeDot.setVisible(false);
+    libraryDot.setVisible(true);
+    searchDot.setVisible(false);
+    bookmarksDot.setVisible(false);
+    journalDot.setVisible(false);
+    audiobooksDot.setVisible(false);
+    cmtryDot.setVisible(false);
+    hostJoinDot.setVisible(false);
+    settingsDot.setVisible(false);
     }//GEN-LAST:event_libraryBtnActionPerformed
 
     private void addNoteBtnActionPerformed(java.awt.event.ActionEvent evt) {
@@ -8597,6 +8708,16 @@ public void cutOff(int normalSearchResultNo) {
     private void homeBtnActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_homeBtnActionPerformed
         tabs.setSelectedIndex(0);
+
+    homeDot.setVisible(true);
+    libraryDot.setVisible(false);
+    searchDot.setVisible(false);
+    bookmarksDot.setVisible(false);
+    journalDot.setVisible(false);
+    audiobooksDot.setVisible(false);
+    cmtryDot.setVisible(false);
+    hostJoinDot.setVisible(false);
+    settingsDot.setVisible(false);        
     }//GEN-LAST:event_homeBtnActionPerformed
 
     private void eyeShowActionPerformed(java.awt.event.ActionEvent evt) {
@@ -9558,6 +9679,17 @@ public void cutOff(int normalSearchResultNo) {
             tabs.setSelectedIndex(4);
         }
         tabs.setSelectedIndex(4);
+        
+    homeDot.setVisible(false);
+    libraryDot.setVisible(false);
+    searchDot.setVisible(true);
+    bookmarksDot.setVisible(false);
+    journalDot.setVisible(false);
+    audiobooksDot.setVisible(false);
+    cmtryDot.setVisible(false);
+    hostJoinDot.setVisible(false);
+    settingsDot.setVisible(false);        
+              
     }//GEN-LAST:event_searchBtnActionPerformed
 
     private void searchBarNoHistoryActionPerformed(
@@ -10606,6 +10738,16 @@ public void cutOff(int normalSearchResultNo) {
 
     private void bookmarkBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookmarkBtnActionPerformed
         tabs.setSelectedIndex(6);
+        
+    homeDot.setVisible(false);
+    libraryDot.setVisible(false);
+    searchDot.setVisible(false);
+    bookmarksDot.setVisible(true);
+    journalDot.setVisible(false);
+    audiobooksDot.setVisible(false);
+    cmtryDot.setVisible(false);
+    hostJoinDot.setVisible(false);
+    settingsDot.setVisible(false);      
     }//GEN-LAST:event_bookmarkBtnActionPerformed
 
     private void bibleTabDoClickActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bibleTabDoClickActionPerformed
@@ -10643,6 +10785,57 @@ public void cutOff(int normalSearchResultNo) {
     private void settingsDoClickActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsDoClickActionPerformed
         settingsBtn.doClick();
     }//GEN-LAST:event_settingsDoClickActionPerformed
+
+    private void journalBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_journalBtnActionPerformed
+
+        
+        homeDot.setVisible(false);
+        libraryDot.setVisible(false);
+        searchDot.setVisible(false);
+        bookmarksDot.setVisible(false);
+        journalDot.setVisible(true);
+        audiobooksDot.setVisible(false);
+        cmtryDot.setVisible(false);
+        hostJoinDot.setVisible(false);
+        settingsDot.setVisible(false);        
+    }//GEN-LAST:event_journalBtnActionPerformed
+
+    private void audiobookBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_audiobookBtnActionPerformed
+
+        homeDot.setVisible(false);
+        libraryDot.setVisible(false);
+        searchDot.setVisible(false);
+        bookmarksDot.setVisible(false);
+        journalDot.setVisible(false);
+        audiobooksDot.setVisible(true);
+        cmtryDot.setVisible(false);
+        hostJoinDot.setVisible(false);
+        settingsDot.setVisible(false);
+    }//GEN-LAST:event_audiobookBtnActionPerformed
+
+    private void cmntrsBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmntrsBtnActionPerformed
+        homeDot.setVisible(false);
+        libraryDot.setVisible(false);
+        searchDot.setVisible(false);
+        bookmarksDot.setVisible(false);
+        journalDot.setVisible(false);
+        audiobooksDot.setVisible(false);
+        cmtryDot.setVisible(true);
+        hostJoinDot.setVisible(false);
+        settingsDot.setVisible(false);
+    }//GEN-LAST:event_cmntrsBtnActionPerformed
+
+    private void hostJoinBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hostJoinBtnActionPerformed
+        homeDot.setVisible(false);
+        libraryDot.setVisible(false);
+        searchDot.setVisible(false);
+        bookmarksDot.setVisible(false);
+        journalDot.setVisible(false);
+        audiobooksDot.setVisible(false);
+        cmtryDot.setVisible(false);
+        hostJoinDot.setVisible(true);
+        settingsDot.setVisible(false);  
+    }//GEN-LAST:event_hostJoinBtnActionPerformed
 
     /**
      * @param args the command line arguments
@@ -10712,6 +10905,7 @@ public void cutOff(int normalSearchResultNo) {
     private javax.swing.JButton audiobookBtn;
     private javax.swing.JButton audiobookDoClick;
     private javax.swing.JLabel audiobookLabel;
+    private javax.swing.JLabel audiobooksDot;
     private javax.swing.JLabel aug;
     private javax.swing.JPanel backAndHome;
     private javax.swing.JButton backToSearch;
@@ -10743,12 +10937,14 @@ public void cutOff(int normalSearchResultNo) {
     private javax.swing.JButton bookmarkTabDoClick;
     private javax.swing.JPanel bookmarks;
     private javax.swing.JLabel bookmarksBtn;
+    private javax.swing.JLabel bookmarksDot;
     private javax.swing.JButton cafeTheme;
     private javax.swing.JComboBox<String> chapterChooser;
     private javax.swing.JButton closeBtn;
     private javax.swing.JButton cmntrsBtn;
     private javax.swing.JLabel cmntrsBtnLabel;
     private javax.swing.JPanel cmtrsTabPanel;
+    private javax.swing.JLabel cmtryDot;
     private javax.swing.JTextField cmtryLoad;
     private javax.swing.JLabel cmtryName;
     private javax.swing.JTabbedPane cmtryTabbedPanel;
@@ -10784,11 +10980,14 @@ public void cutOff(int normalSearchResultNo) {
     private javax.swing.JButton highlightBtn;
     private javax.swing.JButton homeBtn;
     private javax.swing.JLabel homeBtnLabel;
+    private javax.swing.JLabel homeDot;
     private javax.swing.JButton hostJoinBtn;
     private javax.swing.JLabel hostJoinBtnLabel;
     private javax.swing.JButton hostJoinDoClick;
+    private javax.swing.JLabel hostJoinDot;
     private javax.swing.JLabel jan;
     private javax.swing.JButton journalBtn;
+    private javax.swing.JLabel journalDot;
     private javax.swing.JButton journalTabDoClick;
     private javax.swing.JLabel jul;
     private javax.swing.JLabel jun;
@@ -10802,6 +11001,7 @@ public void cutOff(int normalSearchResultNo) {
     private javax.swing.JPanel lastSearches;
     private javax.swing.JButton libraryBtn;
     private javax.swing.JPanel libraryContent;
+    private javax.swing.JLabel libraryDot;
     private javax.swing.JPanel libraryTab;
     private javax.swing.JButton libraryTabDoClick;
     private javax.swing.JLabel loading30BW;
@@ -10884,6 +11084,7 @@ public void cutOff(int normalSearchResultNo) {
     private javax.swing.JTextField searchBarNoHistory;
     private javax.swing.JButton searchBtn;
     private javax.swing.JLabel searchBtnLabel;
+    private javax.swing.JLabel searchDot;
     private javax.swing.JLabel searchHistoryTitle;
     private javax.swing.JButton searchNoHistory;
     private javax.swing.JPanel searchNoHistoryPanel;
@@ -10931,6 +11132,7 @@ public void cutOff(int normalSearchResultNo) {
     private javax.swing.JProgressBar separator5;
     private javax.swing.JButton settingsBtn;
     private javax.swing.JButton settingsDoClick;
+    private javax.swing.JLabel settingsDot;
     private javax.swing.JLabel settingsLabel;
     private javax.swing.JButton showMore;
     private javax.swing.JButton spacer;
