@@ -9339,9 +9339,7 @@ public void cutOff(int normalSearchResultNo) {
 
         // --- Save to DB ---
         try (
-            Connection conn = DriverManager.getConnection(
-                "jdbc:sqlite:" + dbPath
-            );
+            Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
             PreparedStatement pstmt = conn.prepareStatement(insertQuery)
         ) {
             pstmt.setInt(1, bookIndex);
@@ -9349,15 +9347,53 @@ public void cutOff(int normalSearchResultNo) {
             pstmt.executeUpdate();
 
             System.out.println(
-                "Bookmark saved for bookIndex: " +
-                    bookIndex +
-                    " | scrollIndex: " +
-                    scrollIndex
+                "Bookmark saved for bookIndex: " + bookIndex +
+                " | scrollIndex: " + scrollIndex
             );
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
 
+        // --- Save Screenshot of the whole window cropped to PDF pane resolution ---
+        try {
+            // Capture the entire JFrame window
+            java.awt.Rectangle windowRect = this.getBounds();
+            java.awt.Point p = this.getLocationOnScreen();
+            java.awt.Rectangle captureRect = new java.awt.Rectangle(p.x, p.y, windowRect.width, windowRect.height);
+
+            java.awt.Robot robot = new java.awt.Robot();
+            java.awt.image.BufferedImage screenshot = robot.createScreenCapture(captureRect);
+
+            // Desired PDF pane resolution
+            int targetWidth = 934;
+            int targetHeight = 920;
+
+            // Calculate cropping to center horizontally and vertically
+            int cropX = (screenshot.getWidth() - targetWidth) / 2;
+            int cropY = (screenshot.getHeight() - targetHeight) / 2;
+            if (cropX < 0) cropX = 0;
+            if (cropY < 0) cropY = 0;
+
+            int finalWidth = Math.min(targetWidth, screenshot.getWidth());
+            int finalHeight = Math.min(targetHeight, screenshot.getHeight());
+
+            java.awt.image.BufferedImage cropped = screenshot.getSubimage(cropX, cropY, finalWidth, finalHeight);
+
+            // Save image to userFiles directory
+            java.io.File dir = new java.io.File("src/main/userFiles");
+            if (!dir.exists()) dir.mkdirs();
+
+            String fileName = bookIndex + "_" + scrollIndex + ".png";
+            java.io.File outputFile = new java.io.File(dir, fileName);
+
+            javax.imageio.ImageIO.write(cropped, "png", outputFile);
+
+            System.out.println("Screenshot saved: " + outputFile.getAbsolutePath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // --- Visual Feedback ---
         bookmark.setIcon(
             new javax.swing.ImageIcon(
                 getClass().getResource("/icons/bookmark.png")
