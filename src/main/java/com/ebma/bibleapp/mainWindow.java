@@ -383,6 +383,9 @@ public class mainWindow extends javax.swing.JFrame {
     
     private boolean deepSearchOpened = false;
     
+    private final String NODE_STATE_PATH = "src/main/nodeStateSave/nodes.json";
+    
+    private boolean bgWhite = true;
 
     
     
@@ -2407,6 +2410,8 @@ private void loadBookmarksNodes() {
     nodesPanel.removeAll();
     nodesPanel.setLayout(null);
 
+    Map<String, Point> savedNodePositions = loadNodePositions();
+
     Map<Integer, List<String>> bookmarkMap = new LinkedHashMap<>();
     try (Connection conn = DriverManager.getConnection("jdbc:sqlite:bookStack.db");
          Statement stmt = conn.createStatement();
@@ -2424,18 +2429,15 @@ private void loadBookmarksNodes() {
 
     int nodeWidth = 120, nodeHeight = 180;
     int childWidth = 50, childHeight = 50;
-    int spacing = 80;
-
-    int totalWidth = bookmarkMap.size() * (nodeWidth + spacing);
-    int totalHeight = nodeHeight + childHeight + 100;
+    int spacing = 150; // spacing between books
     int panelWidth = nodesPanel.getWidth();
     int panelHeight = nodesPanel.getHeight();
 
-    int xOffset = Math.max((panelWidth - totalWidth) / 2, spacing);
-    int yOffset = Math.max((panelHeight - totalHeight) / 2, spacing);
-
     List<Connector> connectorLines = new ArrayList<>();
     List<JLabel> allNodes = new ArrayList<>();
+
+    int xOffset = spacing;
+    int yOffset = Math.max((panelHeight - (nodeHeight + 200)) / 2, 60);
 
     for (Map.Entry<Integer, List<String>> entry : bookmarkMap.entrySet()) {
         int bookIndex = entry.getKey();
@@ -2450,38 +2452,68 @@ private void loadBookmarksNodes() {
             int scaledW = (int) (nodeHeight * aspect);
             if (scaledW > nodeWidth) scaledW = nodeWidth;
             centerLabel.setIcon(new ImageIcon(img.getScaledInstance(scaledW, nodeHeight, Image.SCALE_SMOOTH)));
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        centerLabel.setBounds(xOffset, yOffset, nodeWidth, nodeHeight);
-        makeDraggable(centerLabel);
+        String nodeKey = "book_" + bookIndex;
+        Point savedPos = savedNodePositions.getOrDefault(nodeKey, new Point(xOffset, yOffset));
+        centerLabel.setBounds(savedPos.x, savedPos.y, nodeWidth, nodeHeight);
+        makeDraggable(centerLabel, nodeKey);
         nodesPanel.add(centerLabel);
         allNodes.add(centerLabel);
 
+
         int totalChildren = childImages.size();
-        int totalChildWidth = totalChildren * (childWidth + 5);
-        int startChildX = xOffset + (nodeWidth - totalChildWidth) / 2;
-        int childY = yOffset + nodeHeight + 20;
+        if (totalChildren > 0) {
+            double radius = nodeHeight * 0.9; // distance from bottom of tile
+            double startAngle = 180;
+            double endAngle = 0;
+            double angleStep = totalChildren > 1 ? (startAngle - endAngle) / (totalChildren - 1) : 0;
 
-        for (String childPath : childImages) {
-            JLabel childLabel = new JLabel();
-            try {
-                ImageIcon icon = new ImageIcon(childPath);
-                Image img = icon.getImage();
-                childLabel.setIcon(new ImageIcon(img.getScaledInstance(childWidth, childHeight, Image.SCALE_SMOOTH)));
-            } catch (Exception e) { e.printStackTrace(); }
+            int centerX = savedPos.x + nodeWidth / 2;
+            int baseY = savedPos.y + nodeHeight; // bottom of tile
 
-            childLabel.setBounds(startChildX, childY, childWidth, childHeight);
-            makeDraggable(childLabel);
-            nodesPanel.add(childLabel);
-            allNodes.add(childLabel);
+            for (int i = 0; i < totalChildren; i++) {
+                String childPath = childImages.get(i);
+                JLabel childLabel = new JLabel();
+                try {
+                    ImageIcon icon = new ImageIcon(childPath);
+                    Image img = icon.getImage();
+                    childLabel.setIcon(new ImageIcon(img.getScaledInstance(childWidth, childHeight, Image.SCALE_SMOOTH)));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
-            connectorLines.add(new Connector(centerLabel, childLabel));
-            startChildX += childWidth + 5;
+                double angleRad = Math.toRadians(startAngle - i * angleStep);
+                int childX = (int) (centerX + radius * Math.cos(angleRad)) - childWidth / 2;
+                int childY = (int) (baseY + radius * Math.sin(angleRad)) - childHeight / 2;
+
+                // keep within panel bounds
+                childX = Math.max(0, Math.min(childX, panelWidth - childWidth));
+                childY = Math.max(0, Math.min(childY, panelHeight - childHeight));
+
+                String childKey = nodeKey + "_child_" + i;
+                Point savedChildPos = savedNodePositions.getOrDefault(childKey, new Point(childX, childY));
+
+                childLabel.setBounds(savedChildPos.x, savedChildPos.y, childWidth, childHeight);
+                makeDraggable(childLabel, childKey);
+                nodesPanel.add(childLabel);
+                allNodes.add(childLabel);
+
+                connectorLines.add(new Connector(centerLabel, childLabel));
+            }
         }
 
+        // move xOffset for next book
         xOffset += nodeWidth + spacing;
+        if (xOffset + nodeWidth > panelWidth) {
+            xOffset = spacing;
+            yOffset += nodeHeight + 200;
+        }
     }
 
+ 
     JPanel overlay = new JPanel() {
         @Override
         protected void paintComponent(Graphics g) {
@@ -2507,47 +2539,84 @@ private void loadBookmarksNodes() {
     nodesPanel.revalidate();
     nodesPanel.repaint();
 
-    nodesPanel.addMouseWheelListener(new MouseWheelListener() {
-        double scale = 1.0;
-        @Override
-        public void mouseWheelMoved(MouseWheelEvent e) {
-            if (e.isControlDown()) {
-                scale += -0.1 * e.getPreciseWheelRotation();
-                scale = Math.max(0.3, Math.min(3.0, scale));
-                for (JLabel lbl : allNodes) {
-                    ImageIcon icon = (ImageIcon) lbl.getIcon();
-                    if (icon != null) {
-                        Image img = icon.getImage();
-                        int w = (int) (img.getWidth(null) * scale);
-                        int h = (int) (img.getHeight(null) * scale);
-                        lbl.setIcon(new ImageIcon(img.getScaledInstance(w, h, Image.SCALE_SMOOTH)));
-                    }
-                }
-                nodesPanel.revalidate();
-                nodesPanel.repaint();
-            }
-        }
-    });
-
     System.out.println("---- End loadBookmarksNodes ----");
 }
 
-private void makeDraggable(JLabel label) {
+
+
+
+private void saveNodePositions() {
+    try {
+        JSONObject root = new JSONObject();
+        for (Component c : nodesPanel.getComponents()) {
+            if (c instanceof JLabel lbl) {
+                String key = (String) lbl.getClientProperty("nodeKey");
+                if (key != null) {
+                    JSONObject pos = new JSONObject();
+                    pos.put("x", lbl.getX());
+                    pos.put("y", lbl.getY());
+                    root.put(key, pos);
+                }
+            }
+        }
+
+        Files.createDirectories(Paths.get("src/main/nodeStateSave"));
+        try (FileWriter fw = new FileWriter(NODE_STATE_PATH)) {
+            fw.write(root.toString(4)); // pretty-print
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+
+private Map<String, Point> loadNodePositions() {
+    Map<String, Point> positions = new HashMap<>();
+    File file = new File(NODE_STATE_PATH);
+    if (!file.exists()) return positions;
+
+    try {
+        String content = Files.readString(file.toPath());
+        if (content.isBlank()) return positions;
+
+        JSONObject root = new JSONObject(content);
+        for (String key : root.keySet()) {
+            JSONObject pos = root.getJSONObject(key);
+            int x = pos.getInt("x");
+            int y = pos.getInt("y");
+            positions.put(key, new Point(x, y));
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return positions;
+}
+
+
+
+private void makeDraggable(JLabel label, String nodeKey) {
+    label.putClientProperty("nodeKey", nodeKey);
     final Point[] startPt = {null};
+
     label.addMouseListener(new MouseAdapter() {
         @Override public void mousePressed(MouseEvent e) {
             startPt[0] = e.getPoint();
         }
+
+        @Override public void mouseReleased(MouseEvent e) {
+            saveNodePositions(); // auto-save on release
+        }
     });
+
     label.addMouseMotionListener(new MouseMotionAdapter() {
         @Override public void mouseDragged(MouseEvent e) {
             Point loc = label.getLocation();
             loc.translate(e.getX() - startPt[0].x, e.getY() - startPt[0].y);
             label.setLocation(loc);
-            nodesPanel.repaint(); // redraw lines dynamically
+            nodesPanel.repaint();
         }
     });
 }
+
 
 class Connector {
     JLabel parent, child;
@@ -2556,7 +2625,6 @@ class Connector {
         child = c;
     }
 }
-
 
 
     @SuppressWarnings("unchecked")
@@ -8716,6 +8784,14 @@ class Connector {
                 loadBookmarksNodes();
             }
         });
+        tabs.addChangeListener(e -> {
+            int prevIndex = 6;
+            int newIndex = tabs.getSelectedIndex();
+
+            if (prevIndex == 6) {
+                saveNodePositions();
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -9514,6 +9590,9 @@ class Connector {
 
     private void bookmarkActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_bookmarkActionPerformed
+        if(bgWhite){
+            bookmarkSavedNotif.setBackground(new Color(40, 43, 45));
+        }
         int bookIndex = loadedBook; // assuming this field exists
         int scrollIndex = bookScroll.getVerticalScrollBar().getValue();
 
@@ -9599,6 +9678,8 @@ class Connector {
 
     private void cafeThemeActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_cafeThemeActionPerformed
+        bgWhite = false;
+        
         //mute.setVisible(false);
         //unmute.setVisible(false);
         if (mute.isVisible()) {
@@ -9665,6 +9746,7 @@ class Connector {
 
     private void treeThemeActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_treeThemeActionPerformed
+        bgWhite = false;
         //mute.setVisible(false);
         //unmute.setVisible(false);
         if (mute.isVisible()) {
@@ -9694,7 +9776,7 @@ class Connector {
             themer.setIcon(new javax.swing.ImageIcon(imgURL));
             themer.repaint();
         } else {
-            System.err.println("⚠️ Image not found: trees" + itr + ".jpg");
+            System.err.println("️ Image not found: trees" + itr + ".jpg");
         }
 
         // Load and loop matching tree sound
@@ -9710,7 +9792,7 @@ class Connector {
                 treeClip.open(audioIn);
                 treeClip.loop(Clip.LOOP_CONTINUOUSLY);
             } else {
-                System.err.println("⚠️ Sound not found: trees" + itr + ".wav");
+                System.err.println("️ Sound not found: trees" + itr + ".wav");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -9730,6 +9812,7 @@ class Connector {
 
     private void rainAmbienceActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_rainAmbienceActionPerformed
+        bgWhite = false;
         //mute.setVisible(false);
         //unmute.setVisible(false);
         if (mute.isVisible()) {
