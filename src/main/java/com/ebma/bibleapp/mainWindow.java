@@ -89,6 +89,7 @@ import java.awt.event.MouseWheelListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.QuadCurve2D;
 
+import java.nio.file.StandardCopyOption;
 
 
 public class mainWindow extends javax.swing.JFrame {
@@ -2597,18 +2598,112 @@ private void makeDraggable(JLabel label, String nodeKey) {
     label.putClientProperty("nodeKey", nodeKey);
     final Point[] startPt = {null};
 
-    label.addMouseListener(new MouseAdapter() {
-        @Override public void mousePressed(MouseEvent e) {
-            startPt[0] = e.getPoint();
+    if (nodeKey.startsWith("book_")) {
+        // Load delete icon
+        ImageIcon deleteIcon = null;
+        try {
+            deleteIcon = new ImageIcon(getClass().getResource("/icons/delete25.png"));
+        } catch (Exception e) {
+            System.err.println("⚠️ Could not load delete icon: " + e.getMessage());
         }
 
-        @Override public void mouseReleased(MouseEvent e) {
-            saveNodePositions(); // auto-save on release
-        }
-    });
+        // Create delete overlay label
+        JLabel deleteOverlay = new JLabel(deleteIcon);
+        deleteOverlay.setVisible(false);
+        deleteOverlay.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        deleteOverlay.setBounds(label.getWidth() - 25, 0, 25, 25); // top-right corner
+        label.setLayout(null);
+        label.add(deleteOverlay);
 
+        // Delete overlay click action
+        deleteOverlay.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                deleteOverlay.setVisible(false);
+
+                // Remove main node
+                nodesPanel.remove(label);
+
+                // Remove child nodes
+                List<Component> toRemove = new ArrayList<>();
+                for (Component c : nodesPanel.getComponents()) {
+                    if (c instanceof JLabel lbl) {
+                        Object key = lbl.getClientProperty("nodeKey");
+                        if (key != null && key.toString().startsWith(nodeKey + "_child_")) {
+                            toRemove.add(lbl);
+                        }
+                    }
+                }
+                for (Component c : toRemove) nodesPanel.remove(c);
+
+                // Update saved positions
+                Map<String, Point> positions = loadNodePositions();
+                positions.remove(nodeKey);
+                positions.keySet().removeIf(k -> k.startsWith(nodeKey + "_child_"));
+
+                try {
+                    JSONObject root = new JSONObject();
+                    for (Map.Entry<String, Point> entry : positions.entrySet()) {
+                        JSONObject pos = new JSONObject();
+                        pos.put("x", entry.getValue().x);
+                        pos.put("y", entry.getValue().y);
+                        root.put(entry.getKey(), pos);
+                    }
+                    Files.createDirectories(Paths.get("src/main/nodeStateSave"));
+                    try (FileWriter fw = new FileWriter(NODE_STATE_PATH)) {
+                        fw.write(root.toString(4));
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
+                // Move book screenshots to nodesDel
+                try {
+                    int bookIndex = Integer.parseInt(nodeKey.replace("book_", ""));
+                    deleteBookScreenshots(bookIndex);
+                } catch (Exception ex) {
+                    System.err.println("⚠️ Could not extract book index from nodeKey: " + nodeKey);
+                }
+
+                nodesPanel.repaint();
+            }
+        });
+
+        // Mouse listener for dragging and showing delete icon
+        label.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                startPt[0] = e.getPoint();
+                if (SwingUtilities.isRightMouseButton(e)) {
+                    deleteOverlay.setVisible(true);
+                    deleteOverlay.repaint();
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                saveNodePositions();
+            }
+        });
+    } else {
+        // Child nodes: drag only
+        label.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                startPt[0] = e.getPoint();
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                saveNodePositions();
+            }
+        });
+    }
+
+    // Shared drag logic
     label.addMouseMotionListener(new MouseMotionAdapter() {
-        @Override public void mouseDragged(MouseEvent e) {
+        @Override
+        public void mouseDragged(MouseEvent e) {
             Point loc = label.getLocation();
             loc.translate(e.getX() - startPt[0].x, e.getY() - startPt[0].y);
             label.setLocation(loc);
@@ -2616,6 +2711,45 @@ private void makeDraggable(JLabel label, String nodeKey) {
         }
     });
 }
+
+
+
+
+private void deleteBookScreenshots(int bookIndex) {
+    File userFilesDir = new File("src/main/userFiles");
+    File deleteDir = new File("src/main/nodesDel");
+
+    if (!userFilesDir.exists()) return;
+    if (!deleteDir.exists()) deleteDir.mkdirs();
+
+    File[] files = userFilesDir.listFiles((dir, name) ->
+        name.startsWith(bookIndex + "_") && name.endsWith(".png")
+    );
+
+    if (files != null) {
+        for (File f : files) {
+            File dest = new File(deleteDir, f.getName());
+            try {
+                Files.move(f.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                System.out.println("Moved " + f.getName() + " → nodesDel");
+            } catch (IOException ex) {
+                System.err.println("⚠️ Failed to move file: " + f.getAbsolutePath());
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    // Optionally remove from DB
+    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:bookStack.db");
+         PreparedStatement ps = conn.prepareStatement("DELETE FROM bookmarks WHERE bookindex=?")) {
+        ps.setInt(1, bookIndex);
+        ps.executeUpdate();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+
+
 
 
 class Connector {
@@ -3573,7 +3707,9 @@ class Connector {
         bookmarkBtn.setBackground(new java.awt.Color(40, 43, 45));
         bookmarkBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/bookmark.png"))); // NOI18N
         bookmarkBtn.setBorder(null);
-        bookmarkBtn.setOpaque(true);
+        bookmarkBtn.setBorderPainted(false);
+        bookmarkBtn.setContentAreaFilled(false);
+        bookmarkBtn.setFocusPainted(false);
         bookmarkBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 bookmarkBtnActionPerformed(evt);
