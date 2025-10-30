@@ -15,7 +15,7 @@ OUTPUT_FILE = os.path.join(BASE_DIR, "nlsVectors.json")
 if not os.path.exists(NIV_FILE):
     raise FileNotFoundError(f" NIV JSON file not found in project folder: {NIV_FILE}")
 else:
-    print(f"✅ Found NIV JSON file: {NIV_FILE}")
+    print(f" Found NIV JSON file: {NIV_FILE}")
 
 # -----------------------------
 # Load model
@@ -37,13 +37,15 @@ for book_name, chapters in bible.items():
     for chapter_num, verses in chapters.items():
         for verse_num, verse_text in verses.items():
             vector = model.encode(verse_text, convert_to_numpy=True)
-            embeddings_index.append({
-                "book": book_name,
-                "chapter": chapter_num,
-                "verse": verse_num,
-                "text": verse_text,
-                "vector": vector.tolist()
-            })
+            embeddings_index.append(
+                {
+                    "book": book_name,
+                    "chapter": chapter_num,
+                    "verse": verse_num,
+                    "text": verse_text,
+                    "vector": vector.tolist(),
+                }
+            )
             total_verses_book += 1
     print(f"Encoded {book_name} ({total_verses_book} verses)")
     total_verses_all_books += total_verses_book

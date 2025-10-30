@@ -7,7 +7,7 @@ import sys
 import re
 
 # Load model (same one you used before)
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # Load precomputed verse vectors
 with open("nlsVectors.json", "r", encoding="utf-8") as f:

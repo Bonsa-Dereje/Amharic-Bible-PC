@@ -86,8 +86,9 @@ import java.awt.event.KeyEvent;
 
 import java.util.LinkedHashMap;
 import java.awt.event.MouseWheelListener;
-import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.geom.QuadCurve2D;
+
 
 
 public class mainWindow extends javax.swing.JFrame {
@@ -2398,114 +2399,121 @@ public void cutOff(int normalSearchResultNo) {
 }
 
 
+
+
 private void loadBookmarksNodes() {
     System.out.println("---- Start loadBookmarksNodes ----");
 
-    // Clear previous nodes
-    System.out.println("Clearing previous nodes...");
     nodesPanel.removeAll();
-    nodesPanel.setLayout(null); // Absolute positioning like a canvas
+    nodesPanel.setLayout(null);
 
-    // Load bookmarks from DB
     Map<Integer, List<String>> bookmarkMap = new LinkedHashMap<>();
-    System.out.println("Connecting to DB and fetching bookmarks...");
     try (Connection conn = DriverManager.getConnection("jdbc:sqlite:bookStack.db");
          Statement stmt = conn.createStatement();
-         ResultSet rs = stmt.executeQuery("SELECT bookindex, scrollindex FROM bookmarks")) { // fixed table name
+         ResultSet rs = stmt.executeQuery("SELECT bookindex, scrollindex FROM bookmarks")) {
 
         while (rs.next()) {
             int bookIndex = rs.getInt("bookindex");
             int scrollIndex = rs.getInt("scrollindex");
             String bookmarkFile = "src/main/userFiles/" + bookIndex + "_" + scrollIndex + ".png";
-            System.out.println("Found bookmark: bookIndex=" + bookIndex + ", scrollIndex=" + scrollIndex + ", file=" + bookmarkFile);
             bookmarkMap.computeIfAbsent(bookIndex, k -> new ArrayList<>()).add(bookmarkFile);
         }
     } catch (Exception e) {
         e.printStackTrace();
-        System.out.println("Error loading bookmarks from DB.");
     }
 
-    int nodeWidth = 150;
-    int nodeHeight = 200;
-    int childWidth = 50;
-    int childHeight = 50;
-    int spacing = 50;
+    int nodeWidth = 120, nodeHeight = 180;
+    int childWidth = 50, childHeight = 50;
+    int spacing = 80;
 
-    int xOffset = spacing;
-    int yOffset = spacing;
+    int totalWidth = bookmarkMap.size() * (nodeWidth + spacing);
+    int totalHeight = nodeHeight + childHeight + 100;
+    int panelWidth = nodesPanel.getWidth();
+    int panelHeight = nodesPanel.getHeight();
 
-    // Keep references to all JLabel nodes for zoom
+    int xOffset = Math.max((panelWidth - totalWidth) / 2, spacing);
+    int yOffset = Math.max((panelHeight - totalHeight) / 2, spacing);
+
+    List<Connector> connectorLines = new ArrayList<>();
     List<JLabel> allNodes = new ArrayList<>();
 
-    System.out.println("Creating nodes...");
     for (Map.Entry<Integer, List<String>> entry : bookmarkMap.entrySet()) {
         int bookIndex = entry.getKey();
         List<String> childImages = entry.getValue();
 
-        System.out.println("Processing bookIndex=" + bookIndex + " with " + childImages.size() + " child bookmarks.");
-
-        // Center node
         JLabel centerLabel = new JLabel();
         String centerImgPath = "src/main/resources/bookTiles/" + bookIndex + ".png";
         try {
-            System.out.println("Loading center image: " + centerImgPath);
             ImageIcon icon = new ImageIcon(centerImgPath);
-            Image img = icon.getImage().getScaledInstance(nodeWidth, nodeHeight, Image.SCALE_SMOOTH);
-            centerLabel.setIcon(new ImageIcon(img));
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Error loading center image for bookIndex=" + bookIndex);
-        }
+            Image img = icon.getImage();
+            double aspect = (double) img.getWidth(null) / img.getHeight(null);
+            int scaledW = (int) (nodeHeight * aspect);
+            if (scaledW > nodeWidth) scaledW = nodeWidth;
+            centerLabel.setIcon(new ImageIcon(img.getScaledInstance(scaledW, nodeHeight, Image.SCALE_SMOOTH)));
+        } catch (Exception e) { e.printStackTrace(); }
 
         centerLabel.setBounds(xOffset, yOffset, nodeWidth, nodeHeight);
         makeDraggable(centerLabel);
         nodesPanel.add(centerLabel);
         allNodes.add(centerLabel);
-        System.out.println("Added center node at (" + xOffset + "," + yOffset + ")");
 
-        // Child nodes below center
-        int childX = xOffset;
-        int childY = yOffset + nodeHeight + 10;
+        int totalChildren = childImages.size();
+        int totalChildWidth = totalChildren * (childWidth + 5);
+        int startChildX = xOffset + (nodeWidth - totalChildWidth) / 2;
+        int childY = yOffset + nodeHeight + 20;
+
         for (String childPath : childImages) {
             JLabel childLabel = new JLabel();
             try {
-                System.out.println("Loading child image: " + childPath);
                 ImageIcon icon = new ImageIcon(childPath);
-                Image img = icon.getImage().getScaledInstance(childWidth, childHeight, Image.SCALE_SMOOTH);
-                childLabel.setIcon(new ImageIcon(img));
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.out.println("Error loading child image: " + childPath);
-            }
+                Image img = icon.getImage();
+                childLabel.setIcon(new ImageIcon(img.getScaledInstance(childWidth, childHeight, Image.SCALE_SMOOTH)));
+            } catch (Exception e) { e.printStackTrace(); }
 
-            childLabel.setBounds(childX, childY, childWidth, childHeight);
+            childLabel.setBounds(startChildX, childY, childWidth, childHeight);
             makeDraggable(childLabel);
             nodesPanel.add(childLabel);
             allNodes.add(childLabel);
-            System.out.println("Added child node at (" + childX + "," + childY + ")");
 
-            childX += childWidth + 5;
+            connectorLines.add(new Connector(centerLabel, childLabel));
+            startChildX += childWidth + 5;
         }
 
         xOffset += nodeWidth + spacing;
     }
 
-    // Scroll support
+    JPanel overlay = new JPanel() {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(Color.LIGHT_GRAY);
+            g2.setStroke(new BasicStroke(2f));
+
+            for (Connector c : connectorLines) {
+                int x1 = c.parent.getX() + c.parent.getWidth() / 2;
+                int y1 = c.parent.getY() + c.parent.getHeight();
+                int x2 = c.child.getX() + c.child.getWidth() / 2;
+                int y2 = c.child.getY();
+                g2.draw(new QuadCurve2D.Float(x1, y1, (x1 + x2) / 2, y1 + 40, x2, y2));
+            }
+        }
+    };
+    overlay.setOpaque(false);
+    overlay.setBounds(0, 0, nodesPanel.getWidth(), nodesPanel.getHeight());
+    nodesPanel.add(overlay);
+
     nodesPanel.revalidate();
     nodesPanel.repaint();
-    System.out.println("Nodes panel revalidated and repainted.");
 
-    // Zoom support: Ctrl + scroll wheel
     nodesPanel.addMouseWheelListener(new MouseWheelListener() {
         double scale = 1.0;
-
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
             if (e.isControlDown()) {
                 scale += -0.1 * e.getPreciseWheelRotation();
                 scale = Math.max(0.3, Math.min(3.0, scale));
-                System.out.println("Zoom scale changed to: " + scale);
-
                 for (JLabel lbl : allNodes) {
                     ImageIcon icon = (ImageIcon) lbl.getIcon();
                     if (icon != null) {
@@ -2517,7 +2525,6 @@ private void loadBookmarksNodes() {
                 }
                 nodesPanel.revalidate();
                 nodesPanel.repaint();
-                System.out.println("Nodes panel updated after zoom.");
             }
         }
     });
@@ -2525,25 +2532,29 @@ private void loadBookmarksNodes() {
     System.out.println("---- End loadBookmarksNodes ----");
 }
 
-// Helper method to make JLabel draggable
 private void makeDraggable(JLabel label) {
     final Point[] startPt = {null};
     label.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mousePressed(MouseEvent e) {
+        @Override public void mousePressed(MouseEvent e) {
             startPt[0] = e.getPoint();
         }
     });
-
     label.addMouseMotionListener(new MouseMotionAdapter() {
-        @Override
-        public void mouseDragged(MouseEvent e) {
+        @Override public void mouseDragged(MouseEvent e) {
             Point loc = label.getLocation();
             loc.translate(e.getX() - startPt[0].x, e.getY() - startPt[0].y);
             label.setLocation(loc);
-            System.out.println("Dragged label to (" + loc.x + "," + loc.y + ")");
+            nodesPanel.repaint(); // redraw lines dynamically
         }
     });
+}
+
+class Connector {
+    JLabel parent, child;
+    Connector(JLabel p, JLabel c) {
+        parent = p;
+        child = c;
+    }
 }
 
 
@@ -3260,13 +3271,13 @@ private void makeDraggable(JLabel label) {
         navBar.add(homeDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 30, -1, -1));
 
         libraryDot.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/dot15.png"))); // NOI18N
-        navBar.add(libraryDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 100, -1, -1));
+        navBar.add(libraryDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 95, -1, 20));
 
         searchDot.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/dot15.png"))); // NOI18N
         navBar.add(searchDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 150, -1, 70));
 
         bookmarksDot.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/dot15.png"))); // NOI18N
-        navBar.add(bookmarksDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 240, -1, -1));
+        navBar.add(bookmarksDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 230, -1, 40));
 
         journalDot.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/dot15.png"))); // NOI18N
         navBar.add(journalDot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 320, -1, -1));
@@ -8701,10 +8712,7 @@ private void makeDraggable(JLabel label) {
             return false;
         });
         tabs.addChangeListener(e -> {
-            int selectedIndex = tabs.getSelectedIndex();
-            System.out.println("Tab changed. Selected index: " + selectedIndex);
-            if (selectedIndex == 6) { // bookmarks tab
-                System.out.println("Loading bookmarks nodes...");
+            if (tabs.getSelectedIndex() == 6) { // Tab 6 (0-based index)
                 loadBookmarksNodes();
             }
         });
