@@ -388,7 +388,10 @@ public class mainWindow extends javax.swing.JFrame {
     
     private boolean bgWhite = true;
 
-    
+    private JLabel currentDeleteVisible = null; // Track current delete icon shown
+    private Point panStartPoint = null;         // For panning
+    private Point viewOffset = new Point(0, 0); // Track canvas offset  
+    private static boolean panningEnabled = false;
     
     public mainWindow() {
         setUndecorated(true);
@@ -2406,10 +2409,12 @@ public void cutOff(int normalSearchResultNo) {
 
 
 private void loadBookmarksNodes() {
+    
     System.out.println("---- Start loadBookmarksNodes ----");
 
     nodesPanel.removeAll();
     nodesPanel.setLayout(null);
+    
 
     Map<String, Point> savedNodePositions = loadNodePositions();
 
@@ -2598,8 +2603,8 @@ private void makeDraggable(JLabel label, String nodeKey) {
     label.putClientProperty("nodeKey", nodeKey);
     final Point[] startPt = {null};
 
+    // ======== BOOK NODE ========
     if (nodeKey.startsWith("book_")) {
-        // Load delete icon
         ImageIcon deleteIcon = null;
         try {
             deleteIcon = new ImageIcon(getClass().getResource("/icons/delete25.png"));
@@ -2607,24 +2612,21 @@ private void makeDraggable(JLabel label, String nodeKey) {
             System.err.println("⚠️ Could not load delete icon: " + e.getMessage());
         }
 
-        // Create delete overlay label
         JLabel deleteOverlay = new JLabel(deleteIcon);
         deleteOverlay.setVisible(false);
         deleteOverlay.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        deleteOverlay.setBounds(label.getWidth() - 25, 0, 25, 25); // top-right corner
-        label.setLayout(null);
-        label.add(deleteOverlay);
 
-        // Delete overlay click action
+        nodesPanel.add(deleteOverlay);
+        nodesPanel.setComponentZOrder(deleteOverlay, 0);
+
         deleteOverlay.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 deleteOverlay.setVisible(false);
+                currentDeleteVisible = null;
 
-                // Remove main node
                 nodesPanel.remove(label);
 
-                // Remove child nodes
                 List<Component> toRemove = new ArrayList<>();
                 for (Component c : nodesPanel.getComponents()) {
                     if (c instanceof JLabel lbl) {
@@ -2636,28 +2638,8 @@ private void makeDraggable(JLabel label, String nodeKey) {
                 }
                 for (Component c : toRemove) nodesPanel.remove(c);
 
-                // Update saved positions
-                Map<String, Point> positions = loadNodePositions();
-                positions.remove(nodeKey);
-                positions.keySet().removeIf(k -> k.startsWith(nodeKey + "_child_"));
+                saveNodePositions(); // reuse your existing save logic
 
-                try {
-                    JSONObject root = new JSONObject();
-                    for (Map.Entry<String, Point> entry : positions.entrySet()) {
-                        JSONObject pos = new JSONObject();
-                        pos.put("x", entry.getValue().x);
-                        pos.put("y", entry.getValue().y);
-                        root.put(entry.getKey(), pos);
-                    }
-                    Files.createDirectories(Paths.get("src/main/nodeStateSave"));
-                    try (FileWriter fw = new FileWriter(NODE_STATE_PATH)) {
-                        fw.write(root.toString(4));
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-
-                // Move book screenshots to nodesDel
                 try {
                     int bookIndex = Integer.parseInt(nodeKey.replace("book_", ""));
                     deleteBookScreenshots(bookIndex);
@@ -2669,14 +2651,20 @@ private void makeDraggable(JLabel label, String nodeKey) {
             }
         });
 
-        // Mouse listener for dragging and showing delete icon
         label.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 startPt[0] = e.getPoint();
+
                 if (SwingUtilities.isRightMouseButton(e)) {
+                    if (currentDeleteVisible != null && currentDeleteVisible != deleteOverlay) {
+                        currentDeleteVisible.setVisible(false);
+                    }
+                    Point labelLoc = label.getLocation();
+                    deleteOverlay.setBounds(labelLoc.x + label.getWidth(), labelLoc.y - 10, 25, 25);
                     deleteOverlay.setVisible(true);
-                    deleteOverlay.repaint();
+                    currentDeleteVisible = deleteOverlay;
+                    nodesPanel.repaint();
                 }
             }
 
@@ -2685,8 +2673,9 @@ private void makeDraggable(JLabel label, String nodeKey) {
                 saveNodePositions();
             }
         });
+
     } else {
-        // Child nodes: drag only
+        // ======== CHILD NODE ========
         label.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -2700,17 +2689,71 @@ private void makeDraggable(JLabel label, String nodeKey) {
         });
     }
 
-    // Shared drag logic
+    // ======== SHARED DRAG LOGIC ========
     label.addMouseMotionListener(new MouseMotionAdapter() {
         @Override
         public void mouseDragged(MouseEvent e) {
             Point loc = label.getLocation();
             loc.translate(e.getX() - startPt[0].x, e.getY() - startPt[0].y);
             label.setLocation(loc);
+
+            if (currentDeleteVisible != null && currentDeleteVisible.isVisible()) {
+                Point labelLoc = label.getLocation();
+                currentDeleteVisible.setLocation(labelLoc.x + label.getWidth(), labelLoc.y - 10);
+            }
+
             nodesPanel.repaint();
         }
     });
+
+    // ======== GLOBAL PAN ========
+    nodesPanel.addMouseMotionListener(new MouseMotionAdapter() {
+        Point lastPt = null;
+
+        @Override
+        public void mouseMoved(MouseEvent e) {
+            Component comp = nodesPanel.getComponentAt(e.getPoint());
+            if (comp == null || comp == nodesPanel) {
+                nodesPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            } else {
+                nodesPanel.setCursor(Cursor.getDefaultCursor());
+            }
+        }
+
+        @Override
+        public void mouseDragged(MouseEvent e) {
+            Component comp = nodesPanel.getComponentAt(e.getPoint());
+            if (comp == null || comp == nodesPanel) {
+                if (lastPt != null) {
+                    int dx = e.getX() - lastPt.x;
+                    int dy = e.getY() - lastPt.y;
+
+                    for (Component c : nodesPanel.getComponents()) {
+                        if (c instanceof JLabel lbl && lbl != currentDeleteVisible) {
+                            Point loc = lbl.getLocation();
+                            loc.translate(dx, dy);
+                            lbl.setLocation(loc);
+                        }
+                    }
+
+                    nodesPanel.repaint();
+                }
+                lastPt = e.getPoint();
+            } else {
+                lastPt = null; // reset for node drag
+            }
+        }
+
+        //@Override
+        public void mouseReleased(MouseEvent e) {
+            lastPt = null;
+            saveNodePositions();
+        }
+    });
 }
+
+
+
 
 
 
@@ -2748,6 +2791,7 @@ private void deleteBookScreenshots(int bookIndex) {
         e.printStackTrace();
     }
 }
+
 
 
 
