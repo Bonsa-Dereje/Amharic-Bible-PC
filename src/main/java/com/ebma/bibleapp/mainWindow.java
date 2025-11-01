@@ -93,6 +93,7 @@ import java.nio.file.StandardCopyOption;
 
 import java.awt.event.KeyAdapter;
 
+import javax.imageio.ImageIO;
 
 
 public class mainWindow extends javax.swing.JFrame {
@@ -393,7 +394,9 @@ public class mainWindow extends javax.swing.JFrame {
 
     private JLabel currentDeleteVisible = null; // Track current delete icon shown
     private Point panStartPoint = null;         // For panning
-    private Point viewOffset = new Point(0, 0); // Track canvas offset    
+    private Point viewOffset = new Point(0, 0); // Track canvas offset  
+    
+    private boolean isLoadingBookmarks = false;
     
     public mainWindow() {
         setUndecorated(true);
@@ -2411,12 +2414,11 @@ public void cutOff(int normalSearchResultNo) {
 
 
 private void loadBookmarksNodes() {
-    
+
     System.out.println("---- Start loadBookmarksNodes ----");
 
     nodesPanel.removeAll();
     nodesPanel.setLayout(null);
-    
 
     Map<String, Point> savedNodePositions = loadNodePositions();
 
@@ -2437,7 +2439,7 @@ private void loadBookmarksNodes() {
 
     int nodeWidth = 120, nodeHeight = 180;
     int childWidth = 50, childHeight = 50;
-    int spacing = 150; // spacing between books
+    int spacing = 150;
     int panelWidth = nodesPanel.getWidth();
     int panelHeight = nodesPanel.getHeight();
 
@@ -2471,16 +2473,15 @@ private void loadBookmarksNodes() {
         nodesPanel.add(centerLabel);
         allNodes.add(centerLabel);
 
-
         int totalChildren = childImages.size();
         if (totalChildren > 0) {
-            double radius = nodeHeight * 0.9; // distance from bottom of tile
+            double radius = nodeHeight * 0.9;
             double startAngle = 180;
             double endAngle = 0;
             double angleStep = totalChildren > 1 ? (startAngle - endAngle) / (totalChildren - 1) : 0;
 
             int centerX = savedPos.x + nodeWidth / 2;
-            int baseY = savedPos.y + nodeHeight; // bottom of tile
+            int baseY = savedPos.y + nodeHeight;
 
             for (int i = 0; i < totalChildren; i++) {
                 String childPath = childImages.get(i);
@@ -2497,7 +2498,6 @@ private void loadBookmarksNodes() {
                 int childX = (int) (centerX + radius * Math.cos(angleRad)) - childWidth / 2;
                 int childY = (int) (baseY + radius * Math.sin(angleRad)) - childHeight / 2;
 
-                // keep within panel bounds
                 childX = Math.max(0, Math.min(childX, panelWidth - childWidth));
                 childY = Math.max(0, Math.min(childY, panelHeight - childHeight));
 
@@ -2510,10 +2510,17 @@ private void loadBookmarksNodes() {
                 allNodes.add(childLabel);
 
                 connectorLines.add(new Connector(centerLabel, childLabel));
+
+                // ========== 🔍 CLICK TO VIEW FULL IMAGE ==========
+                childLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showFullImageOverlay(childPath);
+                    }
+                });
             }
         }
 
-        // move xOffset for next book
         xOffset += nodeWidth + spacing;
         if (xOffset + nodeWidth > panelWidth) {
             xOffset = spacing;
@@ -2521,7 +2528,6 @@ private void loadBookmarksNodes() {
         }
     }
 
- 
     JPanel overlay = new JPanel() {
         @Override
         protected void paintComponent(Graphics g) {
@@ -2530,7 +2536,6 @@ private void loadBookmarksNodes() {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setColor(Color.LIGHT_GRAY);
             g2.setStroke(new BasicStroke(2f));
-
             for (Connector c : connectorLines) {
                 int x1 = c.parent.getX() + c.parent.getWidth() / 2;
                 int y1 = c.parent.getY() + c.parent.getHeight();
@@ -2549,6 +2554,69 @@ private void loadBookmarksNodes() {
 
     System.out.println("---- End loadBookmarksNodes ----");
 }
+
+/**
+ * Displays a full-resolution image overlay on top of nodesPanel.
+ */
+private void showFullImageOverlay(String imagePath) {
+    try {
+        BufferedImage img = ImageIO.read(new File(imagePath));
+        if (img == null) return;
+
+        // Create semi-transparent overlay
+        JPanel overlayPanel = new JPanel(null);
+        overlayPanel.setBackground(new Color(0, 0, 0, 200));
+        overlayPanel.setBounds(0, 0, nodesPanel.getWidth(), nodesPanel.getHeight());
+
+        // Create full-size image label
+        JLabel fullImgLabel = new JLabel();
+        Image scaled = img;
+
+        int maxW = nodesPanel.getWidth() - 100;
+        int maxH = nodesPanel.getHeight() - 100;
+
+        double scale = Math.min((double) maxW / img.getWidth(), (double) maxH / img.getHeight());
+        if (scale < 1.0) {
+            scaled = img.getScaledInstance(
+                (int) (img.getWidth() * scale),
+                (int) (img.getHeight() * scale),
+                Image.SCALE_SMOOTH
+            );
+        }
+
+        fullImgLabel.setIcon(new ImageIcon(scaled));
+        int x = (nodesPanel.getWidth() - scaled.getWidth(null)) / 2;
+        int y = (nodesPanel.getHeight() - scaled.getHeight(null)) / 2;
+        fullImgLabel.setBounds(x, y, scaled.getWidth(null), scaled.getHeight(null));
+
+        overlayPanel.add(fullImgLabel);
+
+        // ⚡ The fix — ensure overlay is above all layers:
+        nodesPanel.setComponentZOrder(overlayPanel, 0);
+        nodesPanel.add(overlayPanel);
+        nodesPanel.setComponentZOrder(overlayPanel, 0);
+        nodesPanel.repaint();
+        nodesPanel.revalidate();
+
+        // Clicking anywhere removes overlay
+        MouseAdapter closeOverlay = new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                nodesPanel.remove(overlayPanel);
+                nodesPanel.repaint();
+                nodesPanel.revalidate();
+            }
+        };
+
+        overlayPanel.addMouseListener(closeOverlay);
+        fullImgLabel.addMouseListener(closeOverlay);
+
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+
+
 
 
 
@@ -2738,38 +2806,6 @@ private void makeDraggable(JLabel label, String nodeKey) {
             }
 
             nodesPanel.repaint();
-        }
-    });
-}
-
-private void enableCanvasPanning(JPanel nodesPanel, JScrollPane scrollPane) {
-    final Point[] startPoint = {null};
-
-    nodesPanel.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mousePressed(MouseEvent e) {
-            startPoint[0] = e.getPoint();
-            nodesPanel.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e) {
-            startPoint[0] = null;
-            nodesPanel.setCursor(Cursor.getDefaultCursor());
-        }
-    });
-
-    nodesPanel.addMouseMotionListener(new MouseMotionAdapter() {
-        @Override
-        public void mouseDragged(MouseEvent e) {
-            if (startPoint[0] != null) {
-                JViewport viewport = scrollPane.getViewport();
-                Point viewPosition = viewport.getViewPosition();
-                int dx = startPoint[0].x - e.getX();
-                int dy = startPoint[0].y - e.getY();
-                viewPosition.translate(dx, dy);
-                nodesPanel.scrollRectToVisible(new Rectangle(viewPosition, viewport.getSize()));
-            }
         }
     });
 }
@@ -3514,6 +3550,9 @@ private void panner(JPanel nodesPanel) {
         nextSearch = new javax.swing.JButton();
         bookmarks = new javax.swing.JPanel();
         nodesPanel = new javax.swing.JPanel();
+        loadingCanvas = new javax.swing.JPanel();
+        loadCanvasProgress = new javax.swing.JProgressBar();
+        loadingYourcanvas = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -8744,6 +8783,34 @@ private void panner(JPanel nodesPanel) {
 
         tabs.addTab("tab7", bookmarks);
 
+        loadingYourcanvas.setText("Loading Your Canvas");
+
+        javax.swing.GroupLayout loadingCanvasLayout = new javax.swing.GroupLayout(loadingCanvas);
+        loadingCanvas.setLayout(loadingCanvasLayout);
+        loadingCanvasLayout.setHorizontalGroup(
+            loadingCanvasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(loadingCanvasLayout.createSequentialGroup()
+                .addContainerGap(632, Short.MAX_VALUE)
+                .addGroup(loadingCanvasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, loadingCanvasLayout.createSequentialGroup()
+                        .addComponent(loadCanvasProgress, javax.swing.GroupLayout.PREFERRED_SIZE, 337, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(611, 611, 611))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, loadingCanvasLayout.createSequentialGroup()
+                        .addComponent(loadingYourcanvas)
+                        .addGap(728, 728, 728))))
+        );
+        loadingCanvasLayout.setVerticalGroup(
+            loadingCanvasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(loadingCanvasLayout.createSequentialGroup()
+                .addGap(453, 453, 453)
+                .addComponent(loadingYourcanvas)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(loadCanvasProgress, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(496, Short.MAX_VALUE))
+        );
+
+        tabs.addTab("tab8", loadingCanvas);
+
         mainPanel_layered.add(tabs, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, -50, 1580, 1010));
         tabs.addChangeListener(e -> {
             int selectedIndex = tabs.getSelectedIndex();
@@ -9047,10 +9114,51 @@ private void panner(JPanel nodesPanel) {
             return false;
         });
         tabs.addChangeListener(e -> {
-            if (tabs.getSelectedIndex() == 6) { // Tab 6 (0-based index)
-                loadBookmarksNodes();
+            if (isLoadingBookmarks) return; // ignore programmatic tab switches
+
+            if (tabs.getSelectedIndex() == 6) { // User manually switched to tab 6
+                isLoadingBookmarks = true; // prevent re-entry
+
+                tabs.setSelectedIndex(7); // show loading tab
+
+                SwingWorker<Void, Integer> worker = new SwingWorker<>() {
+                    @Override
+                    protected Void doInBackground() throws Exception {
+                        // Slowly fill to halfway
+                        for (int i = 0; i <= 50; i++) {
+                            Thread.sleep(30);
+                            publish(i);
+                        }
+
+                        // Load nodes
+                        loadBookmarksNodes();
+
+                        // Quickly fill the rest
+                        for (int i = 51; i <= 100; i++) {
+                            Thread.sleep(10);
+                            publish(i);
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    protected void process(java.util.List<Integer> chunks) {
+                        int value = chunks.get(chunks.size() - 1);
+                        loadCanvasProgress.setValue(value);
+                    }
+
+                    @Override
+                    protected void done() {
+                        loadCanvasProgress.setValue(0);
+                        tabs.setSelectedIndex(6); // switch back to node tab
+                        isLoadingBookmarks = false; // re-enable listener
+                    }
+                };
+
+                worker.execute();
             }
         });
+
         tabs.addChangeListener(e -> {
             int prevIndex = 6;
             int newIndex = tabs.getSelectedIndex();
@@ -11580,11 +11688,14 @@ private void panner(JPanel nodesPanel) {
     private javax.swing.JLabel libraryDot;
     private javax.swing.JPanel libraryTab;
     private javax.swing.JButton libraryTabDoClick;
+    private javax.swing.JProgressBar loadCanvasProgress;
     private javax.swing.JLabel loading30BW;
     private javax.swing.JLabel loadingBook;
+    private javax.swing.JPanel loadingCanvas;
     private javax.swing.JLabel loadingLoop;
     private javax.swing.JPanel loadingPrevis;
     private javax.swing.JPanel loadingScreen;
+    private javax.swing.JLabel loadingYourcanvas;
     private javax.swing.JLayeredPane mainPanel_layered;
     private javax.swing.JTextArea mainTextArea;
     private javax.swing.JScrollPane mainTextScrollPanel;
