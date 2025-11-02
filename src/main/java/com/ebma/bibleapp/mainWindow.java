@@ -398,6 +398,8 @@ public class mainWindow extends javax.swing.JFrame {
     
     private boolean isLoadingBookmarks = false;
     
+    public String bookMarkJournalIMG;
+    
     public mainWindow() {
         setUndecorated(true);
         initComponents();
@@ -2604,32 +2606,64 @@ private void showImageInSidePanel(String imagePath) {
         sidePanel.setLayout(new BorderLayout());
 
         // ===== Header =====
-        JPanel header = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
-        header.setBackground(new Color(50, 53, 55)); // slightly lighter for header contrast
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(new Color(50, 53, 55));
+
+        // --- Left filler for balance ---
+        JPanel leftFiller = new JPanel();
+        leftFiller.setOpaque(false);
+        header.add(leftFiller, BorderLayout.WEST);
+
+        // --- Center "Go to Journal" Button ---
+        JButton journalBtn = new JButton("Go to Journal");
+        journalBtn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        journalBtn.setForeground(Color.WHITE);
+        journalBtn.setBackground(new Color(70, 73, 75));
+        journalBtn.setFocusPainted(false);
+        journalBtn.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+
+        // Load icon (relative path recommended for JAR)
+        ImageIcon icon = new ImageIcon(getClass().getResource("/icons/icons8-arrow-right-15.png"));
+        journalBtn.setIcon(icon);
+        journalBtn.setHorizontalTextPosition(SwingConstants.RIGHT);
+        journalBtn.setIconTextGap(6);
+
+        journalBtn.addActionListener(e -> {
+            // Save image path globally
+            bookMarkJournalIMG = imagePath;
+
+            // Switch to tab index 8 (Journal tab)
+            tabs.setSelectedIndex(8);
+        });
+
+        header.add(journalBtn, BorderLayout.CENTER);
+
+        // --- Right close button ---
         JButton closeBtn = new JButton("x");
         closeBtn.setFocusPainted(false);
         closeBtn.setBorderPainted(false);
         closeBtn.setContentAreaFilled(false);
-        closeBtn.setForeground(Color.WHITE); // visible on dark background
+        closeBtn.setForeground(Color.WHITE);
         closeBtn.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         closeBtn.addActionListener(e -> {
             nodesPanel.remove(sidePanel);
             nodesPanel.revalidate();
             nodesPanel.repaint();
         });
-        header.add(closeBtn);
+        header.add(closeBtn, BorderLayout.EAST);
+
         sidePanel.add(header, BorderLayout.NORTH);
 
         // ===== Image =====
         JLabel imgLabel = new JLabel();
         imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        imgLabel.setOpaque(false); // make label background transparent
+        imgLabel.setOpaque(false);
 
         JScrollPane scrollPane = new JScrollPane(imgLabel);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.getViewport().setBackground(new Color(40, 43, 45)); // match side panel
-        scrollPane.setBackground(new Color(40, 43, 45)); // match side panel
+        scrollPane.getViewport().setBackground(new Color(40, 43, 45));
+        scrollPane.setBackground(new Color(40, 43, 45));
         sidePanel.add(scrollPane, BorderLayout.CENTER);
 
         // ===== Initial scaling =====
@@ -2643,7 +2677,7 @@ private void showImageInSidePanel(String imagePath) {
         };
         scaleImage.run();
 
-        // ===== Make sidebar resizable by dragging left edge (entire height) =====
+        // ===== Make sidebar resizable by dragging left edge =====
         final Point[] dragStart = {null};
         sidePanel.addMouseListener(new MouseAdapter() {
             @Override
@@ -2701,7 +2735,6 @@ private void showImageInSidePanel(String imagePath) {
         e.printStackTrace();
     }
 }
-
 
 
 
@@ -3637,6 +3670,13 @@ private void panner(JPanel nodesPanel) {
         loadingCanvas = new javax.swing.JPanel();
         loadCanvasProgress = new javax.swing.JProgressBar();
         loadingYourcanvas = new javax.swing.JLabel();
+        journal = new javax.swing.JPanel();
+        journalingPanel = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jProgressBar1 = new javax.swing.JProgressBar();
+        saveJournal = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jEditorPane1 = new javax.swing.JEditorPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -3974,7 +4014,9 @@ private void panner(JPanel nodesPanel) {
         journalBtn.setBackground(new java.awt.Color(40, 43, 45));
         journalBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/notes.png"))); // NOI18N
         journalBtn.setBorder(null);
-        journalBtn.setOpaque(true);
+        journalBtn.setContentAreaFilled(false);
+        journalBtn.setFocusPainted(false);
+        journalBtn.setRolloverEnabled(false);
         journalBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 journalBtnActionPerformed(evt);
@@ -8895,6 +8937,65 @@ private void panner(JPanel nodesPanel) {
 
         tabs.addTab("tab8", loadingCanvas);
 
+        journalingPanel.setBackground(new java.awt.Color(255, 255, 255));
+        journalingPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+
+        jLabel1.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
+        jLabel1.setText("Journal");
+
+        saveJournal.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/save15.png"))); // NOI18N
+        saveJournal.setBorderPainted(false);
+
+        jScrollPane1.setViewportView(jEditorPane1);
+
+        javax.swing.GroupLayout journalingPanelLayout = new javax.swing.GroupLayout(journalingPanel);
+        journalingPanel.setLayout(journalingPanelLayout);
+        journalingPanelLayout.setHorizontalGroup(
+            journalingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jProgressBar1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 1543, Short.MAX_VALUE)
+            .addGroup(journalingPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(journalingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1)
+                    .addGroup(journalingPanelLayout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(saveJournal, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+        );
+        journalingPanelLayout.setVerticalGroup(
+            journalingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(journalingPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(journalingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(saveJournal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 834, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        javax.swing.GroupLayout journalLayout = new javax.swing.GroupLayout(journal);
+        journal.setLayout(journalLayout);
+        journalLayout.setHorizontalGroup(
+            journalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, journalLayout.createSequentialGroup()
+                .addContainerGap(15, Short.MAX_VALUE)
+                .addComponent(journalingPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(20, 20, 20))
+        );
+        journalLayout.setVerticalGroup(
+            journalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(journalLayout.createSequentialGroup()
+                .addGap(70, 70, 70)
+                .addComponent(journalingPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(16, Short.MAX_VALUE))
+        );
+
+        tabs.addTab("tab9", journal);
+
         mainPanel_layered.add(tabs, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, -50, 1580, 1010));
         tabs.addChangeListener(e -> {
             int selectedIndex = tabs.getSelectedIndex();
@@ -11555,7 +11656,7 @@ private void panner(JPanel nodesPanel) {
     }//GEN-LAST:event_settingsDoClickActionPerformed
 
     private void journalBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_journalBtnActionPerformed
-
+        tabs.setSelectedIndex(8);
         
         homeDot.setVisible(false);
         libraryDot.setVisible(false);
@@ -11753,10 +11854,17 @@ private void panner(JPanel nodesPanel) {
     private javax.swing.JLabel hostJoinBtnLabel;
     private javax.swing.JButton hostJoinDoClick;
     private javax.swing.JLabel hostJoinDot;
+    private javax.swing.JEditorPane jEditorPane1;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JProgressBar jProgressBar1;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel jan;
+    private javax.swing.JPanel journal;
     private javax.swing.JButton journalBtn;
     private javax.swing.JLabel journalDot;
+    private javax.swing.JPanel journalPreview5;
     private javax.swing.JButton journalTabDoClick;
+    private javax.swing.JPanel journalingPanel;
     private javax.swing.JLabel jul;
     private javax.swing.JLabel jun;
     private javax.swing.JComboBox<String> langChooser;
@@ -11835,6 +11943,7 @@ private void panner(JPanel nodesPanel) {
     private javax.swing.JLabel recentSearchResult5;
     private javax.swing.JLabel recentSearchResult6;
     private javax.swing.JButton restoreBtn;
+    private javax.swing.JButton saveJournal;
     private javax.swing.JButton saveNote;
     private javax.swing.JButton saveTick;
     private javax.swing.JScrollPane scroll1;
