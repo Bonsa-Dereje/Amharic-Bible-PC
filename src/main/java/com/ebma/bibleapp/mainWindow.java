@@ -2420,7 +2420,9 @@ private void loadBookmarksNodes() {
     nodesPanel.removeAll();
     nodesPanel.setLayout(null);
 
+    // ===== Load saved positions =====
     Map<String, Point> savedNodePositions = loadNodePositions();
+    boolean hasSavedPositions = !savedNodePositions.isEmpty();
 
     Map<Integer, List<String>> bookmarkMap = new LinkedHashMap<>();
     try (Connection conn = DriverManager.getConnection("jdbc:sqlite:bookStack.db");
@@ -2467,7 +2469,13 @@ private void loadBookmarksNodes() {
         }
 
         String nodeKey = "book_" + bookIndex;
-        Point savedPos = savedNodePositions.getOrDefault(nodeKey, new Point(xOffset, yOffset));
+        Point savedPos;
+        if (hasSavedPositions && savedNodePositions.containsKey(nodeKey)) {
+            savedPos = savedNodePositions.get(nodeKey);
+        } else {
+            savedPos = new Point(xOffset, yOffset);
+        }
+
         centerLabel.setBounds(savedPos.x, savedPos.y, nodeWidth, nodeHeight);
         makeDraggable(centerLabel, nodeKey);
         nodesPanel.add(centerLabel);
@@ -2486,6 +2494,7 @@ private void loadBookmarksNodes() {
             for (int i = 0; i < totalChildren; i++) {
                 String childPath = childImages.get(i);
                 JLabel childLabel = new JLabel();
+
                 try {
                     ImageIcon icon = new ImageIcon(childPath);
                     Image img = icon.getImage();
@@ -2502,7 +2511,12 @@ private void loadBookmarksNodes() {
                 childY = Math.max(0, Math.min(childY, panelHeight - childHeight));
 
                 String childKey = nodeKey + "_child_" + i;
-                Point savedChildPos = savedNodePositions.getOrDefault(childKey, new Point(childX, childY));
+                Point savedChildPos;
+                if (hasSavedPositions && savedNodePositions.containsKey(childKey)) {
+                    savedChildPos = savedNodePositions.get(childKey);
+                } else {
+                    savedChildPos = new Point(childX, childY);
+                }
 
                 childLabel.setBounds(savedChildPos.x, savedChildPos.y, childWidth, childHeight);
                 makeDraggable(childLabel, childKey);
@@ -2511,11 +2525,11 @@ private void loadBookmarksNodes() {
 
                 connectorLines.add(new Connector(centerLabel, childLabel));
 
-                // ========== 🔍 CLICK TO VIEW FULL IMAGE ==========
+                // Auto-detect and show image in side tab when clicked
                 childLabel.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
-                        showFullImageOverlay(childPath);
+                        showImageInSidePanel(childPath);
                     }
                 });
             }
@@ -2556,67 +2570,137 @@ private void loadBookmarksNodes() {
 }
 
 /**
- * Displays a full-resolution image overlay on top of nodesPanel.
+ * Opens a right-side panel showing the clicked image.
  */
-private void showFullImageOverlay(String imagePath) {
+private void showImageInSidePanel(String imagePath) {
     try {
         BufferedImage img = ImageIO.read(new File(imagePath));
         if (img == null) return;
 
-        // Create semi-transparent overlay
-        JPanel overlayPanel = new JPanel(null);
-        overlayPanel.setBackground(new Color(0, 0, 0, 200));
-        overlayPanel.setBounds(0, 0, nodesPanel.getWidth(), nodesPanel.getHeight());
-
-        // Create full-size image label
-        JLabel fullImgLabel = new JLabel();
-        Image scaled = img;
-
-        int maxW = nodesPanel.getWidth() - 100;
-        int maxH = nodesPanel.getHeight() - 100;
-
-        double scale = Math.min((double) maxW / img.getWidth(), (double) maxH / img.getHeight());
-        if (scale < 1.0) {
-            scaled = img.getScaledInstance(
-                (int) (img.getWidth() * scale),
-                (int) (img.getHeight() * scale),
-                Image.SCALE_SMOOTH
-            );
+        // Remove any existing side panel
+        for (Component c : nodesPanel.getComponents()) {
+            if ("sidePanel".equals(c.getName())) {
+                nodesPanel.remove(c);
+            }
         }
 
-        fullImgLabel.setIcon(new ImageIcon(scaled));
-        int x = (nodesPanel.getWidth() - scaled.getWidth(null)) / 2;
-        int y = (nodesPanel.getHeight() - scaled.getHeight(null)) / 2;
-        fullImgLabel.setBounds(x, y, scaled.getWidth(null), scaled.getHeight(null));
+        int panelWidth = 350;
+        int minWidth = 200; // minimum width for resizing
+        int panelHeight = nodesPanel.getHeight();
 
-        overlayPanel.add(fullImgLabel);
-
-        // ⚡ The fix — ensure overlay is above all layers:
-        nodesPanel.setComponentZOrder(overlayPanel, 0);
-        nodesPanel.add(overlayPanel);
-        nodesPanel.setComponentZOrder(overlayPanel, 0);
-        nodesPanel.repaint();
-        nodesPanel.revalidate();
-
-        // Clicking anywhere removes overlay
-        MouseAdapter closeOverlay = new MouseAdapter() {
+        JPanel sidePanel = new JPanel(new BorderLayout()) {
             @Override
-            public void mouseClicked(MouseEvent e) {
-                nodesPanel.remove(overlayPanel);
-                nodesPanel.repaint();
-                nodesPanel.revalidate();
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                // Draw the "resize handle" rectangle at top-right
+                g.setColor(Color.GRAY);
+                g.fillRect(getWidth() - 20, 5, 15, 15);
             }
         };
+        sidePanel.setName("sidePanel");
+        sidePanel.setBackground(new Color(40, 43, 45)); // dark gray / charcoal
+        sidePanel.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, Color.GRAY));
+        sidePanel.setBounds(nodesPanel.getWidth() - panelWidth, 0, panelWidth, panelHeight);
+        sidePanel.setLayout(new BorderLayout());
 
-        overlayPanel.addMouseListener(closeOverlay);
-        fullImgLabel.addMouseListener(closeOverlay);
+        // ===== Header =====
+        JPanel header = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        header.setBackground(new Color(50, 53, 55)); // slightly lighter for header contrast
+        JButton closeBtn = new JButton("x");
+        closeBtn.setFocusPainted(false);
+        closeBtn.setBorderPainted(false);
+        closeBtn.setContentAreaFilled(false);
+        closeBtn.setForeground(Color.WHITE); // visible on dark background
+        closeBtn.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        closeBtn.addActionListener(e -> {
+            nodesPanel.remove(sidePanel);
+            nodesPanel.revalidate();
+            nodesPanel.repaint();
+        });
+        header.add(closeBtn);
+        sidePanel.add(header, BorderLayout.NORTH);
+
+        // ===== Image =====
+        JLabel imgLabel = new JLabel();
+        imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        imgLabel.setOpaque(false); // make label background transparent
+
+        JScrollPane scrollPane = new JScrollPane(imgLabel);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getViewport().setBackground(new Color(40, 43, 45)); // match side panel
+        scrollPane.setBackground(new Color(40, 43, 45)); // match side panel
+        sidePanel.add(scrollPane, BorderLayout.CENTER);
+
+        // ===== Initial scaling =====
+        Runnable scaleImage = () -> {
+            int maxW = sidePanel.getWidth() - 40;
+            int maxH = sidePanel.getHeight() - 80;
+            double scale = Math.min((double) maxW / img.getWidth(), (double) maxH / img.getHeight());
+            Image scaled = img.getScaledInstance((int) (img.getWidth() * scale),
+                    (int) (img.getHeight() * scale), Image.SCALE_SMOOTH);
+            imgLabel.setIcon(new ImageIcon(scaled));
+        };
+        scaleImage.run();
+
+        // ===== Make sidebar resizable by dragging left edge (entire height) =====
+        final Point[] dragStart = {null};
+        sidePanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (e.getX() < 10) dragStart[0] = e.getPoint();
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                dragStart[0] = null;
+            }
+        });
+
+        sidePanel.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                if (e.getX() < 10) {
+                    sidePanel.setCursor(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
+                } else {
+                    sidePanel.setCursor(Cursor.getDefaultCursor());
+                }
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (dragStart[0] != null) {
+                    int newWidth = sidePanel.getWidth() - (e.getX() - dragStart[0].x);
+                    newWidth = Math.max(newWidth, minWidth);
+                    sidePanel.setBounds(nodesPanel.getWidth() - newWidth, 0, newWidth, panelHeight);
+                    scaleImage.run();
+                    nodesPanel.revalidate();
+                    nodesPanel.repaint();
+                }
+            }
+        });
+
+        // ===== Close sidebar when clicking outside =====
+        nodesPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (!SwingUtilities.isDescendingFrom(e.getComponent(), sidePanel)) {
+                    nodesPanel.remove(sidePanel);
+                    nodesPanel.revalidate();
+                    nodesPanel.repaint();
+                }
+            }
+        });
+
+        nodesPanel.add(sidePanel);
+        nodesPanel.setComponentZOrder(sidePanel, 0);
+        nodesPanel.revalidate();
+        nodesPanel.repaint();
 
     } catch (IOException e) {
         e.printStackTrace();
     }
 }
-
-
 
 
 
