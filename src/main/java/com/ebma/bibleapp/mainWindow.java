@@ -2558,37 +2558,45 @@ private void loadBookmarksNodes() {
         }
     }
 
-    // ===== Fill panel with dots in grid (original size) =====
-    try {
-        String dotPath = "src/main/resources/icons/dotCanvas.png";
-        ImageIcon dotIcon = new ImageIcon(dotPath); // use original size
-        int dotWidth = dotIcon.getIconWidth();
-        int dotHeight = dotIcon.getIconHeight();
-
-        int spacingDots = 15; // space between dots
-        int cols = panelWidth / (dotWidth + spacingDots);
-        int rows = panelHeight / (dotHeight + spacingDots);
-
-        for (int row = 0; row <= rows; row++) {
-            for (int col = 0; col <= cols; col++) {
-                int xPos = col * (dotWidth + spacingDots);
-                int yPos = row * (dotHeight + spacingDots);
-                JLabel dotLabel = new JLabel(dotIcon); // no scaling
-                dotLabel.setBounds(xPos, yPos, dotWidth, dotHeight);
-                nodesPanel.add(dotLabel);
-            }
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-
-    // ===== Overlay connectors =====
+    // ===== Overlay panel: dense, semi-transparent dots + connectors =====
     JPanel overlay = new JPanel() {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            // ----- Draw dense, semi-transparent background dots -----
+            try {
+                ImageIcon dotIcon = new ImageIcon("src/main/resources/icons/dotCanvas.png");
+                int dotWidth = dotIcon.getIconWidth();
+                int dotHeight = dotIcon.getIconHeight();
+                int spacingDots = 8; // denser
+
+                // Set semi-transparent alpha
+                float alpha = 0.3f;
+                AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+                g2.setComposite(ac);
+
+                int cols = getWidth() / (dotWidth + spacingDots);
+                int rows = getHeight() / (dotHeight + spacingDots);
+
+                for (int row = 0; row <= rows; row++) {
+                    for (int col = 0; col <= cols; col++) {
+                        int xPos = col * (dotWidth + spacingDots);
+                        int yPos = row * (dotHeight + spacingDots);
+                        g2.drawImage(dotIcon.getImage(), xPos, yPos, this);
+                    }
+                }
+
+                // Reset opacity for connectors
+                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // ----- Draw connector lines -----
             g2.setColor(Color.LIGHT_GRAY);
             g2.setStroke(new BasicStroke(2f));
             for (Connector c : connectorLines) {
@@ -2603,12 +2611,14 @@ private void loadBookmarksNodes() {
     overlay.setOpaque(false);
     overlay.setBounds(0, 0, nodesPanel.getWidth(), nodesPanel.getHeight());
     nodesPanel.add(overlay);
+    nodesPanel.setComponentZOrder(overlay, nodesPanel.getComponentCount() - 1); // behind nodes
 
     nodesPanel.revalidate();
     nodesPanel.repaint();
 
     System.out.println("---- End loadBookmarksNodes ----");
 }
+
 
     /**
      * Opens a right-side panel showing the clicked image.
@@ -2824,147 +2834,65 @@ private void loadBookmarksNodes() {
     }
 
 
+private void makeDraggable(JLabel label, String nodeKey) {
+    label.putClientProperty("nodeKey", nodeKey);
+    final Point[] startPt = {null};
+    final boolean[] dragged = {false}; // Track if the node was dragged
 
-    private void makeDraggable(JLabel label, String nodeKey) {
-        label.putClientProperty("nodeKey", nodeKey);
-        final Point[] startPt = {null};
+    // ===== Grid snap size (matches dot spacing) =====
+    final int gridSize = 8 + 20; // dot spacing + dot size
 
-        // ======== BOOK NODE ========
-        if (nodeKey.startsWith("book_")) {
-            ImageIcon deleteIcon = null;
-            try {
-                deleteIcon = new ImageIcon(getClass().getResource("/icons/delete25.png"));
-            } catch (Exception e) {
-                System.err.println("⚠️ Could not load delete icon: " + e.getMessage());
+    // ===== Highlight color for child nodes only =====
+    final Color highlightColor = new Color(86, 211, 100);
+    final Border originalBorder = label.getBorder();
+
+    label.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent e) {
+            startPt[0] = e.getPoint();
+            dragged[0] = false;
+
+            // Only outline child nodes (keys containing "_child_")
+            if (nodeKey.contains("_child_") && !SwingUtilities.isRightMouseButton(e)) {
+                label.setBorder(BorderFactory.createLineBorder(highlightColor, 3));
+                // Reset all other child nodes
+                for (Component c : nodesPanel.getComponents()) {
+                    if (c instanceof JLabel lbl) {
+                        Object key = lbl.getClientProperty("nodeKey");
+                        if (key != null && key.toString().contains("_child_") && lbl != label) {
+                            lbl.setBorder(originalBorder);
+                        }
+                    }
+                }
             }
-
-            // Delete button OUTSIDE top-right corner
-            JLabel deleteOverlay = new JLabel(deleteIcon);
-            deleteOverlay.setVisible(false);
-            deleteOverlay.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-            // We'll position it later relative to label bounds
-            nodesPanel.add(deleteOverlay);
-            nodesPanel.setComponentZOrder(deleteOverlay, 0);
-
-            // Delete click behavior
-            deleteOverlay.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    deleteOverlay.setVisible(false);
-                    currentDeleteVisible = null;
-
-                    // Remove parent node
-                    nodesPanel.remove(label);
-
-                    // Remove its children
-                    List<Component> toRemove = new ArrayList<>();
-                    for (Component c : nodesPanel.getComponents()) {
-                        if (c instanceof JLabel lbl) {
-                            Object key = lbl.getClientProperty("nodeKey");
-                            if (key != null && key.toString().startsWith(nodeKey + "_child_")) {
-                                toRemove.add(lbl);
-                            }
-                        }
-                    }
-                    for (Component c : toRemove) nodesPanel.remove(c);
-
-                    // Update saved positions
-                    Map<String, Point> positions = loadNodePositions();
-                    positions.remove(nodeKey);
-                    positions.keySet().removeIf(k -> k.startsWith(nodeKey + "_child_"));
-
-                    try {
-                        JSONObject root = new JSONObject();
-                        for (Map.Entry<String, Point> entry : positions.entrySet()) {
-                            JSONObject pos = new JSONObject();
-                            pos.put("x", entry.getValue().x);
-                            pos.put("y", entry.getValue().y);
-                            root.put(entry.getKey(), pos);
-                        }
-                        Files.createDirectories(Paths.get("src/main/nodeStateSave"));
-                        try (FileWriter fw = new FileWriter(NODE_STATE_PATH)) {
-                            fw.write(root.toString(4));
-                        }
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-
-                    try {
-                        int bookIndex = Integer.parseInt(nodeKey.replace("book_", ""));
-                        deleteBookScreenshots(bookIndex);
-                    } catch (Exception ex) {
-                        System.err.println("⚠️ Could not extract book index from nodeKey: " + nodeKey);
-                    }
-
-                    nodesPanel.repaint();
-                }
-            });
-
-            // Mouse listener for dragging + showing delete icon
-            label.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mousePressed(MouseEvent e) {
-                    startPt[0] = e.getPoint();
-
-                    if (SwingUtilities.isRightMouseButton(e)) {
-                        // Hide any other delete icons
-                        if (currentDeleteVisible != null && currentDeleteVisible != deleteOverlay) {
-                            currentDeleteVisible.setVisible(false);
-                        }
-
-                        // Position delete icon outside top-right corner
-                        Point labelLoc = label.getLocation();
-                        deleteOverlay.setBounds(
-                                labelLoc.x + label.getWidth(),  // outside right edge
-                                labelLoc.y - 10,                 // slightly above
-                                25, 25
-                        );
-                        deleteOverlay.setVisible(true);
-                        currentDeleteVisible = deleteOverlay;
-                        nodesPanel.repaint();
-                    }
-                }
-
-                @Override
-                public void mouseReleased(MouseEvent e) {
-                    saveNodePositions();
-                }
-            });
-
-        } else {
-            // ======== CHILD NODE ========
-            label.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mousePressed(MouseEvent e) {
-                    startPt[0] = e.getPoint();
-                }
-
-                @Override
-                public void mouseReleased(MouseEvent e) {
-                    saveNodePositions();
-                }
-            });
         }
 
-        // ======== SHARED DRAG LOGIC ========
-        label.addMouseMotionListener(new MouseMotionAdapter() {
-            @Override
-            public void mouseDragged(MouseEvent e) {
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            // Snap to nearest grid only if dragged
+            if (dragged[0]) {
                 Point loc = label.getLocation();
-                loc.translate(e.getX() - startPt[0].x, e.getY() - startPt[0].y);
-                label.setLocation(loc);
-
-                // If delete icon belongs to this label, move it along
-                if (currentDeleteVisible != null && currentDeleteVisible.isVisible()) {
-                    Point labelLoc = label.getLocation();
-                    currentDeleteVisible.setLocation(labelLoc.x + label.getWidth(), labelLoc.y - 10);
-                }
-
-                nodesPanel.repaint();
+                int snappedX = Math.round(loc.x / (float) gridSize) * gridSize;
+                int snappedY = Math.round(loc.y / (float) gridSize) * gridSize;
+                label.setLocation(snappedX, snappedY);
+                saveNodePositions();
             }
-        });
-    }
+            nodesPanel.repaint();
+        }
+    });
+
+    label.addMouseMotionListener(new MouseMotionAdapter() {
+        @Override
+        public void mouseDragged(MouseEvent e) {
+            dragged[0] = true;
+            Point loc = label.getLocation();
+            loc.translate(e.getX() - startPt[0].x, e.getY() - startPt[0].y);
+            label.setLocation(loc);
+            nodesPanel.repaint();
+        }
+    });
+}
+
 
 
 
