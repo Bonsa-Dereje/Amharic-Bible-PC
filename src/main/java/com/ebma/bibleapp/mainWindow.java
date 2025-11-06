@@ -3095,15 +3095,20 @@ private void showJournalWithImage(String imagePath) {
         BufferedImage img = ImageIO.read(new File(imagePath));
         if (img == null) return;
 
-        int scaledWidth = 120;
-        int scaledHeight = (int) ((double) img.getHeight() / img.getWidth() * scaledWidth);
-        Image scaled = img.getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
+        // Default square size
+        int scaledSize = 120;
+        Image scaled = img.getScaledInstance(scaledSize, scaledSize, Image.SCALE_SMOOTH);
 
-        ResizableImageLabel imgLabel = new ResizableImageLabel(img, scaledWidth, scaledHeight);
+        ResizableImageLabel imgLabel = new ResizableImageLabel(img, scaledSize, scaledSize);
 
-        // Add to the JEditorPane itself, not the layered pane
+        // Add to the JEditorPane itself
         journalEntry.add(imgLabel);
-        imgLabel.setBounds(0, 0, scaledWidth, scaledHeight);
+
+        // Position top-right
+        int x = journalEntry.getWidth() - scaledSize - 5; // 5 px margin
+        int y = 5; // 5 px from top
+        imgLabel.setBounds(x, y, scaledSize, scaledSize);
+
         journalEntry.revalidate();
         journalEntry.repaint();
 
@@ -3130,7 +3135,7 @@ class ResizableImageLabel extends JLabel {
     }
 
     private void enableInteraction() {
-        // Detect clicks outside the image
+        // Deselect when clicking outside
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("permanentFocusOwner", evt -> {
             if (evt.getNewValue() != this) {
                 selected = false;
@@ -3170,7 +3175,7 @@ class ResizableImageLabel extends JLabel {
                     int newX = startBounds.x + dx;
                     int newY = startBounds.y + dy;
 
-                    // Keep inside parent (JEditorPane)
+                    // Keep inside parent
                     newX = Math.max(0, Math.min(newX, getParent().getWidth() - getWidth()));
                     newY = Math.max(0, Math.min(newY, getParent().getHeight() - getHeight()));
 
@@ -3190,26 +3195,42 @@ class ResizableImageLabel extends JLabel {
     }
 
     private void resizeImage(MouseEvent e) {
-        int dx = e.getX() - dragStart.x;
+        int dx = dragStart.x - e.getX(); // invert for left handle
         int dy = e.getY() - dragStart.y;
 
         int newWidth = Math.max(40, startBounds.width + dx);
         int newHeight = Math.max(40, startBounds.height + dy);
 
-        // Resize the image itself
+        // Default: maintain square (equal width and height)
+        if ((e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) == 0) {
+            int size = Math.max(newWidth, newHeight);
+            newWidth = newHeight = size;
+        } else {
+            // Shift held: maintain original aspect ratio
+            double aspect = (double) originalImage.getWidth() / originalImage.getHeight();
+            if (newWidth > newHeight * aspect) {
+                newWidth = (int) (newHeight * aspect);
+            } else {
+                newHeight = (int) (newWidth / aspect);
+            }
+        }
+
+        // Resize the image
         Image scaled = originalImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
         setIcon(new ImageIcon(scaled));
 
-        setBounds(startBounds.x, startBounds.y, newWidth, newHeight);
+        // Move x to keep the handle fixed at bottom-left
+        int newX = startBounds.x + (startBounds.width - newWidth);
+        setBounds(newX, startBounds.y, newWidth, newHeight);
         revalidate();
         repaint();
     }
 
     private int getHandleAtPoint(Point p) {
-        int x = getWidth() - HANDLE_SIZE;
+        int x = 0; // bottom-left corner
         int y = getHeight() - HANDLE_SIZE;
         if (new Rectangle(x, y, HANDLE_SIZE, HANDLE_SIZE).contains(p)) {
-            return 0; // bottom-right corner
+            return 0; // bottom-left
         }
         return -1;
     }
@@ -3219,13 +3240,15 @@ class ResizableImageLabel extends JLabel {
         super.paintComponent(g);
         if (selected) {
             Graphics2D g2 = (Graphics2D) g;
-            g2.setColor(Color.CYAN);
+            g2.setColor(new Color(0, 120, 215)); // Microsoft blue
             g2.setStroke(new BasicStroke(2));
             g2.drawRect(1, 1, getWidth() - 3, getHeight() - 3);
-            g2.fillRect(getWidth() - HANDLE_SIZE, getHeight() - HANDLE_SIZE, HANDLE_SIZE, HANDLE_SIZE);
+            g2.fillRect(0, getHeight() - HANDLE_SIZE, HANDLE_SIZE, HANDLE_SIZE); // bottom-left handle
         }
     }
 }
+
+
 
 
 
