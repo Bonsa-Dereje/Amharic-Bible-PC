@@ -95,6 +95,10 @@ import java.awt.event.KeyAdapter;
 
 import javax.imageio.ImageIO;
 
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+
+
 
 public class mainWindow extends javax.swing.JFrame {
 
@@ -399,6 +403,16 @@ public class mainWindow extends javax.swing.JFrame {
     private boolean isLoadingBookmarks = false;
     
     public String bookMarkJournalIMG;
+    
+    public boolean fromBookmarks = false;
+    
+    private Timer autoSaveTimer;
+    private String lastSavedText = "";    
+    
+    private boolean directOpen = false;
+    
+    final int[] lastTab = { -1 };
+    
     
     public mainWindow() {
         setUndecorated(true);
@@ -2318,730 +2332,807 @@ private void saveSearchResults(String searchTerm, List<String> rawResults) {
     
     
     
-private int getBookNumber(String matchText) {
-    try {
-        Pattern p = Pattern.compile("Book (\\d+)");
-        Matcher m = p.matcher(matchText);
-        if (m.find()) {
-            return Integer.parseInt(m.group(1));
-        }
-    } catch (Exception ignored) {}
-    return 1;
-}
-    
-
-    private void smoothMinimize() {
-        // Make sure the frame supports transparency
-        this.setOpacity(1.0f);
-
-        Timer timer = new Timer(10, null); // 20ms delay for smooth fade
-        timer.setRepeats(true);
-
-        final float[] opacity = {1.0f};
-
-        timer.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                opacity[0] -= 0.08f; // Adjust speed here
-
-                if (opacity[0] <= 0.1f) {
-                    ((Timer)e.getSource()).stop();
-                    setState(JFrame.ICONIFIED);
-                    setOpacity(1.0f); // Restore opacity when minimized
-                } else {
-                    setOpacity(opacity[0]);
-                }
-            }
-        });
-
-        timer.start();
-    }
-
-    
-    
-
-public void cutOff(int normalSearchResultNo) {
-    //System.out.println("Displaying " + normalSearchResultNo + " search results.");
-
-    JEditorPane[] resultPanes = {
-        searchResult1, searchResult2, searchResult3, searchResult4,
-        searchResult5, searchResult6, searchResult7, searchResult8,
-        searchResult9, searchResult10, searchResult11, searchResult12,
-        searchResult13, searchResult14
-    };
-
-    JLabel[] matchLabels = {
-        matchRate1, matchRate2, matchRate3, matchRate4,
-        matchRate5, matchRate6, matchRate7, matchRate8,
-        matchRate9, matchRate10, matchRate11, matchRate12,
-        matchRate13, matchRate14
-    };
-
-    JButton[] gotoButtons = {
-        goto1, goto2, goto3, goto4,
-        goto5, goto6, goto7, goto8,
-        goto9, goto10, goto11, goto12,
-        goto13, goto14
-    };
-    
-    JScrollPane[] scrollPanes = {
-        scroll1, scroll2, scroll3, scroll4,
-        scroll5, scroll6, scroll7, scroll8,
-        scroll9, scroll10, scroll11, scroll12,
-        scroll13, scroll14
-    };
-
-    for (int i = 0; i < 14; i++) {
-        boolean visible = i < normalSearchResultNo;
-
-        // Set visibility
-        resultPanes[i].setVisible(visible);
-        matchLabels[i].setVisible(visible);
-        gotoButtons[i].setVisible(visible);
-        scrollPanes[i].setVisible(visible);
-
-        // Center match rate
-        matchLabels[i].setHorizontalAlignment(SwingConstants.CENTER);
-
-        // Disable horizontal scrollbar
-        scrollPanes[i].setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-    }
-
-    
-    
-    showMore.setVisible(normalSearchResultNo >= 14);
-}
-
-
-
-
-private void loadBookmarksNodes() {
-
-    System.out.println("---- Start loadBookmarksNodes ----");
-
-    nodesPanel.removeAll();
-    nodesPanel.setLayout(null);
-
-    // ===== Load saved positions =====
-    Map<String, Point> savedNodePositions = loadNodePositions();
-    boolean hasSavedPositions = !savedNodePositions.isEmpty();
-
-    Map<Integer, List<String>> bookmarkMap = new LinkedHashMap<>();
-    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:bookStack.db");
-         Statement stmt = conn.createStatement();
-         ResultSet rs = stmt.executeQuery("SELECT bookindex, scrollindex FROM bookmarks")) {
-
-        while (rs.next()) {
-            int bookIndex = rs.getInt("bookindex");
-            int scrollIndex = rs.getInt("scrollindex");
-            String bookmarkFile = "src/main/userFiles/" + bookIndex + "_" + scrollIndex + ".png";
-            bookmarkMap.computeIfAbsent(bookIndex, k -> new ArrayList<>()).add(bookmarkFile);
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-
-    int nodeWidth = 120, nodeHeight = 180;
-    int childWidth = 50, childHeight = 50;
-    int spacing = 150;
-    int panelWidth = nodesPanel.getWidth();
-    int panelHeight = nodesPanel.getHeight();
-
-    List<Connector> connectorLines = new ArrayList<>();
-    List<JLabel> allNodes = new ArrayList<>();
-
-    int xOffset = spacing;
-    int yOffset = Math.max((panelHeight - (nodeHeight + 200)) / 2, 60);
-
-    for (Map.Entry<Integer, List<String>> entry : bookmarkMap.entrySet()) {
-        int bookIndex = entry.getKey();
-        List<String> childImages = entry.getValue();
-
-        JLabel centerLabel = new JLabel();
-        String centerImgPath = "src/main/resources/bookTiles/" + bookIndex + ".png";
+    private int getBookNumber(String matchText) {
         try {
-            ImageIcon icon = new ImageIcon(centerImgPath);
-            Image img = icon.getImage();
-            double aspect = (double) img.getWidth(null) / img.getHeight(null);
-            int scaledW = (int) (nodeHeight * aspect);
-            if (scaledW > nodeWidth) scaledW = nodeWidth;
-            centerLabel.setIcon(new ImageIcon(img.getScaledInstance(scaledW, nodeHeight, Image.SCALE_SMOOTH)));
+            Pattern p = Pattern.compile("Book (\\d+)");
+            Matcher m = p.matcher(matchText);
+            if (m.find()) {
+                return Integer.parseInt(m.group(1));
+            }
+        } catch (Exception ignored) {}
+        return 1;
+    }
+
+
+        private void smoothMinimize() {
+            // Make sure the frame supports transparency
+            this.setOpacity(1.0f);
+
+            Timer timer = new Timer(10, null); // 20ms delay for smooth fade
+            timer.setRepeats(true);
+
+            final float[] opacity = {1.0f};
+
+            timer.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    opacity[0] -= 0.08f; // Adjust speed here
+
+                    if (opacity[0] <= 0.1f) {
+                        ((Timer)e.getSource()).stop();
+                        setState(JFrame.ICONIFIED);
+                        setOpacity(1.0f); // Restore opacity when minimized
+                    } else {
+                        setOpacity(opacity[0]);
+                    }
+                }
+            });
+
+            timer.start();
+        }
+
+
+
+
+    public void cutOff(int normalSearchResultNo) {
+        //System.out.println("Displaying " + normalSearchResultNo + " search results.");
+
+        JEditorPane[] resultPanes = {
+            searchResult1, searchResult2, searchResult3, searchResult4,
+            searchResult5, searchResult6, searchResult7, searchResult8,
+            searchResult9, searchResult10, searchResult11, searchResult12,
+            searchResult13, searchResult14
+        };
+
+        JLabel[] matchLabels = {
+            matchRate1, matchRate2, matchRate3, matchRate4,
+            matchRate5, matchRate6, matchRate7, matchRate8,
+            matchRate9, matchRate10, matchRate11, matchRate12,
+            matchRate13, matchRate14
+        };
+
+        JButton[] gotoButtons = {
+            goto1, goto2, goto3, goto4,
+            goto5, goto6, goto7, goto8,
+            goto9, goto10, goto11, goto12,
+            goto13, goto14
+        };
+
+        JScrollPane[] scrollPanes = {
+            scroll1, scroll2, scroll3, scroll4,
+            scroll5, scroll6, scroll7, scroll8,
+            scroll9, scroll10, scroll11, scroll12,
+            scroll13, scroll14
+        };
+
+        for (int i = 0; i < 14; i++) {
+            boolean visible = i < normalSearchResultNo;
+
+            // Set visibility
+            resultPanes[i].setVisible(visible);
+            matchLabels[i].setVisible(visible);
+            gotoButtons[i].setVisible(visible);
+            scrollPanes[i].setVisible(visible);
+
+            // Center match rate
+            matchLabels[i].setHorizontalAlignment(SwingConstants.CENTER);
+
+            // Disable horizontal scrollbar
+            scrollPanes[i].setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        }
+
+
+
+        showMore.setVisible(normalSearchResultNo >= 14);
+    }
+
+
+
+
+    private void loadBookmarksNodes() {
+
+        System.out.println("---- Start loadBookmarksNodes ----");
+
+        nodesPanel.removeAll();
+        nodesPanel.setLayout(null);
+
+        // ===== Load saved positions =====
+        Map<String, Point> savedNodePositions = loadNodePositions();
+        boolean hasSavedPositions = !savedNodePositions.isEmpty();
+
+        Map<Integer, List<String>> bookmarkMap = new LinkedHashMap<>();
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:bookStack.db");
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT bookindex, scrollindex FROM bookmarks")) {
+
+            while (rs.next()) {
+                int bookIndex = rs.getInt("bookindex");
+                int scrollIndex = rs.getInt("scrollindex");
+                String bookmarkFile = "src/main/userFiles/" + bookIndex + "_" + scrollIndex + ".png";
+                bookmarkMap.computeIfAbsent(bookIndex, k -> new ArrayList<>()).add(bookmarkFile);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        String nodeKey = "book_" + bookIndex;
-        Point savedPos;
-        if (hasSavedPositions && savedNodePositions.containsKey(nodeKey)) {
-            savedPos = savedNodePositions.get(nodeKey);
-        } else {
-            savedPos = new Point(xOffset, yOffset);
-        }
-
-        centerLabel.setBounds(savedPos.x, savedPos.y, nodeWidth, nodeHeight);
-        makeDraggable(centerLabel, nodeKey);
-        nodesPanel.add(centerLabel);
-        allNodes.add(centerLabel);
-
-        int totalChildren = childImages.size();
-        if (totalChildren > 0) {
-            double radius = nodeHeight * 0.9;
-            double startAngle = 180;
-            double endAngle = 0;
-            double angleStep = totalChildren > 1 ? (startAngle - endAngle) / (totalChildren - 1) : 0;
-
-            int centerX = savedPos.x + nodeWidth / 2;
-            int baseY = savedPos.y + nodeHeight;
-
-            for (int i = 0; i < totalChildren; i++) {
-                String childPath = childImages.get(i);
-                JLabel childLabel = new JLabel();
-
-                try {
-                    ImageIcon icon = new ImageIcon(childPath);
-                    Image img = icon.getImage();
-                    childLabel.setIcon(new ImageIcon(img.getScaledInstance(childWidth, childHeight, Image.SCALE_SMOOTH)));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                double angleRad = Math.toRadians(startAngle - i * angleStep);
-                int childX = (int) (centerX + radius * Math.cos(angleRad)) - childWidth / 2;
-                int childY = (int) (baseY + radius * Math.sin(angleRad)) - childHeight / 2;
-
-                childX = Math.max(0, Math.min(childX, panelWidth - childWidth));
-                childY = Math.max(0, Math.min(childY, panelHeight - childHeight));
-
-                String childKey = nodeKey + "_child_" + i;
-                Point savedChildPos;
-                if (hasSavedPositions && savedNodePositions.containsKey(childKey)) {
-                    savedChildPos = savedNodePositions.get(childKey);
-                } else {
-                    savedChildPos = new Point(childX, childY);
-                }
-
-                childLabel.setBounds(savedChildPos.x, savedChildPos.y, childWidth, childHeight);
-                makeDraggable(childLabel, childKey);
-                nodesPanel.add(childLabel);
-                allNodes.add(childLabel);
-
-                connectorLines.add(new Connector(centerLabel, childLabel));
-
-                // Auto-detect and show image in side tab when clicked
-                childLabel.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        showImageInSidePanel(childPath);
-                    }
-                });
-            }
-        }
-
-        xOffset += nodeWidth + spacing;
-        if (xOffset + nodeWidth > panelWidth) {
-            xOffset = spacing;
-            yOffset += nodeHeight + 200;
-        }
-    }
-
-    JPanel overlay = new JPanel() {
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(Color.LIGHT_GRAY);
-            g2.setStroke(new BasicStroke(2f));
-            for (Connector c : connectorLines) {
-                int x1 = c.parent.getX() + c.parent.getWidth() / 2;
-                int y1 = c.parent.getY() + c.parent.getHeight();
-                int x2 = c.child.getX() + c.child.getWidth() / 2;
-                int y2 = c.child.getY();
-                g2.draw(new QuadCurve2D.Float(x1, y1, (x1 + x2) / 2, y1 + 40, x2, y2));
-            }
-        }
-    };
-    overlay.setOpaque(false);
-    overlay.setBounds(0, 0, nodesPanel.getWidth(), nodesPanel.getHeight());
-    nodesPanel.add(overlay);
-
-    nodesPanel.revalidate();
-    nodesPanel.repaint();
-
-    System.out.println("---- End loadBookmarksNodes ----");
-}
-
-/**
- * Opens a right-side panel showing the clicked image.
- */
-private void showImageInSidePanel(String imagePath) {
-    try {
-        BufferedImage img = ImageIO.read(new File(imagePath));
-        if (img == null) return;
-
-        // Remove any existing side panel
-        for (Component c : nodesPanel.getComponents()) {
-            if ("sidePanel".equals(c.getName())) {
-                nodesPanel.remove(c);
-            }
-        }
-
-        int panelWidth = 350;
-        int minWidth = 200; // minimum width for resizing
+        int nodeWidth = 120, nodeHeight = 180;
+        int childWidth = 50, childHeight = 50;
+        int spacing = 150;
+        int panelWidth = nodesPanel.getWidth();
         int panelHeight = nodesPanel.getHeight();
 
-        JPanel sidePanel = new JPanel(new BorderLayout()) {
+        List<Connector> connectorLines = new ArrayList<>();
+        List<JLabel> allNodes = new ArrayList<>();
+
+        int xOffset = spacing;
+        int yOffset = Math.max((panelHeight - (nodeHeight + 200)) / 2, 60);
+
+        for (Map.Entry<Integer, List<String>> entry : bookmarkMap.entrySet()) {
+            int bookIndex = entry.getKey();
+            List<String> childImages = entry.getValue();
+
+            JLabel centerLabel = new JLabel();
+            String centerImgPath = "src/main/resources/bookTiles/" + bookIndex + ".png";
+            try {
+                ImageIcon icon = new ImageIcon(centerImgPath);
+                Image img = icon.getImage();
+                double aspect = (double) img.getWidth(null) / img.getHeight(null);
+                int scaledW = (int) (nodeHeight * aspect);
+                if (scaledW > nodeWidth) scaledW = nodeWidth;
+                centerLabel.setIcon(new ImageIcon(img.getScaledInstance(scaledW, nodeHeight, Image.SCALE_SMOOTH)));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            String nodeKey = "book_" + bookIndex;
+            Point savedPos;
+            if (hasSavedPositions && savedNodePositions.containsKey(nodeKey)) {
+                savedPos = savedNodePositions.get(nodeKey);
+            } else {
+                savedPos = new Point(xOffset, yOffset);
+            }
+
+            centerLabel.setBounds(savedPos.x, savedPos.y, nodeWidth, nodeHeight);
+            makeDraggable(centerLabel, nodeKey);
+            nodesPanel.add(centerLabel);
+            allNodes.add(centerLabel);
+
+            int totalChildren = childImages.size();
+            if (totalChildren > 0) {
+                double radius = nodeHeight * 0.9;
+                double startAngle = 180;
+                double endAngle = 0;
+                double angleStep = totalChildren > 1 ? (startAngle - endAngle) / (totalChildren - 1) : 0;
+
+                int centerX = savedPos.x + nodeWidth / 2;
+                int baseY = savedPos.y + nodeHeight;
+
+                for (int i = 0; i < totalChildren; i++) {
+                    String childPath = childImages.get(i);
+                    JLabel childLabel = new JLabel();
+
+                    try {
+                        ImageIcon icon = new ImageIcon(childPath);
+                        Image img = icon.getImage();
+                        childLabel.setIcon(new ImageIcon(img.getScaledInstance(childWidth, childHeight, Image.SCALE_SMOOTH)));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    double angleRad = Math.toRadians(startAngle - i * angleStep);
+                    int childX = (int) (centerX + radius * Math.cos(angleRad)) - childWidth / 2;
+                    int childY = (int) (baseY + radius * Math.sin(angleRad)) - childHeight / 2;
+
+                    childX = Math.max(0, Math.min(childX, panelWidth - childWidth));
+                    childY = Math.max(0, Math.min(childY, panelHeight - childHeight));
+
+                    String childKey = nodeKey + "_child_" + i;
+                    Point savedChildPos;
+                    if (hasSavedPositions && savedNodePositions.containsKey(childKey)) {
+                        savedChildPos = savedNodePositions.get(childKey);
+                    } else {
+                        savedChildPos = new Point(childX, childY);
+                    }
+
+                    childLabel.setBounds(savedChildPos.x, savedChildPos.y, childWidth, childHeight);
+                    makeDraggable(childLabel, childKey);
+                    nodesPanel.add(childLabel);
+                    allNodes.add(childLabel);
+
+                    connectorLines.add(new Connector(centerLabel, childLabel));
+
+                    // Auto-detect and show image in side tab when clicked
+                    childLabel.addMouseListener(new MouseAdapter() {
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            showImageInSidePanel(childPath);
+                        }
+                    });
+                }
+            }
+
+            xOffset += nodeWidth + spacing;
+            if (xOffset + nodeWidth > panelWidth) {
+                xOffset = spacing;
+                yOffset += nodeHeight + 200;
+            }
+        }
+
+        JPanel overlay = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                // Draw the "resize handle" rectangle at top-right
-                g.setColor(Color.GRAY);
-                g.fillRect(getWidth() - 20, 5, 15, 15);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(Color.LIGHT_GRAY);
+                g2.setStroke(new BasicStroke(2f));
+                for (Connector c : connectorLines) {
+                    int x1 = c.parent.getX() + c.parent.getWidth() / 2;
+                    int y1 = c.parent.getY() + c.parent.getHeight();
+                    int x2 = c.child.getX() + c.child.getWidth() / 2;
+                    int y2 = c.child.getY();
+                    g2.draw(new QuadCurve2D.Float(x1, y1, (x1 + x2) / 2, y1 + 40, x2, y2));
+                }
             }
         };
-        sidePanel.setName("sidePanel");
-        sidePanel.setBackground(new Color(40, 43, 45)); // dark gray / charcoal
-        sidePanel.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, Color.GRAY));
-        sidePanel.setBounds(nodesPanel.getWidth() - panelWidth, 0, panelWidth, panelHeight);
-        sidePanel.setLayout(new BorderLayout());
+        overlay.setOpaque(false);
+        overlay.setBounds(0, 0, nodesPanel.getWidth(), nodesPanel.getHeight());
+        nodesPanel.add(overlay);
 
-        // ===== Header =====
-        JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(new Color(50, 53, 55));
+        nodesPanel.revalidate();
+        nodesPanel.repaint();
 
-        // --- Left filler for balance ---
-        JPanel leftFiller = new JPanel();
-        leftFiller.setOpaque(false);
-        header.add(leftFiller, BorderLayout.WEST);
+        System.out.println("---- End loadBookmarksNodes ----");
+    }
 
-        // --- Center "Go to Journal" Button ---
-        JButton journalBtn = new JButton("Go to Journal");
-        journalBtn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        journalBtn.setForeground(Color.WHITE);
-        journalBtn.setBackground(new Color(70, 73, 75));
-        journalBtn.setFocusPainted(false);
-        journalBtn.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+    /**
+     * Opens a right-side panel showing the clicked image.
+     */
+    private void showImageInSidePanel(String imagePath) {
+        try {
+            BufferedImage img = ImageIO.read(new File(imagePath));
+            if (img == null) return;
 
-        // Load icon (relative path recommended for JAR)
-        ImageIcon icon = new ImageIcon(getClass().getResource("/icons/icons8-arrow-right-15.png"));
-        journalBtn.setIcon(icon);
-        journalBtn.setHorizontalTextPosition(SwingConstants.RIGHT);
-        journalBtn.setIconTextGap(6);
+            // Remove any existing side panel
+            for (Component c : nodesPanel.getComponents()) {
+                if ("sidePanel".equals(c.getName())) {
+                    nodesPanel.remove(c);
+                }
+            }
 
-        journalBtn.addActionListener(e -> {
-            // Save image path globally
-            bookMarkJournalIMG = imagePath;
+            int panelWidth = 350;
+            int minWidth = 200; // minimum width for resizing
+            int panelHeight = nodesPanel.getHeight();
 
-            // Switch to tab index 8 (Journal tab)
-            tabs.setSelectedIndex(8);
-        });
+            JPanel sidePanel = new JPanel(new BorderLayout()) {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    super.paintComponent(g);
+                    // Draw the "resize handle" rectangle at top-right
+                    g.setColor(Color.GRAY);
+                    g.fillRect(getWidth() - 20, 5, 15, 15);
+                }
+            };
+            sidePanel.setName("sidePanel");
+            sidePanel.setBackground(new Color(40, 43, 45)); // dark gray / charcoal
+            sidePanel.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, Color.GRAY));
+            sidePanel.setBounds(nodesPanel.getWidth() - panelWidth, 0, panelWidth, panelHeight);
+            sidePanel.setLayout(new BorderLayout());
 
-        header.add(journalBtn, BorderLayout.CENTER);
+            // ===== Header =====
+            JPanel header = new JPanel(new BorderLayout());
+            header.setBackground(new Color(50, 53, 55));
 
-        // --- Right close button ---
-        JButton closeBtn = new JButton("x");
-        closeBtn.setFocusPainted(false);
-        closeBtn.setBorderPainted(false);
-        closeBtn.setContentAreaFilled(false);
-        closeBtn.setForeground(Color.WHITE);
-        closeBtn.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        closeBtn.addActionListener(e -> {
-            nodesPanel.remove(sidePanel);
+            // --- Left filler for balance ---
+            JPanel leftFiller = new JPanel();
+            leftFiller.setOpaque(false);
+            header.add(leftFiller, BorderLayout.WEST);
+
+            // --- Center "Go to Journal" Button ---
+            JButton journalBtn = new JButton("Go to Journal");
+            journalBtn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            journalBtn.setForeground(Color.WHITE);
+            journalBtn.setBackground(new Color(70, 73, 75));
+            journalBtn.setFocusPainted(false);
+            journalBtn.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+
+            // Load icon (relative path recommended for JAR)
+            ImageIcon icon = new ImageIcon(getClass().getResource("/icons/icons8-arrow-right-15.png"));
+            journalBtn.setIcon(icon);
+            journalBtn.setHorizontalTextPosition(SwingConstants.RIGHT);
+            journalBtn.setIconTextGap(6);
+
+            journalBtn.addActionListener(e -> {
+                // Save image path globally
+                bookMarkJournalIMG = imagePath;
+
+                // Switch to tab index 8 (Journal tab)
+                tabs.setSelectedIndex(8);
+            });
+
+            header.add(journalBtn, BorderLayout.CENTER);
+
+            // --- Right close button ---
+            JButton closeBtn = new JButton("x");
+            closeBtn.setFocusPainted(false);
+            closeBtn.setBorderPainted(false);
+            closeBtn.setContentAreaFilled(false);
+            closeBtn.setForeground(Color.WHITE);
+            closeBtn.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+            closeBtn.addActionListener(e -> {
+                nodesPanel.remove(sidePanel);
+                nodesPanel.revalidate();
+                nodesPanel.repaint();
+            });
+            header.add(closeBtn, BorderLayout.EAST);
+
+            sidePanel.add(header, BorderLayout.NORTH);
+
+            // ===== Image =====
+            JLabel imgLabel = new JLabel();
+            imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            imgLabel.setOpaque(false);
+
+            JScrollPane scrollPane = new JScrollPane(imgLabel);
+            scrollPane.setBorder(null);
+            scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+            scrollPane.getViewport().setBackground(new Color(40, 43, 45));
+            scrollPane.setBackground(new Color(40, 43, 45));
+            sidePanel.add(scrollPane, BorderLayout.CENTER);
+
+            // ===== Initial scaling =====
+            Runnable scaleImage = () -> {
+                int maxW = sidePanel.getWidth() - 40;
+                int maxH = sidePanel.getHeight() - 80;
+                double scale = Math.min((double) maxW / img.getWidth(), (double) maxH / img.getHeight());
+                Image scaled = img.getScaledInstance((int) (img.getWidth() * scale),
+                        (int) (img.getHeight() * scale), Image.SCALE_SMOOTH);
+                imgLabel.setIcon(new ImageIcon(scaled));
+            };
+            scaleImage.run();
+
+            // ===== Make sidebar resizable by dragging left edge =====
+            final Point[] dragStart = {null};
+            sidePanel.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    if (e.getX() < 10) dragStart[0] = e.getPoint();
+                }
+
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    dragStart[0] = null;
+                }
+            });
+
+            sidePanel.addMouseMotionListener(new MouseMotionAdapter() {
+                @Override
+                public void mouseMoved(MouseEvent e) {
+                    if (e.getX() < 10) {
+                        sidePanel.setCursor(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
+                    } else {
+                        sidePanel.setCursor(Cursor.getDefaultCursor());
+                    }
+                }
+
+                @Override
+                public void mouseDragged(MouseEvent e) {
+                    if (dragStart[0] != null) {
+                        int newWidth = sidePanel.getWidth() - (e.getX() - dragStart[0].x);
+                        newWidth = Math.max(newWidth, minWidth);
+                        sidePanel.setBounds(nodesPanel.getWidth() - newWidth, 0, newWidth, panelHeight);
+                        scaleImage.run();
+                        nodesPanel.revalidate();
+                        nodesPanel.repaint();
+                    }
+                }
+            });
+
+            // ===== Close sidebar when clicking outside =====
+            nodesPanel.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    if (!SwingUtilities.isDescendingFrom(e.getComponent(), sidePanel)) {
+                        nodesPanel.remove(sidePanel);
+                        nodesPanel.revalidate();
+                        nodesPanel.repaint();
+                    }
+                }
+            });
+
+            nodesPanel.add(sidePanel);
+            nodesPanel.setComponentZOrder(sidePanel, 0);
             nodesPanel.revalidate();
             nodesPanel.repaint();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+    private void saveNodePositions() {
+        try {
+            JSONObject root = new JSONObject();
+            for (Component c : nodesPanel.getComponents()) {
+                if (c instanceof JLabel lbl) {
+                    String key = (String) lbl.getClientProperty("nodeKey");
+                    if (key != null) {
+                        JSONObject pos = new JSONObject();
+                        pos.put("x", lbl.getX());
+                        pos.put("y", lbl.getY());
+                        root.put(key, pos);
+                    }
+                }
+            }
+
+            Files.createDirectories(Paths.get("src/main/nodeStateSave"));
+            try (FileWriter fw = new FileWriter(NODE_STATE_PATH)) {
+                fw.write(root.toString(4)); // pretty-print
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Map<String, Point> loadNodePositions() {
+        Map<String, Point> positions = new HashMap<>();
+        File file = new File(NODE_STATE_PATH);
+        if (!file.exists()) return positions;
+
+        try {
+            String content = Files.readString(file.toPath());
+            if (content.isBlank()) return positions;
+
+            JSONObject root = new JSONObject(content);
+            for (String key : root.keySet()) {
+                JSONObject pos = root.getJSONObject(key);
+                int x = pos.getInt("x");
+                int y = pos.getInt("y");
+                positions.put(key, new Point(x, y));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return positions;
+    }
+
+
+
+    private void makeDraggable(JLabel label, String nodeKey) {
+        label.putClientProperty("nodeKey", nodeKey);
+        final Point[] startPt = {null};
+
+        // ======== BOOK NODE ========
+        if (nodeKey.startsWith("book_")) {
+            ImageIcon deleteIcon = null;
+            try {
+                deleteIcon = new ImageIcon(getClass().getResource("/icons/delete25.png"));
+            } catch (Exception e) {
+                System.err.println("⚠️ Could not load delete icon: " + e.getMessage());
+            }
+
+            // Delete button OUTSIDE top-right corner
+            JLabel deleteOverlay = new JLabel(deleteIcon);
+            deleteOverlay.setVisible(false);
+            deleteOverlay.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+            // We'll position it later relative to label bounds
+            nodesPanel.add(deleteOverlay);
+            nodesPanel.setComponentZOrder(deleteOverlay, 0);
+
+            // Delete click behavior
+            deleteOverlay.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    deleteOverlay.setVisible(false);
+                    currentDeleteVisible = null;
+
+                    // Remove parent node
+                    nodesPanel.remove(label);
+
+                    // Remove its children
+                    List<Component> toRemove = new ArrayList<>();
+                    for (Component c : nodesPanel.getComponents()) {
+                        if (c instanceof JLabel lbl) {
+                            Object key = lbl.getClientProperty("nodeKey");
+                            if (key != null && key.toString().startsWith(nodeKey + "_child_")) {
+                                toRemove.add(lbl);
+                            }
+                        }
+                    }
+                    for (Component c : toRemove) nodesPanel.remove(c);
+
+                    // Update saved positions
+                    Map<String, Point> positions = loadNodePositions();
+                    positions.remove(nodeKey);
+                    positions.keySet().removeIf(k -> k.startsWith(nodeKey + "_child_"));
+
+                    try {
+                        JSONObject root = new JSONObject();
+                        for (Map.Entry<String, Point> entry : positions.entrySet()) {
+                            JSONObject pos = new JSONObject();
+                            pos.put("x", entry.getValue().x);
+                            pos.put("y", entry.getValue().y);
+                            root.put(entry.getKey(), pos);
+                        }
+                        Files.createDirectories(Paths.get("src/main/nodeStateSave"));
+                        try (FileWriter fw = new FileWriter(NODE_STATE_PATH)) {
+                            fw.write(root.toString(4));
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+
+                    try {
+                        int bookIndex = Integer.parseInt(nodeKey.replace("book_", ""));
+                        deleteBookScreenshots(bookIndex);
+                    } catch (Exception ex) {
+                        System.err.println("⚠️ Could not extract book index from nodeKey: " + nodeKey);
+                    }
+
+                    nodesPanel.repaint();
+                }
+            });
+
+            // Mouse listener for dragging + showing delete icon
+            label.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    startPt[0] = e.getPoint();
+
+                    if (SwingUtilities.isRightMouseButton(e)) {
+                        // Hide any other delete icons
+                        if (currentDeleteVisible != null && currentDeleteVisible != deleteOverlay) {
+                            currentDeleteVisible.setVisible(false);
+                        }
+
+                        // Position delete icon outside top-right corner
+                        Point labelLoc = label.getLocation();
+                        deleteOverlay.setBounds(
+                                labelLoc.x + label.getWidth(),  // outside right edge
+                                labelLoc.y - 10,                 // slightly above
+                                25, 25
+                        );
+                        deleteOverlay.setVisible(true);
+                        currentDeleteVisible = deleteOverlay;
+                        nodesPanel.repaint();
+                    }
+                }
+
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    saveNodePositions();
+                }
+            });
+
+        } else {
+            // ======== CHILD NODE ========
+            label.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    startPt[0] = e.getPoint();
+                }
+
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    saveNodePositions();
+                }
+            });
+        }
+
+        // ======== SHARED DRAG LOGIC ========
+        label.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                Point loc = label.getLocation();
+                loc.translate(e.getX() - startPt[0].x, e.getY() - startPt[0].y);
+                label.setLocation(loc);
+
+                // If delete icon belongs to this label, move it along
+                if (currentDeleteVisible != null && currentDeleteVisible.isVisible()) {
+                    Point labelLoc = label.getLocation();
+                    currentDeleteVisible.setLocation(labelLoc.x + label.getWidth(), labelLoc.y - 10);
+                }
+
+                nodesPanel.repaint();
+            }
         });
-        header.add(closeBtn, BorderLayout.EAST);
+    }
 
-        sidePanel.add(header, BorderLayout.NORTH);
 
-        // ===== Image =====
-        JLabel imgLabel = new JLabel();
-        imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        imgLabel.setOpaque(false);
 
-        JScrollPane scrollPane = new JScrollPane(imgLabel);
-        scrollPane.setBorder(null);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.getViewport().setBackground(new Color(40, 43, 45));
-        scrollPane.setBackground(new Color(40, 43, 45));
-        sidePanel.add(scrollPane, BorderLayout.CENTER);
 
-        // ===== Initial scaling =====
-        Runnable scaleImage = () -> {
-            int maxW = sidePanel.getWidth() - 40;
-            int maxH = sidePanel.getHeight() - 80;
-            double scale = Math.min((double) maxW / img.getWidth(), (double) maxH / img.getHeight());
-            Image scaled = img.getScaledInstance((int) (img.getWidth() * scale),
-                    (int) (img.getHeight() * scale), Image.SCALE_SMOOTH);
-            imgLabel.setIcon(new ImageIcon(scaled));
-        };
-        scaleImage.run();
 
-        // ===== Make sidebar resizable by dragging left edge =====
-        final Point[] dragStart = {null};
-        sidePanel.addMouseListener(new MouseAdapter() {
+
+    private void deleteBookScreenshots(int bookIndex) {
+        File userFilesDir = new File("src/main/userFiles");
+        File deleteDir = new File("src/main/nodesDel");
+
+        if (!userFilesDir.exists()) return;
+        if (!deleteDir.exists()) deleteDir.mkdirs();
+
+        File[] files = userFilesDir.listFiles((dir, name) ->
+            name.startsWith(bookIndex + "_") && name.endsWith(".png")
+        );
+
+        if (files != null) {
+            for (File f : files) {
+                File dest = new File(deleteDir, f.getName());
+                try {
+                    Files.move(f.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    System.out.println("Moved " + f.getName() + " → nodesDel");
+                } catch (IOException ex) {
+                    System.err.println("⚠️ Failed to move file: " + f.getAbsolutePath());
+                    ex.printStackTrace();
+                }
+            }
+        }
+
+        // Optionally remove from DB
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:bookStack.db");
+             PreparedStatement ps = conn.prepareStatement("DELETE FROM bookmarks WHERE bookindex=?")) {
+            ps.setInt(1, bookIndex);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
+
+    class Connector {
+        JLabel parent, child;
+        Connector(JLabel p, JLabel c) {
+            parent = p;
+            child = c;
+        }
+    }
+
+
+    private void panner(JPanel nodesPanel) {
+        final Point[] startPt = {null};
+        final boolean[] ctrlPressed = {false};
+
+        // --- Listen for Ctrl key ---
+        nodesPanel.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
+                    ctrlPressed[0] = true;
+                    nodesPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
+                    ctrlPressed[0] = false;
+                    nodesPanel.setCursor(Cursor.getDefaultCursor());
+                }
+            }
+        });
+
+        // --- Mouse listener for dragging all nodes ---
+        nodesPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (e.getX() < 10) dragStart[0] = e.getPoint();
+                if (ctrlPressed[0]) {
+                    startPt[0] = e.getPoint();
+                }
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                dragStart[0] = null;
+                startPt[0] = null;
             }
         });
 
-        sidePanel.addMouseMotionListener(new MouseMotionAdapter() {
-            @Override
-            public void mouseMoved(MouseEvent e) {
-                if (e.getX() < 10) {
-                    sidePanel.setCursor(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
-                } else {
-                    sidePanel.setCursor(Cursor.getDefaultCursor());
-                }
-            }
-
+        nodesPanel.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                if (dragStart[0] != null) {
-                    int newWidth = sidePanel.getWidth() - (e.getX() - dragStart[0].x);
-                    newWidth = Math.max(newWidth, minWidth);
-                    sidePanel.setBounds(nodesPanel.getWidth() - newWidth, 0, newWidth, panelHeight);
-                    scaleImage.run();
-                    nodesPanel.revalidate();
+                if (ctrlPressed[0] && startPt[0] != null) {
+                    Point dragPt = e.getPoint();
+                    int dx = dragPt.x - startPt[0].x;
+                    int dy = dragPt.y - startPt[0].y;
+
+                    for (Component comp : nodesPanel.getComponents()) {
+                        if (comp instanceof JLabel) {
+                            Point loc = comp.getLocation();
+                            comp.setLocation(loc.x + dx, loc.y + dy);
+                        }
+                    }
+
+                    startPt[0] = dragPt;
                     nodesPanel.repaint();
                 }
             }
         });
 
-        // ===== Close sidebar when clicking outside =====
-        nodesPanel.addMouseListener(new MouseAdapter() {
+        // --- Ensure panel is focusable for key events ---
+        nodesPanel.setFocusable(true);
+        nodesPanel.requestFocusInWindow();
+    }
+
+
+private void saveJournalEntry() {
+    String text = journalEntry.getText().trim();
+    if (text.isEmpty() || text.equals(lastSavedText)) return;
+
+    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:notesNJournals.db")) {
+        String sql = "INSERT INTO journal (journal, date) VALUES (?, datetime('now'))";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, text);
+            pstmt.executeUpdate();
+        }
+
+        lastSavedText = text;
+
+        // Update button icon
+        ImageIcon tickIcon = new ImageIcon(getClass().getResource("/icons/tick15.png"));
+        saveJournal.setIcon(tickIcon);
+
+        System.out.println("Journal saved at " + new java.util.Date());
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+private void startAutoSave() {
+    autoSaveTimer = new Timer(10000, e -> saveJournalEntry());
+    autoSaveTimer.start();
+}
+
+private void showJournalWithImage(String imagePath) {
+    if (imagePath == null || imagePath.isEmpty()) return;
+
+    try {
+        BufferedImage img = ImageIO.read(new File(imagePath));
+        if (img == null) return;
+
+        int scaledWidth = 100;
+        int scaledHeight = (int) ((double) img.getHeight() / img.getWidth() * scaledWidth);
+        Image scaled = img.getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
+
+        JLabel imgLabel = new JLabel(new ImageIcon(scaled));
+        imgLabel.setOpaque(false);
+
+        // Create a layered container for the editor + image
+        JLayeredPane layeredPane = new JLayeredPane();
+        layeredPane.setLayout(null);
+
+        // Put your editor inside the layered pane
+        journalEntry.setBounds(0, 0, journalEntryScrollPane.getWidth(), journalEntryScrollPane.getHeight());
+        layeredPane.add(journalEntry, JLayeredPane.DEFAULT_LAYER);
+
+        // Add the image on top
+        imgLabel.setBounds(layeredPane.getWidth() - scaledWidth - 20, 20, scaledWidth, scaledHeight);
+        layeredPane.add(imgLabel, JLayeredPane.PALETTE_LAYER);
+
+        // Keep both resized correctly
+        layeredPane.addComponentListener(new ComponentAdapter() {
             @Override
-            public void mousePressed(MouseEvent e) {
-                if (!SwingUtilities.isDescendingFrom(e.getComponent(), sidePanel)) {
-                    nodesPanel.remove(sidePanel);
-                    nodesPanel.revalidate();
-                    nodesPanel.repaint();
-                }
+            public void componentResized(ComponentEvent e) {
+                journalEntry.setBounds(0, 0, layeredPane.getWidth(), layeredPane.getHeight());
+                imgLabel.setBounds(layeredPane.getWidth() - scaledWidth - 20, 20, scaledWidth, scaledHeight);
             }
         });
 
-        nodesPanel.add(sidePanel);
-        nodesPanel.setComponentZOrder(sidePanel, 0);
-        nodesPanel.revalidate();
-        nodesPanel.repaint();
+        journalEntryScrollPane.setViewportView(layeredPane);
+        journalEntryScrollPane.revalidate();
+        journalEntryScrollPane.repaint();
+
+        fromBookmarks = false;
 
     } catch (IOException e) {
         e.printStackTrace();
     }
 }
 
-
-
-private void saveNodePositions() {
-    try {
-        JSONObject root = new JSONObject();
-        for (Component c : nodesPanel.getComponents()) {
-            if (c instanceof JLabel lbl) {
-                String key = (String) lbl.getClientProperty("nodeKey");
-                if (key != null) {
-                    JSONObject pos = new JSONObject();
-                    pos.put("x", lbl.getX());
-                    pos.put("y", lbl.getY());
-                    root.put(key, pos);
-                }
-            }
-        }
-
-        Files.createDirectories(Paths.get("src/main/nodeStateSave"));
-        try (FileWriter fw = new FileWriter(NODE_STATE_PATH)) {
-            fw.write(root.toString(4)); // pretty-print
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
-
-private Map<String, Point> loadNodePositions() {
-    Map<String, Point> positions = new HashMap<>();
-    File file = new File(NODE_STATE_PATH);
-    if (!file.exists()) return positions;
-
-    try {
-        String content = Files.readString(file.toPath());
-        if (content.isBlank()) return positions;
-
-        JSONObject root = new JSONObject(content);
-        for (String key : root.keySet()) {
-            JSONObject pos = root.getJSONObject(key);
-            int x = pos.getInt("x");
-            int y = pos.getInt("y");
-            positions.put(key, new Point(x, y));
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    return positions;
-}
-
-
-
-private void makeDraggable(JLabel label, String nodeKey) {
-    label.putClientProperty("nodeKey", nodeKey);
-    final Point[] startPt = {null};
-
-    // ======== BOOK NODE ========
-    if (nodeKey.startsWith("book_")) {
-        ImageIcon deleteIcon = null;
-        try {
-            deleteIcon = new ImageIcon(getClass().getResource("/icons/delete25.png"));
-        } catch (Exception e) {
-            System.err.println("⚠️ Could not load delete icon: " + e.getMessage());
-        }
-
-        // Delete button OUTSIDE top-right corner
-        JLabel deleteOverlay = new JLabel(deleteIcon);
-        deleteOverlay.setVisible(false);
-        deleteOverlay.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-        // We'll position it later relative to label bounds
-        nodesPanel.add(deleteOverlay);
-        nodesPanel.setComponentZOrder(deleteOverlay, 0);
-
-        // Delete click behavior
-        deleteOverlay.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                deleteOverlay.setVisible(false);
-                currentDeleteVisible = null;
-
-                // Remove parent node
-                nodesPanel.remove(label);
-
-                // Remove its children
-                List<Component> toRemove = new ArrayList<>();
-                for (Component c : nodesPanel.getComponents()) {
-                    if (c instanceof JLabel lbl) {
-                        Object key = lbl.getClientProperty("nodeKey");
-                        if (key != null && key.toString().startsWith(nodeKey + "_child_")) {
-                            toRemove.add(lbl);
-                        }
-                    }
-                }
-                for (Component c : toRemove) nodesPanel.remove(c);
-
-                // Update saved positions
-                Map<String, Point> positions = loadNodePositions();
-                positions.remove(nodeKey);
-                positions.keySet().removeIf(k -> k.startsWith(nodeKey + "_child_"));
-
-                try {
-                    JSONObject root = new JSONObject();
-                    for (Map.Entry<String, Point> entry : positions.entrySet()) {
-                        JSONObject pos = new JSONObject();
-                        pos.put("x", entry.getValue().x);
-                        pos.put("y", entry.getValue().y);
-                        root.put(entry.getKey(), pos);
-                    }
-                    Files.createDirectories(Paths.get("src/main/nodeStateSave"));
-                    try (FileWriter fw = new FileWriter(NODE_STATE_PATH)) {
-                        fw.write(root.toString(4));
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-
-                try {
-                    int bookIndex = Integer.parseInt(nodeKey.replace("book_", ""));
-                    deleteBookScreenshots(bookIndex);
-                } catch (Exception ex) {
-                    System.err.println("⚠️ Could not extract book index from nodeKey: " + nodeKey);
-                }
-
-                nodesPanel.repaint();
-            }
-        });
-
-        // Mouse listener for dragging + showing delete icon
-        label.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                startPt[0] = e.getPoint();
-
-                if (SwingUtilities.isRightMouseButton(e)) {
-                    // Hide any other delete icons
-                    if (currentDeleteVisible != null && currentDeleteVisible != deleteOverlay) {
-                        currentDeleteVisible.setVisible(false);
-                    }
-
-                    // Position delete icon outside top-right corner
-                    Point labelLoc = label.getLocation();
-                    deleteOverlay.setBounds(
-                            labelLoc.x + label.getWidth(),  // outside right edge
-                            labelLoc.y - 10,                 // slightly above
-                            25, 25
-                    );
-                    deleteOverlay.setVisible(true);
-                    currentDeleteVisible = deleteOverlay;
-                    nodesPanel.repaint();
-                }
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                saveNodePositions();
-            }
-        });
-
-    } else {
-        // ======== CHILD NODE ========
-        label.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                startPt[0] = e.getPoint();
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                saveNodePositions();
-            }
-        });
-    }
-
-    // ======== SHARED DRAG LOGIC ========
-    label.addMouseMotionListener(new MouseMotionAdapter() {
-        @Override
-        public void mouseDragged(MouseEvent e) {
-            Point loc = label.getLocation();
-            loc.translate(e.getX() - startPt[0].x, e.getY() - startPt[0].y);
-            label.setLocation(loc);
-
-            // If delete icon belongs to this label, move it along
-            if (currentDeleteVisible != null && currentDeleteVisible.isVisible()) {
-                Point labelLoc = label.getLocation();
-                currentDeleteVisible.setLocation(labelLoc.x + label.getWidth(), labelLoc.y - 10);
-            }
-
-            nodesPanel.repaint();
-        }
-    });
-}
-
-
-
-
-
-
-private void deleteBookScreenshots(int bookIndex) {
-    File userFilesDir = new File("src/main/userFiles");
-    File deleteDir = new File("src/main/nodesDel");
-
-    if (!userFilesDir.exists()) return;
-    if (!deleteDir.exists()) deleteDir.mkdirs();
-
-    File[] files = userFilesDir.listFiles((dir, name) ->
-        name.startsWith(bookIndex + "_") && name.endsWith(".png")
-    );
-
-    if (files != null) {
-        for (File f : files) {
-            File dest = new File(deleteDir, f.getName());
-            try {
-                Files.move(f.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                System.out.println("Moved " + f.getName() + " → nodesDel");
-            } catch (IOException ex) {
-                System.err.println("⚠️ Failed to move file: " + f.getAbsolutePath());
-                ex.printStackTrace();
-            }
-        }
-    }
-
-    // Optionally remove from DB
-    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:bookStack.db");
-         PreparedStatement ps = conn.prepareStatement("DELETE FROM bookmarks WHERE bookindex=?")) {
-        ps.setInt(1, bookIndex);
-        ps.executeUpdate();
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
-
-
-
-
-
-class Connector {
-    JLabel parent, child;
-    Connector(JLabel p, JLabel c) {
-        parent = p;
-        child = c;
-    }
-}
-
-
-private void panner(JPanel nodesPanel) {
-    final Point[] startPt = {null};
-    final boolean[] ctrlPressed = {false};
-
-    // --- Listen for Ctrl key ---
-    nodesPanel.addKeyListener(new KeyAdapter() {
-        @Override
-        public void keyPressed(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
-                ctrlPressed[0] = true;
-                nodesPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            }
-        }
-
-        @Override
-        public void keyReleased(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
-                ctrlPressed[0] = false;
-                nodesPanel.setCursor(Cursor.getDefaultCursor());
-            }
-        }
-    });
-
-    // --- Mouse listener for dragging all nodes ---
-    nodesPanel.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mousePressed(MouseEvent e) {
-            if (ctrlPressed[0]) {
-                startPt[0] = e.getPoint();
-            }
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e) {
-            startPt[0] = null;
-        }
-    });
-
-    nodesPanel.addMouseMotionListener(new MouseMotionAdapter() {
-        @Override
-        public void mouseDragged(MouseEvent e) {
-            if (ctrlPressed[0] && startPt[0] != null) {
-                Point dragPt = e.getPoint();
-                int dx = dragPt.x - startPt[0].x;
-                int dy = dragPt.y - startPt[0].y;
-
-                for (Component comp : nodesPanel.getComponents()) {
-                    if (comp instanceof JLabel) {
-                        Point loc = comp.getLocation();
-                        comp.setLocation(loc.x + dx, loc.y + dy);
-                    }
-                }
-
-                startPt[0] = dragPt;
-                nodesPanel.repaint();
-            }
-        }
-    });
-
-    // --- Ensure panel is focusable for key events ---
-    nodesPanel.setFocusable(true);
-    nodesPanel.requestFocusInWindow();
-}
 
 
 
@@ -3675,8 +3766,8 @@ private void panner(JPanel nodesPanel) {
         jLabel1 = new javax.swing.JLabel();
         jProgressBar1 = new javax.swing.JProgressBar();
         saveJournal = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jEditorPane1 = new javax.swing.JEditorPane();
+        journalEntryScrollPane = new javax.swing.JScrollPane();
+        journalEntry = new javax.swing.JEditorPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -8945,8 +9036,14 @@ private void panner(JPanel nodesPanel) {
 
         saveJournal.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/save15.png"))); // NOI18N
         saveJournal.setBorderPainted(false);
+        saveJournal.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveJournalActionPerformed(evt);
+            }
+        });
 
-        jScrollPane1.setViewportView(jEditorPane1);
+        journalEntry.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        journalEntryScrollPane.setViewportView(journalEntry);
 
         javax.swing.GroupLayout journalingPanelLayout = new javax.swing.GroupLayout(journalingPanel);
         journalingPanel.setLayout(journalingPanelLayout);
@@ -8956,7 +9053,7 @@ private void panner(JPanel nodesPanel) {
             .addGroup(journalingPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(journalingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
+                    .addComponent(journalEntryScrollPane)
                     .addGroup(journalingPanelLayout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -8967,13 +9064,13 @@ private void panner(JPanel nodesPanel) {
             journalingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(journalingPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(journalingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(saveJournal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(journalingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(saveJournal, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 834, Short.MAX_VALUE)
+                .addComponent(journalEntryScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 834, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -8991,7 +9088,7 @@ private void panner(JPanel nodesPanel) {
             .addGroup(journalLayout.createSequentialGroup()
                 .addGap(70, 70, 70)
                 .addComponent(journalingPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(16, Short.MAX_VALUE))
+                .addContainerGap(15, Short.MAX_VALUE))
         );
 
         tabs.addTab("tab9", journal);
@@ -9357,6 +9454,20 @@ private void panner(JPanel nodesPanel) {
                 //loadBookmarksNodes();
                 panner(nodesPanel);
             }
+        });
+
+        tabs.addChangeListener(e -> {
+            int selectedIndex = tabs.getSelectedIndex();
+
+            if (lastTab[0] == 6 && selectedIndex == 8 && !directOpen) {
+                directOpen = false;
+                //loadJournalContent();
+                System.out.println("now show image");
+                System.out.println(bookMarkJournalIMG);
+                showJournalWithImage(bookMarkJournalIMG);
+            }
+
+            lastTab[0] = selectedIndex;
         });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -11656,7 +11767,9 @@ private void panner(JPanel nodesPanel) {
     }//GEN-LAST:event_settingsDoClickActionPerformed
 
     private void journalBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_journalBtnActionPerformed
-        tabs.setSelectedIndex(8);
+
+    directOpen = true;
+    tabs.setSelectedIndex(8);
         
         homeDot.setVisible(false);
         libraryDot.setVisible(false);
@@ -11706,6 +11819,19 @@ private void panner(JPanel nodesPanel) {
         settingsDot.setVisible(false);  
     }//GEN-LAST:event_hostJoinBtnActionPerformed
 
+    private void saveJournalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveJournalActionPerformed
+        saveJournalEntry();
+
+        // Start or restart the autosave timer
+        if (autoSaveTimer == null) {
+            startAutoSave();
+        } else if (!autoSaveTimer.isRunning()) {
+            autoSaveTimer.start();
+        }
+    }//GEN-LAST:event_saveJournalActionPerformed
+
+    
+    
     /**
      * @param args the command line arguments
      */
@@ -11854,15 +11980,14 @@ private void panner(JPanel nodesPanel) {
     private javax.swing.JLabel hostJoinBtnLabel;
     private javax.swing.JButton hostJoinDoClick;
     private javax.swing.JLabel hostJoinDot;
-    private javax.swing.JEditorPane jEditorPane1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JProgressBar jProgressBar1;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel jan;
     private javax.swing.JPanel journal;
     private javax.swing.JButton journalBtn;
     private javax.swing.JLabel journalDot;
-    private javax.swing.JPanel journalPreview5;
+    private javax.swing.JEditorPane journalEntry;
+    private javax.swing.JScrollPane journalEntryScrollPane;
     private javax.swing.JButton journalTabDoClick;
     private javax.swing.JPanel journalingPanel;
     private javax.swing.JLabel jul;
