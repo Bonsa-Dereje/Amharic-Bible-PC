@@ -11047,7 +11047,7 @@
                         <Component class="javax.swing.JEditorPane" name="journalEntry">
                           <Properties>
                             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                              <Font name="Nokia Pure Headline Ultra Light" size="14" style="0"/>
+                              <Font name="Nokia Pure Headline Ultra Light" size="18" style="0"/>
                             </Property>
                           </Properties>
                         </Component>

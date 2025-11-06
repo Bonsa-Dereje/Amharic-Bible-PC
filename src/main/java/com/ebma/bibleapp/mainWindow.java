@@ -2430,161 +2430,185 @@ private void saveSearchResults(String searchTerm, List<String> rawResults) {
 
 
 
-    private void loadBookmarksNodes() {
+private void loadBookmarksNodes() {
 
-        System.out.println("---- Start loadBookmarksNodes ----");
+    System.out.println("---- Start loadBookmarksNodes ----");
 
-        nodesPanel.removeAll();
-        nodesPanel.setLayout(null);
+    nodesPanel.removeAll();
+    nodesPanel.setLayout(null);
 
-        // ===== Load saved positions =====
-        Map<String, Point> savedNodePositions = loadNodePositions();
-        boolean hasSavedPositions = !savedNodePositions.isEmpty();
+    // ===== Load saved positions =====
+    Map<String, Point> savedNodePositions = loadNodePositions();
+    boolean hasSavedPositions = !savedNodePositions.isEmpty();
 
-        Map<Integer, List<String>> bookmarkMap = new LinkedHashMap<>();
-        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:bookStack.db");
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT bookindex, scrollindex FROM bookmarks")) {
+    Map<Integer, List<String>> bookmarkMap = new LinkedHashMap<>();
+    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:bookStack.db");
+         Statement stmt = conn.createStatement();
+         ResultSet rs = stmt.executeQuery("SELECT bookindex, scrollindex FROM bookmarks")) {
 
-            while (rs.next()) {
-                int bookIndex = rs.getInt("bookindex");
-                int scrollIndex = rs.getInt("scrollindex");
-                String bookmarkFile = "src/main/userFiles/" + bookIndex + "_" + scrollIndex + ".png";
-                bookmarkMap.computeIfAbsent(bookIndex, k -> new ArrayList<>()).add(bookmarkFile);
-            }
+        while (rs.next()) {
+            int bookIndex = rs.getInt("bookindex");
+            int scrollIndex = rs.getInt("scrollindex");
+            String bookmarkFile = "src/main/userFiles/" + bookIndex + "_" + scrollIndex + ".png";
+            bookmarkMap.computeIfAbsent(bookIndex, k -> new ArrayList<>()).add(bookmarkFile);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    int nodeWidth = 120, nodeHeight = 180;
+    int childWidth = 50, childHeight = 50;
+    int spacing = 150;
+    int panelWidth = nodesPanel.getWidth();
+    int panelHeight = nodesPanel.getHeight();
+
+    List<Connector> connectorLines = new ArrayList<>();
+    List<JLabel> allNodes = new ArrayList<>();
+
+    int xOffset = spacing;
+    int yOffset = Math.max((panelHeight - (nodeHeight + 200)) / 2, 60);
+
+    for (Map.Entry<Integer, List<String>> entry : bookmarkMap.entrySet()) {
+        int bookIndex = entry.getKey();
+        List<String> childImages = entry.getValue();
+
+        JLabel centerLabel = new JLabel();
+        String centerImgPath = "src/main/resources/bookTiles/" + bookIndex + ".png";
+        try {
+            ImageIcon icon = new ImageIcon(centerImgPath);
+            Image img = icon.getImage();
+            double aspect = (double) img.getWidth(null) / img.getHeight(null);
+            int scaledW = (int) (nodeHeight * aspect);
+            if (scaledW > nodeWidth) scaledW = nodeWidth;
+            centerLabel.setIcon(new ImageIcon(img.getScaledInstance(scaledW, nodeHeight, Image.SCALE_SMOOTH)));
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        int nodeWidth = 120, nodeHeight = 180;
-        int childWidth = 50, childHeight = 50;
-        int spacing = 150;
-        int panelWidth = nodesPanel.getWidth();
-        int panelHeight = nodesPanel.getHeight();
+        String nodeKey = "book_" + bookIndex;
+        Point savedPos;
+        if (hasSavedPositions && savedNodePositions.containsKey(nodeKey)) {
+            savedPos = savedNodePositions.get(nodeKey);
+        } else {
+            savedPos = new Point(xOffset, yOffset);
+        }
 
-        List<Connector> connectorLines = new ArrayList<>();
-        List<JLabel> allNodes = new ArrayList<>();
+        centerLabel.setBounds(savedPos.x, savedPos.y, nodeWidth, nodeHeight);
+        makeDraggable(centerLabel, nodeKey);
+        nodesPanel.add(centerLabel);
+        allNodes.add(centerLabel);
 
-        int xOffset = spacing;
-        int yOffset = Math.max((panelHeight - (nodeHeight + 200)) / 2, 60);
+        int totalChildren = childImages.size();
+        if (totalChildren > 0) {
+            double radius = nodeHeight * 0.9;
+            double startAngle = 180;
+            double endAngle = 0;
+            double angleStep = totalChildren > 1 ? (startAngle - endAngle) / (totalChildren - 1) : 0;
 
-        for (Map.Entry<Integer, List<String>> entry : bookmarkMap.entrySet()) {
-            int bookIndex = entry.getKey();
-            List<String> childImages = entry.getValue();
+            int centerX = savedPos.x + nodeWidth / 2;
+            int baseY = savedPos.y + nodeHeight;
 
-            JLabel centerLabel = new JLabel();
-            String centerImgPath = "src/main/resources/bookTiles/" + bookIndex + ".png";
-            try {
-                ImageIcon icon = new ImageIcon(centerImgPath);
-                Image img = icon.getImage();
-                double aspect = (double) img.getWidth(null) / img.getHeight(null);
-                int scaledW = (int) (nodeHeight * aspect);
-                if (scaledW > nodeWidth) scaledW = nodeWidth;
-                centerLabel.setIcon(new ImageIcon(img.getScaledInstance(scaledW, nodeHeight, Image.SCALE_SMOOTH)));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            for (int i = 0; i < totalChildren; i++) {
+                String childPath = childImages.get(i);
+                JLabel childLabel = new JLabel();
 
-            String nodeKey = "book_" + bookIndex;
-            Point savedPos;
-            if (hasSavedPositions && savedNodePositions.containsKey(nodeKey)) {
-                savedPos = savedNodePositions.get(nodeKey);
-            } else {
-                savedPos = new Point(xOffset, yOffset);
-            }
-
-            centerLabel.setBounds(savedPos.x, savedPos.y, nodeWidth, nodeHeight);
-            makeDraggable(centerLabel, nodeKey);
-            nodesPanel.add(centerLabel);
-            allNodes.add(centerLabel);
-
-            int totalChildren = childImages.size();
-            if (totalChildren > 0) {
-                double radius = nodeHeight * 0.9;
-                double startAngle = 180;
-                double endAngle = 0;
-                double angleStep = totalChildren > 1 ? (startAngle - endAngle) / (totalChildren - 1) : 0;
-
-                int centerX = savedPos.x + nodeWidth / 2;
-                int baseY = savedPos.y + nodeHeight;
-
-                for (int i = 0; i < totalChildren; i++) {
-                    String childPath = childImages.get(i);
-                    JLabel childLabel = new JLabel();
-
-                    try {
-                        ImageIcon icon = new ImageIcon(childPath);
-                        Image img = icon.getImage();
-                        childLabel.setIcon(new ImageIcon(img.getScaledInstance(childWidth, childHeight, Image.SCALE_SMOOTH)));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                    double angleRad = Math.toRadians(startAngle - i * angleStep);
-                    int childX = (int) (centerX + radius * Math.cos(angleRad)) - childWidth / 2;
-                    int childY = (int) (baseY + radius * Math.sin(angleRad)) - childHeight / 2;
-
-                    childX = Math.max(0, Math.min(childX, panelWidth - childWidth));
-                    childY = Math.max(0, Math.min(childY, panelHeight - childHeight));
-
-                    String childKey = nodeKey + "_child_" + i;
-                    Point savedChildPos;
-                    if (hasSavedPositions && savedNodePositions.containsKey(childKey)) {
-                        savedChildPos = savedNodePositions.get(childKey);
-                    } else {
-                        savedChildPos = new Point(childX, childY);
-                    }
-
-                    childLabel.setBounds(savedChildPos.x, savedChildPos.y, childWidth, childHeight);
-                    makeDraggable(childLabel, childKey);
-                    nodesPanel.add(childLabel);
-                    allNodes.add(childLabel);
-
-                    connectorLines.add(new Connector(centerLabel, childLabel));
-
-                    // Auto-detect and show image in side tab when clicked
-                    childLabel.addMouseListener(new MouseAdapter() {
-                        @Override
-                        public void mouseClicked(MouseEvent e) {
-                            showImageInSidePanel(childPath);
-                        }
-                    });
+                try {
+                    ImageIcon icon = new ImageIcon(childPath);
+                    Image img = icon.getImage();
+                    childLabel.setIcon(new ImageIcon(img.getScaledInstance(childWidth, childHeight, Image.SCALE_SMOOTH)));
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            }
 
-            xOffset += nodeWidth + spacing;
-            if (xOffset + nodeWidth > panelWidth) {
-                xOffset = spacing;
-                yOffset += nodeHeight + 200;
+                double angleRad = Math.toRadians(startAngle - i * angleStep);
+                int childX = (int) (centerX + radius * Math.cos(angleRad)) - childWidth / 2;
+                int childY = (int) (baseY + radius * Math.sin(angleRad)) - childHeight / 2;
+
+                childX = Math.max(0, Math.min(childX, panelWidth - childWidth));
+                childY = Math.max(0, Math.min(childY, panelHeight - childHeight));
+
+                String childKey = nodeKey + "_child_" + i;
+                Point savedChildPos;
+                if (hasSavedPositions && savedNodePositions.containsKey(childKey)) {
+                    savedChildPos = savedNodePositions.get(childKey);
+                } else {
+                    savedChildPos = new Point(childX, childY);
+                }
+
+                childLabel.setBounds(savedChildPos.x, savedChildPos.y, childWidth, childHeight);
+                makeDraggable(childLabel, childKey);
+                nodesPanel.add(childLabel);
+                allNodes.add(childLabel);
+
+                connectorLines.add(new Connector(centerLabel, childLabel));
+
+                childLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showImageInSidePanel(childPath);
+                    }
+                });
             }
         }
 
-        JPanel overlay = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(Color.LIGHT_GRAY);
-                g2.setStroke(new BasicStroke(2f));
-                for (Connector c : connectorLines) {
-                    int x1 = c.parent.getX() + c.parent.getWidth() / 2;
-                    int y1 = c.parent.getY() + c.parent.getHeight();
-                    int x2 = c.child.getX() + c.child.getWidth() / 2;
-                    int y2 = c.child.getY();
-                    g2.draw(new QuadCurve2D.Float(x1, y1, (x1 + x2) / 2, y1 + 40, x2, y2));
-                }
-            }
-        };
-        overlay.setOpaque(false);
-        overlay.setBounds(0, 0, nodesPanel.getWidth(), nodesPanel.getHeight());
-        nodesPanel.add(overlay);
-
-        nodesPanel.revalidate();
-        nodesPanel.repaint();
-
-        System.out.println("---- End loadBookmarksNodes ----");
+        xOffset += nodeWidth + spacing;
+        if (xOffset + nodeWidth > panelWidth) {
+            xOffset = spacing;
+            yOffset += nodeHeight + 200;
+        }
     }
+
+    // ===== Fill panel with dots in grid (original size) =====
+    try {
+        String dotPath = "src/main/resources/icons/dotCanvas.png";
+        ImageIcon dotIcon = new ImageIcon(dotPath); // use original size
+        int dotWidth = dotIcon.getIconWidth();
+        int dotHeight = dotIcon.getIconHeight();
+
+        int spacingDots = 15; // space between dots
+        int cols = panelWidth / (dotWidth + spacingDots);
+        int rows = panelHeight / (dotHeight + spacingDots);
+
+        for (int row = 0; row <= rows; row++) {
+            for (int col = 0; col <= cols; col++) {
+                int xPos = col * (dotWidth + spacingDots);
+                int yPos = row * (dotHeight + spacingDots);
+                JLabel dotLabel = new JLabel(dotIcon); // no scaling
+                dotLabel.setBounds(xPos, yPos, dotWidth, dotHeight);
+                nodesPanel.add(dotLabel);
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    // ===== Overlay connectors =====
+    JPanel overlay = new JPanel() {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(Color.LIGHT_GRAY);
+            g2.setStroke(new BasicStroke(2f));
+            for (Connector c : connectorLines) {
+                int x1 = c.parent.getX() + c.parent.getWidth() / 2;
+                int y1 = c.parent.getY() + c.parent.getHeight();
+                int x2 = c.child.getX() + c.child.getWidth() / 2;
+                int y2 = c.child.getY();
+                g2.draw(new QuadCurve2D.Float(x1, y1, (x1 + x2) / 2, y1 + 40, x2, y2));
+            }
+        }
+    };
+    overlay.setOpaque(false);
+    overlay.setBounds(0, 0, nodesPanel.getWidth(), nodesPanel.getHeight());
+    nodesPanel.add(overlay);
+
+    nodesPanel.revalidate();
+    nodesPanel.repaint();
+
+    System.out.println("---- End loadBookmarksNodes ----");
+}
 
     /**
      * Opens a right-side panel showing the clicked image.
@@ -9160,7 +9184,7 @@ class ResizableImageLabel extends JLabel {
             }
         });
 
-        journalEntry.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        journalEntry.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
         journalEntryScrollPane.setViewportView(journalEntry);
 
         javax.swing.GroupLayout journalingPanelLayout = new javax.swing.GroupLayout(journalingPanel);
