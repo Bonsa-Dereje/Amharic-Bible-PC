@@ -414,6 +414,17 @@ public class mainWindow extends javax.swing.JFrame {
     
     final int[] lastTab = { -1 };
     
+    private double zoomFactor = 1.0; // current zoom level
+    private final double ZOOM_STEP = 0.1; // zoom per scroll notch
+
+    private JLabel activeDeleteIcon = null;
+    private JLabel activeDeleteParentNode = null;  
+    
+    private Map<JLabel, List<JLabel>> parentToChildren = new HashMap<>();
+    
+    
+    
+
     
     public mainWindow() {
         setUndecorated(true);
@@ -2468,6 +2479,8 @@ private void loadBookmarksNodes() {
     int xOffset = spacing;
     int yOffset = Math.max((panelHeight - (nodeHeight + 200)) / 2, 60);
 
+    parentToChildren.clear(); // clear old parent-child mappings
+
     for (Map.Entry<Integer, List<String>> entry : bookmarkMap.entrySet()) {
         int bookIndex = entry.getKey();
         List<String> childImages = entry.getValue();
@@ -2498,7 +2511,69 @@ private void loadBookmarksNodes() {
         nodesPanel.add(centerLabel);
         allNodes.add(centerLabel);
 
+        // ===== Delete icon logic (only one visible at a time) =====
+        centerLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // Remove previous delete icon
+                if (activeDeleteIcon != null && activeDeleteParentNode != null) {
+                    activeDeleteParentNode.remove(activeDeleteIcon);
+                    activeDeleteParentNode.revalidate();
+                    activeDeleteParentNode.repaint();
+                }
+
+                // Load delete icon
+                String deleteIconPath = "src/main/resources/icons/delete20.png";
+                ImageIcon deleteIcon = new ImageIcon(deleteIconPath);
+                JLabel deleteLabel = new JLabel(deleteIcon);
+                deleteLabel.setName("deleteIcon");
+
+                int iconSize = 20;
+                deleteLabel.setBounds(centerLabel.getWidth() - iconSize - 2, 2, iconSize, iconSize);
+                deleteLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+                // Click listener for deletion
+                deleteLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        deleteBookScreenshots(bookIndex);
+
+                        // Remove child nodes
+                        List<JLabel> children = parentToChildren.get(centerLabel);
+                        if (children != null) {
+                            for (JLabel child : children) {
+                                nodesPanel.remove(child);
+                            }
+                        }
+
+                        // Remove connectors related to this parent or its children
+                        connectorLines.removeIf(c -> c.parent == centerLabel || (children != null && children.contains(c.child)));
+
+                        // Remove parent node itself
+                        nodesPanel.remove(centerLabel);
+                        nodesPanel.revalidate();
+                        nodesPanel.repaint();
+
+                        activeDeleteIcon = null;
+                        activeDeleteParentNode = null;
+                        parentToChildren.remove(centerLabel);
+                    }
+                });
+
+                centerLabel.setLayout(null); // absolute positioning
+                centerLabel.add(deleteLabel);
+                centerLabel.revalidate();
+                centerLabel.repaint();
+
+                // Save current active delete icon
+                activeDeleteIcon = deleteLabel;
+                activeDeleteParentNode = centerLabel;
+            }
+        });
+
+        // ===== Child nodes =====
         int totalChildren = childImages.size();
+        List<JLabel> childrenList = new ArrayList<>();
         if (totalChildren > 0) {
             double radius = nodeHeight * 0.9;
             double startAngle = 180;
@@ -2541,6 +2616,7 @@ private void loadBookmarksNodes() {
                 allNodes.add(childLabel);
 
                 connectorLines.add(new Connector(centerLabel, childLabel));
+                childrenList.add(childLabel);
 
                 childLabel.addMouseListener(new MouseAdapter() {
                     @Override
@@ -2550,7 +2626,9 @@ private void loadBookmarksNodes() {
                 });
             }
         }
+        parentToChildren.put(centerLabel, childrenList);
 
+        // ===== Update offsets =====
         xOffset += nodeWidth + spacing;
         if (xOffset + nodeWidth > panelWidth) {
             xOffset = spacing;
@@ -2571,9 +2649,8 @@ private void loadBookmarksNodes() {
                 ImageIcon dotIcon = new ImageIcon("src/main/resources/icons/dotCanvas.png");
                 int dotWidth = dotIcon.getIconWidth();
                 int dotHeight = dotIcon.getIconHeight();
-                int spacingDots = 8; // denser
+                int spacingDots = 8;
 
-                // Set semi-transparent alpha
                 float alpha = 0.3f;
                 AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
                 g2.setComposite(ac);
@@ -2589,7 +2666,6 @@ private void loadBookmarksNodes() {
                     }
                 }
 
-                // Reset opacity for connectors
                 g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 
             } catch (Exception e) {
@@ -2611,13 +2687,14 @@ private void loadBookmarksNodes() {
     overlay.setOpaque(false);
     overlay.setBounds(0, 0, nodesPanel.getWidth(), nodesPanel.getHeight());
     nodesPanel.add(overlay);
-    nodesPanel.setComponentZOrder(overlay, nodesPanel.getComponentCount() - 1); // behind nodes
+    nodesPanel.setComponentZOrder(overlay, nodesPanel.getComponentCount() - 1);
 
     nodesPanel.revalidate();
     nodesPanel.repaint();
 
     System.out.println("---- End loadBookmarksNodes ----");
 }
+
 
 
     /**
@@ -3010,6 +3087,7 @@ private void makeDraggable(JLabel label, String nodeKey) {
         nodesPanel.requestFocusInWindow();
     }
 
+    
 
 private void saveJournalEntry() {
     String text = journalEntry.getText().trim();
