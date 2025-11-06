@@ -98,6 +98,7 @@ import javax.imageio.ImageIO;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
+import javax.swing.border.Border;
 
 
 public class mainWindow extends javax.swing.JFrame {
@@ -3094,44 +3095,138 @@ private void showJournalWithImage(String imagePath) {
         BufferedImage img = ImageIO.read(new File(imagePath));
         if (img == null) return;
 
-        int scaledWidth = 100;
+        int scaledWidth = 120;
         int scaledHeight = (int) ((double) img.getHeight() / img.getWidth() * scaledWidth);
         Image scaled = img.getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
 
-        JLabel imgLabel = new JLabel(new ImageIcon(scaled));
-        imgLabel.setOpaque(false);
+        ResizableImageLabel imgLabel = new ResizableImageLabel(img, scaledWidth, scaledHeight);
 
-        // Create a layered container for the editor + image
-        JLayeredPane layeredPane = new JLayeredPane();
-        layeredPane.setLayout(null);
+        // Add to the JEditorPane itself, not the layered pane
+        journalEntry.add(imgLabel);
+        imgLabel.setBounds(0, 0, scaledWidth, scaledHeight);
+        journalEntry.revalidate();
+        journalEntry.repaint();
 
-        // Put your editor inside the layered pane
-        journalEntry.setBounds(0, 0, journalEntryScrollPane.getWidth(), journalEntryScrollPane.getHeight());
-        layeredPane.add(journalEntry, JLayeredPane.DEFAULT_LAYER);
-
-        // Add the image on top
-        imgLabel.setBounds(layeredPane.getWidth() - scaledWidth - 20, 20, scaledWidth, scaledHeight);
-        layeredPane.add(imgLabel, JLayeredPane.PALETTE_LAYER);
-
-        // Keep both resized correctly
-        layeredPane.addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                journalEntry.setBounds(0, 0, layeredPane.getWidth(), layeredPane.getHeight());
-                imgLabel.setBounds(layeredPane.getWidth() - scaledWidth - 20, 20, scaledWidth, scaledHeight);
-            }
-        });
-
-        journalEntryScrollPane.setViewportView(layeredPane);
-        journalEntryScrollPane.revalidate();
-        journalEntryScrollPane.repaint();
-
-        fromBookmarks = false;
-
-    } catch (IOException e) {
+    } catch (Exception e) {
         e.printStackTrace();
     }
 }
+
+class ResizableImageLabel extends JLabel {
+    private static final int HANDLE_SIZE = 8;
+    private boolean resizing = false;
+    private boolean dragging = false;
+    private Point dragStart;
+    private Rectangle startBounds;
+    private int resizeHandle = -1;
+    private boolean selected = false;
+    private BufferedImage originalImage;
+
+    public ResizableImageLabel(BufferedImage image, int width, int height) {
+        super(new ImageIcon(image.getScaledInstance(width, height, Image.SCALE_SMOOTH)));
+        this.originalImage = image;
+        setOpaque(false);
+        enableInteraction();
+    }
+
+    private void enableInteraction() {
+        // Detect clicks outside the image
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("permanentFocusOwner", evt -> {
+            if (evt.getNewValue() != this) {
+                selected = false;
+                repaint();
+            }
+        });
+
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                requestFocusInWindow();
+                selected = true;
+                dragStart = e.getPoint();
+                startBounds = getBounds();
+                resizeHandle = getHandleAtPoint(e.getPoint());
+                resizing = resizeHandle != -1;
+                dragging = !resizing;
+                repaint();
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                resizing = false;
+                dragging = false;
+                resizeHandle = -1;
+                repaint();
+            }
+        });
+
+        addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (dragging) {
+                    int dx = e.getX() - dragStart.x;
+                    int dy = e.getY() - dragStart.y;
+
+                    int newX = startBounds.x + dx;
+                    int newY = startBounds.y + dy;
+
+                    // Keep inside parent (JEditorPane)
+                    newX = Math.max(0, Math.min(newX, getParent().getWidth() - getWidth()));
+                    newY = Math.max(0, Math.min(newY, getParent().getHeight() - getHeight()));
+
+                    setLocation(newX, newY);
+                } else if (resizing) {
+                    resizeImage(e);
+                }
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                int handle = getHandleAtPoint(e.getPoint());
+                setCursor(handle != -1 ? Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR)
+                        : Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+            }
+        });
+    }
+
+    private void resizeImage(MouseEvent e) {
+        int dx = e.getX() - dragStart.x;
+        int dy = e.getY() - dragStart.y;
+
+        int newWidth = Math.max(40, startBounds.width + dx);
+        int newHeight = Math.max(40, startBounds.height + dy);
+
+        // Resize the image itself
+        Image scaled = originalImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+        setIcon(new ImageIcon(scaled));
+
+        setBounds(startBounds.x, startBounds.y, newWidth, newHeight);
+        revalidate();
+        repaint();
+    }
+
+    private int getHandleAtPoint(Point p) {
+        int x = getWidth() - HANDLE_SIZE;
+        int y = getHeight() - HANDLE_SIZE;
+        if (new Rectangle(x, y, HANDLE_SIZE, HANDLE_SIZE).contains(p)) {
+            return 0; // bottom-right corner
+        }
+        return -1;
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        if (selected) {
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setColor(Color.CYAN);
+            g2.setStroke(new BasicStroke(2));
+            g2.drawRect(1, 1, getWidth() - 3, getHeight() - 3);
+            g2.fillRect(getWidth() - HANDLE_SIZE, getHeight() - HANDLE_SIZE, HANDLE_SIZE, HANDLE_SIZE);
+        }
+    }
+}
+
 
 
 
