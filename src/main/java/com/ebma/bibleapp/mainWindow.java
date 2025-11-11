@@ -433,6 +433,8 @@ public class mainWindow extends javax.swing.JFrame {
     private BufferedImage snapshotImage = null;
     private boolean isZooming = false;
     
+    private boolean nodeItMode = false;
+
     
     
 
@@ -2452,6 +2454,8 @@ private void saveSearchResults(String searchTerm, List<String> rawResults) {
 
 
 
+
+
 private void loadBookmarksNodes() {
     System.out.println("---- Start loadBookmarksNodes ----");
 
@@ -2545,12 +2549,11 @@ private void loadBookmarksNodes() {
 
                         List<JLabel> children = parentToChildren.get(centerLabel);
                         if (children != null) {
-                            for (JLabel child : children) {
-                                nodesPanel.remove(child);
-                            }
+                            for (JLabel child : children) nodesPanel.remove(child);
                         }
 
-                        connectorLines.removeIf(c -> c.parent == centerLabel || (children != null && children.contains(c.child)));
+                        connectorLines.removeIf(c -> c.parent == centerLabel || 
+                            (parentToChildren.get(centerLabel) != null && parentToChildren.get(centerLabel).contains(c.child)));
 
                         nodesPanel.remove(centerLabel);
                         nodesPanel.revalidate();
@@ -2609,17 +2612,20 @@ private void loadBookmarksNodes() {
                         : new Point(childX, childY);
 
                 childLabel.setBounds(savedChildPos.x, savedChildPos.y, childWidth, childHeight);
-                makeDraggable(childLabel, childKey); // Ensure draggable
+                makeDraggable(childLabel, childKey);
                 nodesPanel.add(childLabel);
                 allNodes.add(childLabel);
 
                 connectorLines.add(new Connector(centerLabel, childLabel));
                 childrenList.add(childLabel);
 
+                // ===== Only load side panel if NOT in nodeItMode =====
                 childLabel.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
-                        showImageInSidePanel(childPath);
+                        if (!nodeItMode) {
+                            showImageInSidePanel(childPath);
+                        }
                     }
                 });
             }
@@ -2641,7 +2647,6 @@ private void loadBookmarksNodes() {
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            // Draw grid
             try {
                 ImageIcon dotIcon = new ImageIcon("src/main/resources/icons/dotCanvas.png");
                 int dotWidth = dotIcon.getIconWidth();
@@ -2662,11 +2667,8 @@ private void loadBookmarksNodes() {
                     }
                 }
                 g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) { e.printStackTrace(); }
 
-            // Draw connectors
             g2.setStroke(new BasicStroke(2f));
             for (Connector c : connectorLines) {
                 int x1, y1, x2, y2;
@@ -2724,8 +2726,7 @@ private void loadBookmarksNodes() {
     nodeItBtn.setVisible(false);
     nodesPanel.add(nodeItBtn);
 
-    // ===== Make text field + nodeIt draggable as a unit =====
-    makeGroupDraggable(customBookField, nodeItBtn);
+    makeGroupDraggable(writeOwnBtn, customBookField, nodeItBtn);
 
     customBookField.addFocusListener(new FocusAdapter() {
         @Override
@@ -2750,25 +2751,23 @@ private void loadBookmarksNodes() {
         nodesPanel.repaint();
     });
 
-    final boolean[] tetherMode = {false};
-
     nodeItBtn.addActionListener(e -> {
+        nodeItMode = true; // disable side panel clicks
         for (List<JLabel> children : parentToChildren.values()) {
             for (JLabel child : children) {
                 child.setBorder(BorderFactory.createLineBorder(Color.ORANGE, 2));
             }
         }
-        tetherMode[0] = true;
         nodesPanel.repaint();
     });
 
-    // ===== Child click tether (dynamic with text field group) =====
+    // ===== Child click tethering =====
     for (List<JLabel> children : parentToChildren.values()) {
         for (JLabel child : children) {
             child.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    if (tetherMode[0]) {
+                    if (nodeItMode) {
                         connectorLines.add(new ConnectorToPoint(child, customBookField));
                         child.setBorder(BorderFactory.createLineBorder(Color.ORANGE, 3));
                         nodesPanel.repaint();
@@ -2778,27 +2777,32 @@ private void loadBookmarksNodes() {
         }
     }
 
-    // ===== Click outside to reset tether =====
+    // ===== Click outside to exit nodeIt mode and re-enable side panel =====
     nodesPanel.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent e) {
-            tetherMode[0] = false;
-            for (List<JLabel> children : parentToChildren.values()) {
-                for (JLabel child : children) {
-                    child.setBorder(null);
+            if (!SwingUtilities.isDescendingFrom(e.getComponent(), nodeItBtn)) {
+                nodeItMode = false;
+                for (List<JLabel> children : parentToChildren.values()) {
+                    for (JLabel child : children) {
+                        child.setBorder(null);
+                    }
                 }
+                nodesPanel.repaint();
             }
-            nodesPanel.repaint();
         }
     });
 
     // ===== Ctrl panner =====
-    panner(nodesPanel);
+    panner(nodesPanel, allNodes, writeOwnBtn, customBookField, nodeItBtn);
 
     nodesPanel.revalidate();
     nodesPanel.repaint();
     System.out.println("---- End loadBookmarksNodes ----");
 }
+
+
+
 
 // ===== ConnectorToPoint =====
 class ConnectorToPoint extends Connector {
@@ -2809,8 +2813,8 @@ class ConnectorToPoint extends Connector {
     }
 }
 
-// ===== Group draggable utility =====
-private void makeGroupDraggable(JTextField textField, JButton btn) {
+// ===== Group draggable utility (three components) =====
+private void makeGroupDraggable(JComponent comp1, JComponent comp2, JComponent comp3) {
     final Point[] startPt = {null};
     final boolean[] dragged = {false};
 
@@ -2822,18 +2826,24 @@ private void makeGroupDraggable(JTextField textField, JButton btn) {
             dragged[0] = true;
             int dx = e.getX() - startPt[0].x;
             int dy = e.getY() - startPt[0].y;
-            textField.setLocation(textField.getX()+dx, textField.getY()+dy);
-            btn.setLocation(btn.getX()+dx, btn.getY()+dy);
-            textField.getParent().repaint();
+            comp1.setLocation(comp1.getX()+dx, comp1.getY()+dy);
+            comp2.setLocation(comp2.getX()+dx, comp2.getY()+dy);
+            comp3.setLocation(comp3.getX()+dx, comp3.getY()+dy);
+            comp1.getParent().repaint();
         }
         @Override
         public void mouseReleased(MouseEvent e) { if(dragged[0]) saveNodePositions(); }
     };
-    textField.addMouseListener(adapter);
-    textField.addMouseMotionListener(adapter);
-    btn.addMouseListener(adapter);
-    btn.addMouseMotionListener(adapter);
+
+    comp1.addMouseListener(adapter);
+    comp1.addMouseMotionListener(adapter);
+    comp2.addMouseListener(adapter);
+    comp2.addMouseMotionListener(adapter);
+    comp3.addMouseListener(adapter);
+    comp3.addMouseMotionListener(adapter);
 }
+
+
 
 
 
@@ -3055,27 +3065,28 @@ private void makeGroupDraggable(JTextField textField, JButton btn) {
     }
 
 
-private void makeDraggable(Component comp, String nodeKey) {
-    comp.putClientProperty("nodeKey", nodeKey);
+private void makeDraggable(JLabel label, String nodeKey) {
+    label.putClientProperty("nodeKey", nodeKey);
     final Point[] startPt = {null};
     final boolean[] dragged = {false};
-    final int gridSize = 28; // 8 + 20 as in your dot spacing
-    final Color highlightColor = new Color(86, 211, 100);
-    final Border originalBorder = comp instanceof JComponent jc ? jc.getBorder() : null;
 
-    MouseAdapter adapter = new MouseAdapter() {
+    final int gridSize = 8 + 20; // dot spacing + dot size
+    final Color highlightColor = new Color(86, 211, 100);
+    final Border originalBorder = label.getBorder();
+
+    label.addMouseListener(new MouseAdapter() {
         @Override
         public void mousePressed(MouseEvent e) {
             startPt[0] = e.getPoint();
             dragged[0] = false;
 
-            // Highlight child nodes only
-            if (nodeKey.contains("_child_") && comp instanceof JComponent c && !SwingUtilities.isRightMouseButton(e)) {
-                c.setBorder(BorderFactory.createLineBorder(highlightColor, 3));
-                for (Component other : nodesPanel.getComponents()) {
-                    if (other instanceof JComponent lbl && lbl != c) {
+            // Only highlight child nodes
+            if (nodeKey.contains("_child_") && !SwingUtilities.isRightMouseButton(e)) {
+                label.setBorder(BorderFactory.createLineBorder(highlightColor, 3));
+                for (Component c : nodesPanel.getComponents()) {
+                    if (c instanceof JLabel lbl) {
                         Object key = lbl.getClientProperty("nodeKey");
-                        if (key != null && key.toString().contains("_child_")) {
+                        if (key != null && key.toString().contains("_child_") && lbl != label) {
                             lbl.setBorder(originalBorder);
                         }
                     }
@@ -3086,31 +3097,33 @@ private void makeDraggable(Component comp, String nodeKey) {
         @Override
         public void mouseReleased(MouseEvent e) {
             if (dragged[0]) {
-                Point loc = comp.getLocation();
+                Point loc = label.getLocation();
                 int snappedX = Math.round(loc.x / (float) gridSize) * gridSize;
                 int snappedY = Math.round(loc.y / (float) gridSize) * gridSize;
-                comp.setLocation(snappedX, snappedY);
+                label.setLocation(snappedX, snappedY);
                 saveNodePositions();
             }
             nodesPanel.repaint();
         }
+    });
 
+    label.addMouseMotionListener(new MouseMotionAdapter() {
         @Override
         public void mouseDragged(MouseEvent e) {
             dragged[0] = true;
+
+            // Calculate new location
             int dx = e.getX() - startPt[0].x;
             int dy = e.getY() - startPt[0].y;
-            Point loc = comp.getLocation();
+            Point loc = label.getLocation();
             loc.translate(dx, dy);
-            comp.setLocation(loc);
+            label.setLocation(loc);
+
+            // Repaint panel and any overlays
             nodesPanel.repaint();
         }
-    };
-
-    comp.addMouseListener(adapter);
-    comp.addMouseMotionListener(adapter);
+    });
 }
-
 
 
 
@@ -3158,16 +3171,14 @@ private void makeDraggable(Component comp, String nodeKey) {
 
 
 
-    class Connector {
-        JLabel parent, child;
-        Connector(JLabel p, JLabel c) {
-            parent = p;
-            child = c;
-        }
-    }
+// ===== Connector =====
+class Connector {
+    JLabel parent, child;
+    Connector(JLabel p, JLabel c) { parent = p; child = c; }
+}
 
-
-private void panner(JPanel nodesPanel) {
+// ===== Ctrl pan updated to drag everything =====
+private void panner(JPanel nodesPanel, List<JLabel> allNodes, JComponent... extras) {
     final Point[] startPt = {null};
     final boolean[] ctrlPressed = {false};
 
@@ -3179,7 +3190,6 @@ private void panner(JPanel nodesPanel) {
                 nodesPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             }
         }
-
         @Override
         public void keyReleased(KeyEvent e) {
             if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
@@ -3191,29 +3201,28 @@ private void panner(JPanel nodesPanel) {
 
     nodesPanel.addMouseListener(new MouseAdapter() {
         @Override
-        public void mousePressed(MouseEvent e) {
-            if (ctrlPressed[0]) startPt[0] = e.getPoint();
-        }
-
+        public void mousePressed(MouseEvent e) { if(ctrlPressed[0]) startPt[0] = e.getPoint(); }
         @Override
-        public void mouseReleased(MouseEvent e) {
-            startPt[0] = null;
-        }
+        public void mouseReleased(MouseEvent e) { startPt[0] = null; }
     });
 
     nodesPanel.addMouseMotionListener(new MouseMotionAdapter() {
         @Override
         public void mouseDragged(MouseEvent e) {
-            if (ctrlPressed[0] && startPt[0] != null) {
+            if(ctrlPressed[0] && startPt[0] != null) {
                 int dx = e.getX() - startPt[0].x;
                 int dy = e.getY() - startPt[0].y;
 
-                for (Component comp : nodesPanel.getComponents()) {
-                    // Drag all JLabel, JTextField, and JButton inside nodesPanel
-                    if (comp instanceof JLabel || comp instanceof JTextField || comp instanceof JButton) {
-                        Point loc = comp.getLocation();
-                        comp.setLocation(loc.x + dx, loc.y + dy);
-                    }
+                // Drag all nodes
+                for (JLabel node : allNodes) {
+                    Point loc = node.getLocation();
+                    node.setLocation(loc.x + dx, loc.y + dy);
+                }
+
+                // Drag extra components (custom book group)
+                for (JComponent comp : extras) {
+                    Point loc = comp.getLocation();
+                    comp.setLocation(loc.x + dx, loc.y + dy);
                 }
 
                 startPt[0] = e.getPoint();
@@ -9740,8 +9749,9 @@ class ResizableImageLabel extends JLabel {
         });
         tabs.addChangeListener(e -> {
             if (tabs.getSelectedIndex() == 6) {
-                //loadBookmarksNodes();
-                panner(nodesPanel);
+
+                loadBookmarksNodes();
+
             }
         });
 
