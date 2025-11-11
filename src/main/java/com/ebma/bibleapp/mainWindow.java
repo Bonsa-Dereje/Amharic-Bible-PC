@@ -2490,6 +2490,8 @@ private void loadBookmarksNodes() {
     int panelHeight = nodesPanel.getHeight();
 
     List<Connector> connectorLines = new ArrayList<>();
+    // Map to hold colors for ConnectorToPoint tethers (we'll map instance -> color)
+    Map<Connector, Color> tetherColors = new HashMap<>();
     List<JLabel> allNodes = new ArrayList<>();
 
     int xOffset = spacing;
@@ -2683,7 +2685,9 @@ private void loadBookmarksNodes() {
                     if (x2 > nodesPanel.getWidth() / 2) attachX += cp.textField.getWidth();
                     int attachY = cp.textField.getY() + cp.textField.getHeight() / 2;
 
-                    g2.setColor(Color.ORANGE);
+                    // pick color if mapped, otherwise fall back to ORANGE
+                    Color lineColor = tetherColors.getOrDefault(cp, Color.ORANGE);
+                    g2.setColor(lineColor);
                     g2.setStroke(new BasicStroke(2.5f));
                     g2.draw(new QuadCurve2D.Float(attachX, attachY, (attachX + x2)/2, attachY + 40, x2, y2));
                 } else {
@@ -2711,73 +2715,199 @@ private void loadBookmarksNodes() {
     writeOwnBtn.setBounds(panelWidth / 2 - 100, 20, 200, 35);
     nodesPanel.add(writeOwnBtn);
 
-    JTextField customBookField = new JTextField("Book Name");
-    customBookField.setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 16));
-    customBookField.setForeground(Color.GRAY);
-    customBookField.setBackground(Color.WHITE); // ✅ solid white background
-    customBookField.setOpaque(true); // ✅ ensure not transparent
-    customBookField.setBounds(panelWidth / 2 - 75, 60, 150, 30);
-    customBookField.setVisible(false);
-    nodesPanel.add(customBookField);
+    // Add plus icon (relative path) to the right of writeOwnBtn
+    ImageIcon plusIcon = null;
+    try {
+        plusIcon = new ImageIcon("src/main/resources/icons/plus30.png");
+    } catch (Exception ignored) {}
+    JLabel plusLabel = new JLabel(plusIcon);
+    int plusSize = (plusIcon != null) ? plusIcon.getIconWidth() : 20;
+    plusLabel.setBounds(writeOwnBtn.getX() + writeOwnBtn.getWidth() + 6, writeOwnBtn.getY() + (writeOwnBtn.getHeight() - plusSize) / 2, plusSize, plusSize);
+    plusLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    nodesPanel.add(plusLabel);
 
-    ImageIcon nodeItIcon = new ImageIcon("src/main/resources/icons/nodeIt.png");
-    JButton nodeItBtn = new JButton(nodeItIcon);
-    nodeItBtn.setBounds(panelWidth / 2 - 25, 95, 50, 30);
-    nodeItBtn.setContentAreaFilled(false);
-    nodeItBtn.setBorderPainted(true);
-    nodeItBtn.setVisible(false);
-    nodesPanel.add(nodeItBtn);
+    // Create 5 sets of text fields + node buttons (side-wise). Only first visible at start.
+    final int SETS = 5;
+    JTextField[] customBookFields = new JTextField[SETS];
+    JButton[] nodeItBtns = new JButton[SETS];
+    // colors for tethers (explicitly avoid red as requested)
+    Color[] setTetherColors = new Color[]{ Color.ORANGE, Color.BLUE, Color.GREEN, Color.MAGENTA, Color.CYAN };
 
-    makeGroupDraggable(writeOwnBtn, customBookField, nodeItBtn);
+    int startX = panelWidth / 2 - 75;
+    int startY = 60;
+    int fieldWidth = 150;
+    int fieldHeight = 30;
+    int gapX = 20; // side-wise gap between sets
 
-    customBookField.addFocusListener(new FocusAdapter() {
-        @Override
-        public void focusGained(FocusEvent e) {
-            if (customBookField.getText().equals("Book Name")) {
-                customBookField.setText("");
-                customBookField.setForeground(Color.BLACK);
+    for (int i = 0; i < SETS; i++) {
+        JTextField f = new JTextField("Book Name");
+        f.setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 16));
+        f.setForeground(Color.GRAY);
+        f.setBackground(Color.WHITE); // ensure white background
+        f.setOpaque(true); // ensure not transparent
+        int fx = startX + i * (fieldWidth + gapX);
+        f.setBounds(fx, startY, fieldWidth, fieldHeight);
+        f.setVisible(i == 0); // only the first visible initially
+        nodesPanel.add(f);
+        customBookFields[i] = f;
+
+        ImageIcon nodeItIcon = new ImageIcon("src/main/resources/icons/nodeIt.png");
+        JButton nb = new JButton(nodeItIcon);
+        nb.setContentAreaFilled(false);
+        nb.setBorderPainted(true);
+        // center nodeIt relative to text field
+        int nbW = 50, nbH = 30;
+        int nbX = fx + (fieldWidth - nbW) / 2;
+        int nbY = startY + fieldHeight + 5;
+        nb.setBounds(nbX, nbY, nbW, nbH);
+        nb.setVisible(i == 0); // only first visible initially
+        nodesPanel.add(nb);
+        nodeItBtns[i] = nb;
+
+        // Focus behavior for each field
+        f.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (f.getText().equals("Book Name")) {
+                    f.setText("");
+                    f.setForeground(Color.BLACK);
+                }
+            }
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (f.getText().trim().isEmpty()) {
+                    f.setText("Book Name");
+                    f.setForeground(Color.GRAY);
+                }
+            }
+        });
+
+        final int idx = i;
+        // NodeIt button behavior: toggle nodeItMode for that set; indicate border with its tether color
+        nb.addActionListener(e -> {
+            nodeItMode = true;
+            nb.setBorder(BorderFactory.createLineBorder(setTetherColors[idx], 2));
+            // highlight all children with this set's color while in nodeIt mode
+            for (List<JLabel> children : parentToChildren.values()) {
+                for (JLabel child : children) {
+                    child.setBorder(BorderFactory.createLineBorder(setTetherColors[idx], 2));
+                }
+            }
+            // remember which set is active for tethering by putting the active textfield into a client property
+            nodesPanel.putClientProperty("activeTetherField", customBookFields[idx]);
+            nodesPanel.putClientProperty("activeTetherColor", setTetherColors[idx]);
+            nodesPanel.repaint();
+        });
+    }
+
+    // Helper to recompute writeOwnBtn size & plus position to span over visible fields and their node buttons
+    Runnable recomputeWriteOwnBounds = () -> {
+        int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE;
+        boolean anyVisible = false;
+        for (int i = 0; i < SETS; i++) {
+            if (customBookFields[i].isVisible()) {
+                anyVisible = true;
+                int left = customBookFields[i].getX();
+                int right = customBookFields[i].getX() + customBookFields[i].getWidth();
+                minX = Math.min(minX, left);
+                maxX = Math.max(maxX, right);
+            }
+            if (nodeItBtns[i].isVisible()) {
+                int left = nodeItBtns[i].getX();
+                int right = nodeItBtns[i].getX() + nodeItBtns[i].getWidth();
+                minX = Math.min(minX, left);
+                maxX = Math.max(maxX, right);
             }
         }
+
+        if (!anyVisible) {
+            // fallback to default
+            writeOwnBtn.setBounds(panelWidth / 2 - 100, 20, 200, 35);
+            plusLabel.setBounds(writeOwnBtn.getX() + writeOwnBtn.getWidth() + 6, writeOwnBtn.getY() + (writeOwnBtn.getHeight() - plusSize) / 2, plusSize, plusSize);
+            return;
+        }
+
+        int padding = 16;
+        int newX = Math.max(10, minX - padding);
+        int newW = Math.min(panelWidth - newX - 10, (maxX - minX) + padding * 2);
+        writeOwnBtn.setBounds(newX, writeOwnBtn.getY(), newW, writeOwnBtn.getHeight());
+        plusLabel.setBounds(writeOwnBtn.getX() + writeOwnBtn.getWidth() + 6, writeOwnBtn.getY() + (writeOwnBtn.getHeight() - plusSize) / 2, plusSize, plusSize);
+        nodesPanel.revalidate();
+        nodesPanel.repaint();
+    };
+
+    // Initial recompute so the writeOwn button spans the first set
+    recomputeWriteOwnBounds.run();
+
+    // plusLabel behavior: reveal the next hidden set (side-wise). If all visible, do nothing.
+    plusLabel.addMouseListener(new MouseAdapter() {
         @Override
-        public void focusLost(FocusEvent e) {
-            if (customBookField.getText().trim().isEmpty()) {
-                customBookField.setText("Book Name");
-                customBookField.setForeground(Color.GRAY);
+        public void mouseClicked(MouseEvent e) {
+            for (int i = 0; i < SETS; i++) {
+                if (!customBookFields[i].isVisible()) {
+                    customBookFields[i].setVisible(true);
+                    nodeItBtns[i].setVisible(true);
+                    // center the nodeIt button relative to its text field (in case layout changed)
+                    int nbW = nodeItBtns[i].getWidth();
+                    int nbH = nodeItBtns[i].getHeight();
+                    int nbX = customBookFields[i].getX() + (customBookFields[i].getWidth() - nbW) / 2;
+                    int nbY = customBookFields[i].getY() + customBookFields[i].getHeight() + 5;
+                    nodeItBtns[i].setBounds(nbX, nbY, nbW, nbH);
+
+                    // repaint and adjust writeOwn button width to span over new visible fields
+                    recomputeWriteOwnBounds.run();
+                    nodesPanel.repaint();
+                    return;
+                }
             }
+            // if none hidden, do nothing (or you could wrap/reset - left as no-op as not requested)
         }
     });
 
+    // Make group draggable for the first set only (existing call kept)
+    // But we also want to allow dragging the whole group's visible elements with the provided helper
+    // (we call makeGroupDraggable with the first set references to keep existing behaviour)
+    makeGroupDraggable(writeOwnBtn, customBookFields[0], nodeItBtns[0]);
+
+    // writeOwnBtn originally used to reveal the single custom field; keep compatible behavior:
     writeOwnBtn.addActionListener(e -> {
-        customBookField.setVisible(true);
-        nodeItBtn.setVisible(true);
+        // If the first field is hidden, show it; otherwise toggle visibility of the first
+        boolean wasVisible = customBookFields[0].isVisible();
+        customBookFields[0].setVisible(!wasVisible);
+        nodeItBtns[0].setVisible(!wasVisible);
+        recomputeWriteOwnBounds.run();
         nodesPanel.repaint();
     });
 
-    // ===== NodeIt Mode =====
-    nodeItBtn.addActionListener(e -> {
-        nodeItMode = true; // Enable nodeIt mode
-        nodeItBtn.setBorder(BorderFactory.createLineBorder(Color.ORANGE, 2));
-        for (List<JLabel> children : parentToChildren.values()) {
-            for (JLabel child : children) {
-                child.setBorder(BorderFactory.createLineBorder(Color.ORANGE, 2));
-            }
-        }
-        nodesPanel.repaint();
-    });
-
-    // ===== Child click tethering =====
+    // ===== NodeIt Mode general behavior (when clicking children) =====
+    // existing code allowed clicking children to add a tether to a single customBookField
+    // We'll adapt that to use the currently active tether field & color stored in nodesPanel properties
     for (List<JLabel> children : parentToChildren.values()) {
         for (JLabel child : children) {
             child.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     if (nodeItMode) {
-                        connectorLines.add(new ConnectorToPoint(child, customBookField));
+                        Object activeFieldObj = nodesPanel.getClientProperty("activeTetherField");
+                        Object activeColorObj = nodesPanel.getClientProperty("activeTetherColor");
+                        JTextField targetField = null;
+                        Color targetColor = Color.ORANGE;
+                        if (activeFieldObj instanceof JTextField) targetField = (JTextField) activeFieldObj;
+                        if (activeColorObj instanceof Color) targetColor = (Color) activeColorObj;
+                        if (targetField == null) {
+                            // fallback to first field if none active
+                            targetField = customBookFields[0];
+                        }
 
-                        // ✅ keep all children orange-highlighted
+                        // create connector to that particular field and register its color
+                        ConnectorToPoint cp = new ConnectorToPoint(child, targetField);
+                        connectorLines.add(cp);
+                        tetherColors.put(cp, targetColor);
+
+                        // keep all children highlighted in the target color while in nodeIt mode
                         for (List<JLabel> allChildren : parentToChildren.values()) {
                             for (JLabel ch : allChildren) {
-                                ch.setBorder(BorderFactory.createLineBorder(Color.ORANGE, 2));
+                                ch.setBorder(BorderFactory.createLineBorder(targetColor, 2));
                             }
                         }
 
@@ -2792,31 +2922,46 @@ private void loadBookmarksNodes() {
     nodesPanel.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent e) {
-            if (!SwingUtilities.isDescendingFrom(e.getComponent(), nodeItBtn) &&
-                !SwingUtilities.isDescendingFrom(e.getComponent(), customBookField)) {
+            // avoid toggling off when clicking the controls themselves
+            if (!SwingUtilities.isDescendingFrom(e.getComponent(), nodeItBtns[0]) &&
+                !SwingUtilities.isDescendingFrom(e.getComponent(), customBookFields[0]) &&
+                !(e.getSource() instanceof JButton && Arrays.asList(nodeItBtns).contains(e.getSource()))) {
                 nodeItMode = false;
-                nodeItBtn.setBorder(null);
+                // clear borders for all children
                 for (List<JLabel> children : parentToChildren.values()) {
                     for (JLabel child : children) {
                         child.setBorder(null);
                     }
                 }
+                // clear nodeIt button borders for all sets
+                for (int i = 0; i < SETS; i++) {
+                    nodeItBtns[i].setBorder(null);
+                }
+                nodesPanel.putClientProperty("activeTetherField", null);
+                nodesPanel.putClientProperty("activeTetherColor", null);
                 nodesPanel.repaint();
             }
         }
     });
 
     // ===== Save & Load tether connector positions =====
-    // When loading: reconstruct saved tether lines
+    // When loading: reconstruct saved tether lines (we set them to ORANGE by default)
     for (String key : savedNodePositions.keySet()) {
         if (key.startsWith("tether_")) {
             String[] parts = key.split("_");
-            if (parts.length == 3) {
-                int tetherIndex = Integer.parseInt(parts[2]);
-                if (tetherIndex < allNodes.size()) {
-                    JLabel tetheredChild = allNodes.get(tetherIndex);
-                    connectorLines.add(new ConnectorToPoint(tetheredChild, customBookField));
-                }
+            if (parts.length == 2 || parts.length == 3) {
+                // original logic used an index into allNodes - preserve compatibility:
+                try {
+                    int tetherIndex = Integer.parseInt(parts[parts.length - 1]);
+                    if (tetherIndex < allNodes.size()) {
+                        JLabel tetheredChild = allNodes.get(tetherIndex);
+                        // default tether to first field (or whichever is visible)
+                        JTextField target = customBookFields[0];
+                        ConnectorToPoint cp = new ConnectorToPoint(tetheredChild, target);
+                        connectorLines.add(cp);
+                        tetherColors.put(cp, Color.ORANGE);
+                    }
+                } catch (NumberFormatException ignored) {}
             }
         }
     }
@@ -2830,18 +2975,20 @@ private void loadBookmarksNodes() {
                 tether.put("x", cp.child.getX());
                 tether.put("y", cp.child.getY());
                 savedNodePositions.put("tether_" + idx, new Point(cp.child.getX(), cp.child.getY()));
+                // also optionally could save which field it tethers to (not requested)
                 idx++;
             }
         }
     });
 
     // ===== Ctrl panner =====
-    panner(nodesPanel, allNodes, writeOwnBtn, customBookField, nodeItBtn);
+    panner(nodesPanel, allNodes, writeOwnBtn, customBookFields[0], nodeItBtns[0]);
 
     nodesPanel.revalidate();
     nodesPanel.repaint();
     System.out.println("---- End loadBookmarksNodes ----");
 }
+
 
 
 
@@ -9837,13 +9984,6 @@ class ResizableImageLabel extends JLabel {
 
             if (prevIndex == 6) {
                 saveNodePositions();
-            }
-        });
-        tabs.addChangeListener(e -> {
-            if (tabs.getSelectedIndex() == 6) {
-
-                loadBookmarksNodes();
-
             }
         });
 
