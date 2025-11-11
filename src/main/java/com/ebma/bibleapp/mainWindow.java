@@ -101,6 +101,12 @@ import java.awt.event.ComponentEvent;
 import javax.swing.border.Border;
 
 
+import java.awt.event.MouseListener;
+import java.awt.event.FocusListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+
+
 public class mainWindow extends javax.swing.JFrame {
 
     private boolean isBoldActive = true;
@@ -421,6 +427,11 @@ public class mainWindow extends javax.swing.JFrame {
     private JLabel activeDeleteParentNode = null;  
     
     private Map<JLabel, List<JLabel>> parentToChildren = new HashMap<>();
+    
+    
+
+    private BufferedImage snapshotImage = null;
+    private boolean isZooming = false;
     
     
     
@@ -2442,7 +2453,6 @@ private void saveSearchResults(String searchTerm, List<String> rawResults) {
 
 
 private void loadBookmarksNodes() {
-
     System.out.println("---- Start loadBookmarksNodes ----");
 
     nodesPanel.removeAll();
@@ -2479,8 +2489,9 @@ private void loadBookmarksNodes() {
     int xOffset = spacing;
     int yOffset = Math.max((panelHeight - (nodeHeight + 200)) / 2, 60);
 
-    parentToChildren.clear(); // clear old parent-child mappings
+    parentToChildren.clear();
 
+    // ===== Load saved books =====
     for (Map.Entry<Integer, List<String>> entry : bookmarkMap.entrySet()) {
         int bookIndex = entry.getKey();
         List<String> childImages = entry.getValue();
@@ -2499,30 +2510,25 @@ private void loadBookmarksNodes() {
         }
 
         String nodeKey = "book_" + bookIndex;
-        Point savedPos;
-        if (hasSavedPositions && savedNodePositions.containsKey(nodeKey)) {
-            savedPos = savedNodePositions.get(nodeKey);
-        } else {
-            savedPos = new Point(xOffset, yOffset);
-        }
+        Point savedPos = hasSavedPositions && savedNodePositions.containsKey(nodeKey)
+                ? savedNodePositions.get(nodeKey)
+                : new Point(xOffset, yOffset);
 
         centerLabel.setBounds(savedPos.x, savedPos.y, nodeWidth, nodeHeight);
         makeDraggable(centerLabel, nodeKey);
         nodesPanel.add(centerLabel);
         allNodes.add(centerLabel);
 
-        // ===== Delete icon logic (only one visible at a time) =====
+        // ===== Delete icon =====
         centerLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                // Remove previous delete icon
                 if (activeDeleteIcon != null && activeDeleteParentNode != null) {
                     activeDeleteParentNode.remove(activeDeleteIcon);
                     activeDeleteParentNode.revalidate();
                     activeDeleteParentNode.repaint();
                 }
 
-                // Load delete icon
                 String deleteIconPath = "src/main/resources/icons/delete20.png";
                 ImageIcon deleteIcon = new ImageIcon(deleteIconPath);
                 JLabel deleteLabel = new JLabel(deleteIcon);
@@ -2532,13 +2538,11 @@ private void loadBookmarksNodes() {
                 deleteLabel.setBounds(centerLabel.getWidth() - iconSize - 2, 2, iconSize, iconSize);
                 deleteLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-                // Click listener for deletion
                 deleteLabel.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
                         deleteBookScreenshots(bookIndex);
 
-                        // Remove child nodes
                         List<JLabel> children = parentToChildren.get(centerLabel);
                         if (children != null) {
                             for (JLabel child : children) {
@@ -2546,10 +2550,8 @@ private void loadBookmarksNodes() {
                             }
                         }
 
-                        // Remove connectors related to this parent or its children
                         connectorLines.removeIf(c -> c.parent == centerLabel || (children != null && children.contains(c.child)));
 
-                        // Remove parent node itself
                         nodesPanel.remove(centerLabel);
                         nodesPanel.revalidate();
                         nodesPanel.repaint();
@@ -2560,12 +2562,11 @@ private void loadBookmarksNodes() {
                     }
                 });
 
-                centerLabel.setLayout(null); // absolute positioning
+                centerLabel.setLayout(null);
                 centerLabel.add(deleteLabel);
                 centerLabel.revalidate();
                 centerLabel.repaint();
 
-                // Save current active delete icon
                 activeDeleteIcon = deleteLabel;
                 activeDeleteParentNode = centerLabel;
             }
@@ -2603,15 +2604,12 @@ private void loadBookmarksNodes() {
                 childY = Math.max(0, Math.min(childY, panelHeight - childHeight));
 
                 String childKey = nodeKey + "_child_" + i;
-                Point savedChildPos;
-                if (hasSavedPositions && savedNodePositions.containsKey(childKey)) {
-                    savedChildPos = savedNodePositions.get(childKey);
-                } else {
-                    savedChildPos = new Point(childX, childY);
-                }
+                Point savedChildPos = hasSavedPositions && savedNodePositions.containsKey(childKey)
+                        ? savedNodePositions.get(childKey)
+                        : new Point(childX, childY);
 
                 childLabel.setBounds(savedChildPos.x, savedChildPos.y, childWidth, childHeight);
-                makeDraggable(childLabel, childKey);
+                makeDraggable(childLabel, childKey); // Ensure draggable
                 nodesPanel.add(childLabel);
                 allNodes.add(childLabel);
 
@@ -2628,7 +2626,6 @@ private void loadBookmarksNodes() {
         }
         parentToChildren.put(centerLabel, childrenList);
 
-        // ===== Update offsets =====
         xOffset += nodeWidth + spacing;
         if (xOffset + nodeWidth > panelWidth) {
             xOffset = spacing;
@@ -2636,7 +2633,7 @@ private void loadBookmarksNodes() {
         }
     }
 
-    // ===== Overlay panel: dense, semi-transparent dots + connectors =====
+    // ===== Overlay panel =====
     JPanel overlay = new JPanel() {
         @Override
         protected void paintComponent(Graphics g) {
@@ -2644,13 +2641,12 @@ private void loadBookmarksNodes() {
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            // ----- Draw dense, semi-transparent background dots -----
+            // Draw grid
             try {
                 ImageIcon dotIcon = new ImageIcon("src/main/resources/icons/dotCanvas.png");
                 int dotWidth = dotIcon.getIconWidth();
                 int dotHeight = dotIcon.getIconHeight();
                 int spacingDots = 8;
-
                 float alpha = 0.3f;
                 AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
                 g2.setComposite(ac);
@@ -2665,35 +2661,183 @@ private void loadBookmarksNodes() {
                         g2.drawImage(dotIcon.getImage(), xPos, yPos, this);
                     }
                 }
-
                 g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            // ----- Draw connector lines -----
-            g2.setColor(Color.LIGHT_GRAY);
+            // Draw connectors
             g2.setStroke(new BasicStroke(2f));
             for (Connector c : connectorLines) {
-                int x1 = c.parent.getX() + c.parent.getWidth() / 2;
-                int y1 = c.parent.getY() + c.parent.getHeight();
-                int x2 = c.child.getX() + c.child.getWidth() / 2;
-                int y2 = c.child.getY();
-                g2.draw(new QuadCurve2D.Float(x1, y1, (x1 + x2) / 2, y1 + 40, x2, y2));
+                int x1, y1, x2, y2;
+                if (c instanceof ConnectorToPoint cp) {
+                    JLabel child = cp.child;
+                    x2 = child.getX() + child.getWidth() / 2;
+                    y2 = child.getY() + child.getHeight() / 2;
+
+                    int attachX = cp.textField.getX();
+                    if (x2 > nodesPanel.getWidth() / 2) attachX += cp.textField.getWidth();
+                    int attachY = cp.textField.getY() + cp.textField.getHeight() / 2;
+
+                    g2.setColor(Color.ORANGE);
+                    g2.setStroke(new BasicStroke(2.5f));
+                    g2.draw(new QuadCurve2D.Float(attachX, attachY, (attachX + x2)/2, attachY + 40, x2, y2));
+                } else {
+                    JLabel parent = c.parent;
+                    JLabel child = c.child;
+                    x1 = parent.getX() + parent.getWidth() / 2;
+                    y1 = parent.getY() + parent.getHeight();
+                    x2 = child.getX() + child.getWidth() / 2;
+                    y2 = child.getY();
+                    g2.setColor(Color.LIGHT_GRAY);
+                    g2.setStroke(new BasicStroke(2f));
+                    g2.draw(new QuadCurve2D.Float(x1, y1, (x1 + x2)/2, y1 + 40, x2, y2));
+                }
             }
         }
     };
     overlay.setOpaque(false);
-    overlay.setBounds(0, 0, nodesPanel.getWidth(), nodesPanel.getHeight());
+    overlay.setBounds(0, 0, panelWidth, panelHeight);
     nodesPanel.add(overlay);
     nodesPanel.setComponentZOrder(overlay, nodesPanel.getComponentCount() - 1);
 
+    // ===== Write your own book feature =====
+    JButton writeOwnBtn = new JButton("Write your own");
+    writeOwnBtn.setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 18));
+    writeOwnBtn.setBounds(panelWidth / 2 - 100, 20, 200, 35);
+    nodesPanel.add(writeOwnBtn);
+
+    JTextField customBookField = new JTextField("Book Name");
+    customBookField.setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 16));
+    customBookField.setForeground(Color.GRAY);
+    customBookField.setOpaque(true);
+    customBookField.setBackground(Color.WHITE);
+    customBookField.setBounds(panelWidth / 2 - 75, 60, 150, 30);
+    customBookField.setVisible(false);
+    nodesPanel.add(customBookField);
+
+    ImageIcon nodeItIcon = new ImageIcon("src/main/resources/icons/nodeIt.png");
+    JButton nodeItBtn = new JButton(nodeItIcon);
+    nodeItBtn.setBounds(panelWidth / 2 - 25, 95, 50, 30);
+    nodeItBtn.setContentAreaFilled(false);
+    nodeItBtn.setBorderPainted(false);
+    nodeItBtn.setVisible(false);
+    nodesPanel.add(nodeItBtn);
+
+    // ===== Make text field + nodeIt draggable as a unit =====
+    makeGroupDraggable(customBookField, nodeItBtn);
+
+    customBookField.addFocusListener(new FocusAdapter() {
+        @Override
+        public void focusGained(FocusEvent e) {
+            if (customBookField.getText().equals("Book Name")) {
+                customBookField.setText("");
+                customBookField.setForeground(Color.BLACK);
+            }
+        }
+        @Override
+        public void focusLost(FocusEvent e) {
+            if (customBookField.getText().trim().isEmpty()) {
+                customBookField.setText("Book Name");
+                customBookField.setForeground(Color.GRAY);
+            }
+        }
+    });
+
+    writeOwnBtn.addActionListener(e -> {
+        customBookField.setVisible(true);
+        nodeItBtn.setVisible(true);
+        nodesPanel.repaint();
+    });
+
+    final boolean[] tetherMode = {false};
+
+    nodeItBtn.addActionListener(e -> {
+        for (List<JLabel> children : parentToChildren.values()) {
+            for (JLabel child : children) {
+                child.setBorder(BorderFactory.createLineBorder(Color.ORANGE, 2));
+            }
+        }
+        tetherMode[0] = true;
+        nodesPanel.repaint();
+    });
+
+    // ===== Child click tether (dynamic with text field group) =====
+    for (List<JLabel> children : parentToChildren.values()) {
+        for (JLabel child : children) {
+            child.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (tetherMode[0]) {
+                        connectorLines.add(new ConnectorToPoint(child, customBookField));
+                        child.setBorder(BorderFactory.createLineBorder(Color.ORANGE, 3));
+                        nodesPanel.repaint();
+                    }
+                }
+            });
+        }
+    }
+
+    // ===== Click outside to reset tether =====
+    nodesPanel.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            tetherMode[0] = false;
+            for (List<JLabel> children : parentToChildren.values()) {
+                for (JLabel child : children) {
+                    child.setBorder(null);
+                }
+            }
+            nodesPanel.repaint();
+        }
+    });
+
+    // ===== Ctrl panner =====
+    panner(nodesPanel);
+
     nodesPanel.revalidate();
     nodesPanel.repaint();
-
     System.out.println("---- End loadBookmarksNodes ----");
 }
+
+// ===== ConnectorToPoint =====
+class ConnectorToPoint extends Connector {
+    JTextField textField;
+    ConnectorToPoint(JLabel childLabel, JTextField field) {
+        super(null, childLabel);
+        this.textField = field;
+    }
+}
+
+// ===== Group draggable utility =====
+private void makeGroupDraggable(JTextField textField, JButton btn) {
+    final Point[] startPt = {null};
+    final boolean[] dragged = {false};
+
+    MouseAdapter adapter = new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent e) { startPt[0] = e.getPoint(); dragged[0]=false; }
+        @Override
+        public void mouseDragged(MouseEvent e) {
+            dragged[0] = true;
+            int dx = e.getX() - startPt[0].x;
+            int dy = e.getY() - startPt[0].y;
+            textField.setLocation(textField.getX()+dx, textField.getY()+dy);
+            btn.setLocation(btn.getX()+dx, btn.getY()+dy);
+            textField.getParent().repaint();
+        }
+        @Override
+        public void mouseReleased(MouseEvent e) { if(dragged[0]) saveNodePositions(); }
+    };
+    textField.addMouseListener(adapter);
+    textField.addMouseMotionListener(adapter);
+    btn.addMouseListener(adapter);
+    btn.addMouseMotionListener(adapter);
+}
+
+
+
+
 
 
 
@@ -2911,32 +3055,27 @@ private void loadBookmarksNodes() {
     }
 
 
-private void makeDraggable(JLabel label, String nodeKey) {
-    label.putClientProperty("nodeKey", nodeKey);
+private void makeDraggable(Component comp, String nodeKey) {
+    comp.putClientProperty("nodeKey", nodeKey);
     final Point[] startPt = {null};
-    final boolean[] dragged = {false}; // Track if the node was dragged
-
-    // ===== Grid snap size (matches dot spacing) =====
-    final int gridSize = 8 + 20; // dot spacing + dot size
-
-    // ===== Highlight color for child nodes only =====
+    final boolean[] dragged = {false};
+    final int gridSize = 28; // 8 + 20 as in your dot spacing
     final Color highlightColor = new Color(86, 211, 100);
-    final Border originalBorder = label.getBorder();
+    final Border originalBorder = comp instanceof JComponent jc ? jc.getBorder() : null;
 
-    label.addMouseListener(new MouseAdapter() {
+    MouseAdapter adapter = new MouseAdapter() {
         @Override
         public void mousePressed(MouseEvent e) {
             startPt[0] = e.getPoint();
             dragged[0] = false;
 
-            // Only outline child nodes (keys containing "_child_")
-            if (nodeKey.contains("_child_") && !SwingUtilities.isRightMouseButton(e)) {
-                label.setBorder(BorderFactory.createLineBorder(highlightColor, 3));
-                // Reset all other child nodes
-                for (Component c : nodesPanel.getComponents()) {
-                    if (c instanceof JLabel lbl) {
+            // Highlight child nodes only
+            if (nodeKey.contains("_child_") && comp instanceof JComponent c && !SwingUtilities.isRightMouseButton(e)) {
+                c.setBorder(BorderFactory.createLineBorder(highlightColor, 3));
+                for (Component other : nodesPanel.getComponents()) {
+                    if (other instanceof JComponent lbl && lbl != c) {
                         Object key = lbl.getClientProperty("nodeKey");
-                        if (key != null && key.toString().contains("_child_") && lbl != label) {
+                        if (key != null && key.toString().contains("_child_")) {
                             lbl.setBorder(originalBorder);
                         }
                     }
@@ -2946,29 +3085,34 @@ private void makeDraggable(JLabel label, String nodeKey) {
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            // Snap to nearest grid only if dragged
             if (dragged[0]) {
-                Point loc = label.getLocation();
+                Point loc = comp.getLocation();
                 int snappedX = Math.round(loc.x / (float) gridSize) * gridSize;
                 int snappedY = Math.round(loc.y / (float) gridSize) * gridSize;
-                label.setLocation(snappedX, snappedY);
+                comp.setLocation(snappedX, snappedY);
                 saveNodePositions();
             }
             nodesPanel.repaint();
         }
-    });
 
-    label.addMouseMotionListener(new MouseMotionAdapter() {
         @Override
         public void mouseDragged(MouseEvent e) {
             dragged[0] = true;
-            Point loc = label.getLocation();
-            loc.translate(e.getX() - startPt[0].x, e.getY() - startPt[0].y);
-            label.setLocation(loc);
+            int dx = e.getX() - startPt[0].x;
+            int dy = e.getY() - startPt[0].y;
+            Point loc = comp.getLocation();
+            loc.translate(dx, dy);
+            comp.setLocation(loc);
             nodesPanel.repaint();
         }
-    });
+    };
+
+    comp.addMouseListener(adapter);
+    comp.addMouseMotionListener(adapter);
 }
+
+
+
 
 
 
@@ -3023,72 +3167,69 @@ private void makeDraggable(JLabel label, String nodeKey) {
     }
 
 
-    private void panner(JPanel nodesPanel) {
-        final Point[] startPt = {null};
-        final boolean[] ctrlPressed = {false};
+private void panner(JPanel nodesPanel) {
+    final Point[] startPt = {null};
+    final boolean[] ctrlPressed = {false};
 
-        // --- Listen for Ctrl key ---
-        nodesPanel.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
-                    ctrlPressed[0] = true;
-                    nodesPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                }
+    nodesPanel.addKeyListener(new KeyAdapter() {
+        @Override
+        public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
+                ctrlPressed[0] = true;
+                nodesPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             }
+        }
 
-            @Override
-            public void keyReleased(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
-                    ctrlPressed[0] = false;
-                    nodesPanel.setCursor(Cursor.getDefaultCursor());
-                }
+        @Override
+        public void keyReleased(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
+                ctrlPressed[0] = false;
+                nodesPanel.setCursor(Cursor.getDefaultCursor());
             }
-        });
+        }
+    });
 
-        // --- Mouse listener for dragging all nodes ---
-        nodesPanel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                if (ctrlPressed[0]) {
-                    startPt[0] = e.getPoint();
-                }
-            }
+    nodesPanel.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent e) {
+            if (ctrlPressed[0]) startPt[0] = e.getPoint();
+        }
 
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                startPt[0] = null;
-            }
-        });
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            startPt[0] = null;
+        }
+    });
 
-        nodesPanel.addMouseMotionListener(new MouseMotionAdapter() {
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                if (ctrlPressed[0] && startPt[0] != null) {
-                    Point dragPt = e.getPoint();
-                    int dx = dragPt.x - startPt[0].x;
-                    int dy = dragPt.y - startPt[0].y;
+    nodesPanel.addMouseMotionListener(new MouseMotionAdapter() {
+        @Override
+        public void mouseDragged(MouseEvent e) {
+            if (ctrlPressed[0] && startPt[0] != null) {
+                int dx = e.getX() - startPt[0].x;
+                int dy = e.getY() - startPt[0].y;
 
-                    for (Component comp : nodesPanel.getComponents()) {
-                        if (comp instanceof JLabel) {
-                            Point loc = comp.getLocation();
-                            comp.setLocation(loc.x + dx, loc.y + dy);
-                        }
+                for (Component comp : nodesPanel.getComponents()) {
+                    // Drag all JLabel, JTextField, and JButton inside nodesPanel
+                    if (comp instanceof JLabel || comp instanceof JTextField || comp instanceof JButton) {
+                        Point loc = comp.getLocation();
+                        comp.setLocation(loc.x + dx, loc.y + dy);
                     }
-
-                    startPt[0] = dragPt;
-                    nodesPanel.repaint();
                 }
-            }
-        });
 
-        // --- Ensure panel is focusable for key events ---
-        nodesPanel.setFocusable(true);
-        nodesPanel.requestFocusInWindow();
-    }
+                startPt[0] = e.getPoint();
+                nodesPanel.repaint();
+            }
+        }
+    });
+
+    nodesPanel.setFocusable(true);
+    nodesPanel.requestFocusInWindow();
+}
+
+
 
     
-
+//Journal tab methods
 private void saveJournalEntry() {
     String text = journalEntry.getText().trim();
     if (text.isEmpty() || text.equals(lastSavedText)) return;
