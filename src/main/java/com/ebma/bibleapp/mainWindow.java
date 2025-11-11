@@ -2552,7 +2552,7 @@ private void loadBookmarksNodes() {
                             for (JLabel child : children) nodesPanel.remove(child);
                         }
 
-                        connectorLines.removeIf(c -> c.parent == centerLabel || 
+                        connectorLines.removeIf(c -> c.parent == centerLabel ||
                             (parentToChildren.get(centerLabel) != null && parentToChildren.get(centerLabel).contains(c.child)));
 
                         nodesPanel.remove(centerLabel);
@@ -2712,8 +2712,8 @@ private void loadBookmarksNodes() {
     JTextField customBookField = new JTextField("Book Name");
     customBookField.setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 16));
     customBookField.setForeground(Color.GRAY);
-    customBookField.setOpaque(true);
-    customBookField.setBackground(Color.WHITE);
+    customBookField.setBackground(Color.WHITE); // ✅ solid white background
+    customBookField.setOpaque(true); // ✅ ensure not transparent
     customBookField.setBounds(panelWidth / 2 - 75, 60, 150, 30);
     customBookField.setVisible(false);
     nodesPanel.add(customBookField);
@@ -2722,7 +2722,7 @@ private void loadBookmarksNodes() {
     JButton nodeItBtn = new JButton(nodeItIcon);
     nodeItBtn.setBounds(panelWidth / 2 - 25, 95, 50, 30);
     nodeItBtn.setContentAreaFilled(false);
-    nodeItBtn.setBorderPainted(false);
+    nodeItBtn.setBorderPainted(true);
     nodeItBtn.setVisible(false);
     nodesPanel.add(nodeItBtn);
 
@@ -2751,8 +2751,10 @@ private void loadBookmarksNodes() {
         nodesPanel.repaint();
     });
 
+    // ===== NodeIt Mode =====
     nodeItBtn.addActionListener(e -> {
-        nodeItMode = true; // disable side panel clicks
+        nodeItMode = true; // Enable nodeIt mode
+        nodeItBtn.setBorder(BorderFactory.createLineBorder(Color.ORANGE, 2));
         for (List<JLabel> children : parentToChildren.values()) {
             for (JLabel child : children) {
                 child.setBorder(BorderFactory.createLineBorder(Color.ORANGE, 2));
@@ -2769,7 +2771,14 @@ private void loadBookmarksNodes() {
                 public void mouseClicked(MouseEvent e) {
                     if (nodeItMode) {
                         connectorLines.add(new ConnectorToPoint(child, customBookField));
-                        child.setBorder(BorderFactory.createLineBorder(Color.ORANGE, 3));
+
+                        // ✅ keep all children orange-highlighted
+                        for (List<JLabel> allChildren : parentToChildren.values()) {
+                            for (JLabel ch : allChildren) {
+                                ch.setBorder(BorderFactory.createLineBorder(Color.ORANGE, 2));
+                            }
+                        }
+
                         nodesPanel.repaint();
                     }
                 }
@@ -2777,18 +2786,49 @@ private void loadBookmarksNodes() {
         }
     }
 
-    // ===== Click outside to exit nodeIt mode and re-enable side panel =====
+    // ===== Click outside to exit nodeIt mode and clear outlines =====
     nodesPanel.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent e) {
-            if (!SwingUtilities.isDescendingFrom(e.getComponent(), nodeItBtn)) {
+            if (!SwingUtilities.isDescendingFrom(e.getComponent(), nodeItBtn) &&
+                !SwingUtilities.isDescendingFrom(e.getComponent(), customBookField)) {
                 nodeItMode = false;
+                nodeItBtn.setBorder(null);
                 for (List<JLabel> children : parentToChildren.values()) {
                     for (JLabel child : children) {
                         child.setBorder(null);
                     }
                 }
                 nodesPanel.repaint();
+            }
+        }
+    });
+
+    // ===== Save & Load tether connector positions =====
+    // When loading: reconstruct saved tether lines
+    for (String key : savedNodePositions.keySet()) {
+        if (key.startsWith("tether_")) {
+            String[] parts = key.split("_");
+            if (parts.length == 3) {
+                int tetherIndex = Integer.parseInt(parts[2]);
+                if (tetherIndex < allNodes.size()) {
+                    JLabel tetheredChild = allNodes.get(tetherIndex);
+                    connectorLines.add(new ConnectorToPoint(tetheredChild, customBookField));
+                }
+            }
+        }
+    }
+
+    // Extend saveNodePositions() to save tether lines
+    nodesPanel.putClientProperty("saveTethers", (Runnable) () -> {
+        int idx = 0;
+        for (Connector c : connectorLines) {
+            if (c instanceof ConnectorToPoint cp) {
+                JSONObject tether = new JSONObject();
+                tether.put("x", cp.child.getX());
+                tether.put("y", cp.child.getY());
+                savedNodePositions.put("tether_" + idx, new Point(cp.child.getX(), cp.child.getY()));
+                idx++;
             }
         }
     });
@@ -2800,6 +2840,9 @@ private void loadBookmarksNodes() {
     nodesPanel.repaint();
     System.out.println("---- End loadBookmarksNodes ----");
 }
+
+
+
 
 
 
