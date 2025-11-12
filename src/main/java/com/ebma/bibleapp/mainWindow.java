@@ -2707,6 +2707,7 @@ private void loadBookmarksNodes() {
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+            // Draw dot grid background that adapts to scroll position
             try {
                 ImageIcon dotIcon = new ImageIcon("src/main/resources/icons/dotCanvas.png");
                 int dotWidth = dotIcon.getIconWidth();
@@ -2716,8 +2717,8 @@ private void loadBookmarksNodes() {
                 AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
                 g2.setComposite(ac);
 
-                int cols = getWidth() / (dotWidth + spacingDots);
-                int rows = getHeight() / (dotHeight + spacingDots);
+                int cols = getWidth() / (dotWidth + spacingDots) + 5;
+                int rows = getHeight() / (dotHeight + spacingDots) + 5;
 
                 for (int row = 0; row <= rows; row++) {
                     for (int col = 0; col <= cols; col++) {
@@ -3054,9 +3055,31 @@ private void loadBookmarksNodes() {
         }
     }
 
+    // === SCROLLING IMPLEMENTATION ===
+    final Point scrollOffset = new Point(0, 0);
+    nodesPanel.addMouseWheelListener(e -> {
+        int rotation = e.getWheelRotation();
+        int scrollAmount = 40; // pixels per scroll
+        if (e.isControlDown()) {
+            // Horizontal scroll with Ctrl
+            scrollOffset.x -= rotation * scrollAmount;
+        } else {
+            // Normal vertical scroll
+            scrollOffset.y -= rotation * scrollAmount;
+        }
+        for (Component comp : nodesPanel.getComponents()) {
+            if (comp != overlay) {
+                comp.setLocation(comp.getX() - rotation * (e.isControlDown() ? scrollAmount : 0),
+                                 comp.getY() - rotation * (e.isControlDown() ? 0 : scrollAmount));
+            }
+        }
+        nodesPanel.repaint();
+    });
+
     nodesPanel.repaint();
     System.out.println("---- End loadBookmarksNodes ----");
 }
+
 
 // Helper method for auto-save
 private void saveNodeState(Map<Integer, JLabel> centerLabelByBookIndex,
@@ -3630,10 +3653,14 @@ class Connector {
     Connector(JLabel p, JLabel c) { parent = p; child = c; }
 }
 
-// ===== Ctrl pan updated to drag everything =====
+// ===== Ctrl+Click to select all and drag everything =====
 private void panner(JPanel nodesPanel, List<JLabel> allNodes, JComponent... extras) {
     final Point[] startPt = {null};
     final boolean[] ctrlPressed = {false};
+    final boolean[] dragging = {false};
+    final boolean[] allSelected = {false};
+
+    nodesPanel.setFocusable(true);
 
     nodesPanel.addKeyListener(new KeyAdapter() {
         @Override
@@ -3643,10 +3670,12 @@ private void panner(JPanel nodesPanel, List<JLabel> allNodes, JComponent... extr
                 nodesPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             }
         }
+
         @Override
         public void keyReleased(KeyEvent e) {
             if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
                 ctrlPressed[0] = false;
+                dragging[0] = false;
                 nodesPanel.setCursor(Cursor.getDefaultCursor());
             }
         }
@@ -3654,25 +3683,41 @@ private void panner(JPanel nodesPanel, List<JLabel> allNodes, JComponent... extr
 
     nodesPanel.addMouseListener(new MouseAdapter() {
         @Override
-        public void mousePressed(MouseEvent e) { if(ctrlPressed[0]) startPt[0] = e.getPoint(); }
+        public void mousePressed(MouseEvent e) {
+            nodesPanel.requestFocusInWindow();
+            if (ctrlPressed[0]) {
+                // Ctrl + click anywhere to "select all"
+                allSelected[0] = true;
+                startPt[0] = e.getPoint();
+                nodesPanel.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+            }
+        }
+
         @Override
-        public void mouseReleased(MouseEvent e) { startPt[0] = null; }
+        public void mouseReleased(MouseEvent e) {
+            if (ctrlPressed[0]) {
+                dragging[0] = false;
+                startPt[0] = null;
+                nodesPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            }
+        }
     });
 
     nodesPanel.addMouseMotionListener(new MouseMotionAdapter() {
         @Override
         public void mouseDragged(MouseEvent e) {
-            if(ctrlPressed[0] && startPt[0] != null) {
+            if (ctrlPressed[0] && allSelected[0] && startPt[0] != null) {
+                dragging[0] = true;
                 int dx = e.getX() - startPt[0].x;
                 int dy = e.getY() - startPt[0].y;
 
-                // Drag all nodes
+                // Move all bookmark nodes
                 for (JLabel node : allNodes) {
                     Point loc = node.getLocation();
                     node.setLocation(loc.x + dx, loc.y + dy);
                 }
 
-                // Drag extra components (custom book group)
+                // Move extra components (like custom book groups)
                 for (JComponent comp : extras) {
                     Point loc = comp.getLocation();
                     comp.setLocation(loc.x + dx, loc.y + dy);
@@ -3684,8 +3729,16 @@ private void panner(JPanel nodesPanel, List<JLabel> allNodes, JComponent... extr
         }
     });
 
-    nodesPanel.setFocusable(true);
-    nodesPanel.requestFocusInWindow();
+    // If you click without Ctrl, deselect all
+    nodesPanel.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            if (!ctrlPressed[0]) {
+                allSelected[0] = false;
+                nodesPanel.setCursor(Cursor.getDefaultCursor());
+            }
+        }
+    });
 }
 
 

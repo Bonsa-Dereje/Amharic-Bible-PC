@@ -129,86 +129,96 @@
             },
             "childIndex": 0,
             "bookIndex": 21
+        },
+        {
+            "fieldIndex": 4,
+            "color": {
+                "r": 37,
+                "b": 209,
+                "g": 206
+            },
+            "childIndex": 4,
+            "bookIndex": 24
         }
     ],
     "nodes": [
         {
             "w": 120,
-            "x": 150,
+            "x": 190,
             "h": 180,
-            "y": 650,
+            "y": 654,
             "key": "book_48",
             "bookIndex": 48
         },
         {
             "w": 120,
-            "x": 960,
+            "x": 992,
             "h": 180,
-            "y": 650,
+            "y": 620,
             "key": "book_16",
             "bookIndex": 16
         },
         {
             "w": 120,
-            "x": 690,
+            "x": 740,
             "h": 180,
-            "y": 270,
+            "y": 228,
             "key": "book_21",
             "bookIndex": 21
         },
         {
             "w": 120,
-            "x": 476,
+            "x": 516,
             "h": 180,
-            "y": 224,
+            "y": 228,
             "key": "book_22",
             "bookIndex": 22
         },
         {
             "w": 120,
-            "x": 150,
+            "x": 180,
             "h": 180,
-            "y": 270,
+            "y": 228,
             "key": "book_23",
             "bookIndex": 23
         },
         {
             "w": 120,
-            "x": 1230,
+            "x": 1272,
             "h": 180,
-            "y": 270,
+            "y": 228,
             "key": "book_24",
             "bookIndex": 24
         },
         {
             "w": 120,
-            "x": 690,
+            "x": 740,
             "h": 180,
-            "y": 650,
+            "y": 620,
             "key": "book_41",
             "bookIndex": 41
         },
         {
             "w": 120,
-            "x": 420,
+            "x": 460,
             "h": 180,
-            "y": 650,
+            "y": 654,
             "key": "book_28",
             "bookIndex": 28
         },
         {
             "w": 120,
-            "x": 1230,
+            "x": 1272,
             "h": 180,
-            "y": 650,
+            "y": 648,
             "key": "book_46",
             "bookIndex": 46
         },
         {
             "w": 120,
-            "x": 960,
+            "x": 992,
             "h": 180,
-            "y": 270,
+            "y": 256,
             "key": "book_31",
             "bookIndex": 31
         }
@@ -216,307 +226,307 @@
     "children": [
         {
             "w": 50,
-            "x": 23,
+            "x": 873,
             "h": 50,
-            "y": 805,
-            "childIndex": 0,
-            "key": "book_48_child_0",
-            "bookIndex": 48
-        },
-        {
-            "w": 50,
-            "x": 347,
-            "h": 50,
-            "y": 805,
-            "childIndex": 1,
-            "key": "book_48_child_1",
-            "bookIndex": 48
-        },
-        {
-            "w": 50,
-            "x": 308,
-            "h": 50,
-            "y": 308,
-            "childIndex": 0,
-            "key": "book_22_child_0",
-            "bookIndex": 22
-        },
-        {
-            "w": 50,
-            "x": 323,
-            "h": 50,
-            "y": 520,
-            "childIndex": 1,
-            "key": "book_22_child_1",
-            "bookIndex": 22
-        },
-        {
-            "w": 50,
-            "x": 404,
-            "h": 50,
-            "y": 579,
-            "childIndex": 2,
-            "key": "book_22_child_2",
-            "bookIndex": 22
-        },
-        {
-            "w": 50,
-            "x": 505,
-            "h": 50,
-            "y": 579,
-            "childIndex": 3,
-            "key": "book_22_child_3",
-            "bookIndex": 22
-        },
-        {
-            "w": 50,
-            "x": 586,
-            "h": 50,
-            "y": 520,
-            "childIndex": 4,
-            "key": "book_22_child_4",
-            "bookIndex": 22
-        },
-        {
-            "w": 50,
-            "x": 980,
-            "h": 50,
-            "y": 532,
-            "childIndex": 5,
-            "key": "book_22_child_5",
-            "bookIndex": 22
-        },
-        {
-            "w": 50,
-            "x": 833,
-            "h": 50,
-            "y": 425,
-            "childIndex": 0,
-            "key": "book_31_child_0",
-            "bookIndex": 31
-        },
-        {
-            "w": 50,
-            "x": 914,
-            "h": 50,
-            "y": 565,
-            "childIndex": 1,
-            "key": "book_31_child_1",
-            "bookIndex": 31
-        },
-        {
-            "w": 50,
-            "x": 1076,
-            "h": 50,
-            "y": 565,
-            "childIndex": 2,
-            "key": "book_31_child_2",
-            "bookIndex": 31
-        },
-        {
-            "w": 50,
-            "x": 1157,
-            "h": 50,
-            "y": 425,
-            "childIndex": 3,
-            "key": "book_31_child_3",
-            "bookIndex": 31
-        },
-        {
-            "w": 50,
-            "x": 833,
-            "h": 50,
-            "y": 805,
+            "y": 809,
             "childIndex": 0,
             "key": "book_16_child_0",
             "bookIndex": 16
         },
         {
             "w": 50,
-            "x": 914,
+            "x": 954,
             "h": 50,
-            "y": 870,
+            "y": 874,
             "childIndex": 1,
             "key": "book_16_child_1",
             "bookIndex": 16
         },
         {
             "w": 50,
-            "x": 1076,
+            "x": 1116,
             "h": 50,
-            "y": 870,
+            "y": 874,
             "childIndex": 2,
             "key": "book_16_child_2",
             "bookIndex": 16
         },
         {
             "w": 50,
-            "x": 1157,
+            "x": 1197,
             "h": 50,
-            "y": 805,
+            "y": 809,
             "childIndex": 3,
             "key": "book_16_child_3",
             "bookIndex": 16
         },
         {
             "w": 50,
-            "x": 1103,
+            "x": 1143,
             "h": 50,
-            "y": 805,
+            "y": 809,
             "childIndex": 0,
             "key": "book_46_child_0",
             "bookIndex": 46
         },
         {
             "w": 50,
-            "x": 1265,
+            "x": 1305,
             "h": 50,
-            "y": 870,
+            "y": 874,
             "childIndex": 1,
             "key": "book_46_child_1",
             "bookIndex": 46
         },
         {
             "w": 50,
-            "x": 1427,
+            "x": 1467,
             "h": 50,
-            "y": 805,
+            "y": 809,
             "childIndex": 2,
             "key": "book_46_child_2",
             "bookIndex": 46
         },
         {
             "w": 50,
-            "x": 563,
+            "x": 348,
             "h": 50,
-            "y": 425,
+            "y": 312,
             "childIndex": 0,
-            "key": "book_21_child_0",
-            "bookIndex": 21
+            "key": "book_22_child_0",
+            "bookIndex": 22
         },
         {
             "w": 50,
-            "x": 293,
+            "x": 363,
             "h": 50,
-            "y": 805,
-            "childIndex": 0,
-            "key": "book_28_child_0",
-            "bookIndex": 28
+            "y": 524,
+            "childIndex": 1,
+            "key": "book_22_child_1",
+            "bookIndex": 22
         },
         {
             "w": 50,
-            "x": 23,
+            "x": 444,
             "h": 50,
-            "y": 425,
+            "y": 583,
+            "childIndex": 2,
+            "key": "book_22_child_2",
+            "bookIndex": 22
+        },
+        {
+            "w": 50,
+            "x": 545,
+            "h": 50,
+            "y": 583,
+            "childIndex": 3,
+            "key": "book_22_child_3",
+            "bookIndex": 22
+        },
+        {
+            "w": 50,
+            "x": 626,
+            "h": 50,
+            "y": 524,
+            "childIndex": 4,
+            "key": "book_22_child_4",
+            "bookIndex": 22
+        },
+        {
+            "w": 50,
+            "x": 1020,
+            "h": 50,
+            "y": 536,
+            "childIndex": 5,
+            "key": "book_22_child_5",
+            "bookIndex": 22
+        },
+        {
+            "w": 50,
+            "x": 63,
+            "h": 50,
+            "y": 809,
+            "childIndex": 0,
+            "key": "book_48_child_0",
+            "bookIndex": 48
+        },
+        {
+            "w": 50,
+            "x": 387,
+            "h": 50,
+            "y": 809,
+            "childIndex": 1,
+            "key": "book_48_child_1",
+            "bookIndex": 48
+        },
+        {
+            "w": 50,
+            "x": 96,
+            "h": 50,
+            "y": 452,
             "childIndex": 0,
             "key": "book_23_child_0",
             "bookIndex": 23
         },
         {
             "w": 50,
-            "x": 185,
+            "x": 264,
             "h": 50,
-            "y": 587,
+            "y": 536,
             "childIndex": 1,
             "key": "book_23_child_1",
             "bookIndex": 23
         },
         {
             "w": 50,
-            "x": 364,
+            "x": 404,
             "h": 50,
-            "y": 336,
+            "y": 340,
             "childIndex": 2,
             "key": "book_23_child_2",
             "bookIndex": 23
         },
         {
             "w": 50,
-            "x": 1103,
+            "x": 603,
             "h": 50,
-            "y": 425,
-            "childIndex": 0,
-            "key": "book_24_child_0",
-            "bookIndex": 24
-        },
-        {
-            "w": 50,
-            "x": 1150,
-            "h": 50,
-            "y": 539,
-            "childIndex": 1,
-            "key": "book_24_child_1",
-            "bookIndex": 24
-        },
-        {
-            "w": 50,
-            "x": 1265,
-            "h": 50,
-            "y": 587,
-            "childIndex": 2,
-            "key": "book_24_child_2",
-            "bookIndex": 24
-        },
-        {
-            "w": 50,
-            "x": 1372,
-            "h": 50,
-            "y": 532,
-            "childIndex": 3,
-            "key": "book_24_child_3",
-            "bookIndex": 24
-        },
-        {
-            "w": 50,
-            "x": 1428,
-            "h": 50,
-            "y": 420,
-            "childIndex": 4,
-            "key": "book_24_child_4",
-            "bookIndex": 24
-        },
-        {
-            "w": 50,
-            "x": 563,
-            "h": 50,
-            "y": 805,
+            "y": 809,
             "childIndex": 0,
             "key": "book_41_child_0",
             "bookIndex": 41
         },
         {
             "w": 50,
-            "x": 644,
+            "x": 656,
             "h": 50,
-            "y": 870,
+            "y": 844,
             "childIndex": 1,
             "key": "book_41_child_1",
             "bookIndex": 41
         },
         {
             "w": 50,
-            "x": 806,
+            "x": 846,
             "h": 50,
-            "y": 870,
+            "y": 874,
             "childIndex": 2,
             "key": "book_41_child_2",
             "bookIndex": 41
         },
         {
             "w": 50,
-            "x": 887,
+            "x": 936,
             "h": 50,
-            "y": 805,
+            "y": 788,
             "childIndex": 3,
             "key": "book_41_child_3",
             "bookIndex": 41
+        },
+        {
+            "w": 50,
+            "x": 603,
+            "h": 50,
+            "y": 429,
+            "childIndex": 0,
+            "key": "book_21_child_0",
+            "bookIndex": 21
+        },
+        {
+            "w": 50,
+            "x": 1143,
+            "h": 50,
+            "y": 429,
+            "childIndex": 0,
+            "key": "book_24_child_0",
+            "bookIndex": 24
+        },
+        {
+            "w": 50,
+            "x": 1190,
+            "h": 50,
+            "y": 543,
+            "childIndex": 1,
+            "key": "book_24_child_1",
+            "bookIndex": 24
+        },
+        {
+            "w": 50,
+            "x": 1305,
+            "h": 50,
+            "y": 591,
+            "childIndex": 2,
+            "key": "book_24_child_2",
+            "bookIndex": 24
+        },
+        {
+            "w": 50,
+            "x": 1412,
+            "h": 50,
+            "y": 536,
+            "childIndex": 3,
+            "key": "book_24_child_3",
+            "bookIndex": 24
+        },
+        {
+            "w": 50,
+            "x": 1468,
+            "h": 50,
+            "y": 424,
+            "childIndex": 4,
+            "key": "book_24_child_4",
+            "bookIndex": 24
+        },
+        {
+            "w": 50,
+            "x": 873,
+            "h": 50,
+            "y": 429,
+            "childIndex": 0,
+            "key": "book_31_child_0",
+            "bookIndex": 31
+        },
+        {
+            "w": 50,
+            "x": 954,
+            "h": 50,
+            "y": 569,
+            "childIndex": 1,
+            "key": "book_31_child_1",
+            "bookIndex": 31
+        },
+        {
+            "w": 50,
+            "x": 1116,
+            "h": 50,
+            "y": 569,
+            "childIndex": 2,
+            "key": "book_31_child_2",
+            "bookIndex": 31
+        },
+        {
+            "w": 50,
+            "x": 1197,
+            "h": 50,
+            "y": 429,
+            "childIndex": 3,
+            "key": "book_31_child_3",
+            "bookIndex": 31
+        },
+        {
+            "w": 50,
+            "x": 333,
+            "h": 50,
+            "y": 809,
+            "childIndex": 0,
+            "key": "book_28_child_0",
+            "bookIndex": 28
         }
     ],
     "fields": [
         {
             "visible": true,
             "w": 150,
-            "x": 460,
+            "x": 415,
             "h": 30,
             "index": 0,
             "y": 100,
@@ -525,16 +535,16 @@
         {
             "visible": true,
             "w": 150,
-            "x": 630,
+            "x": 585,
             "h": 30,
             "index": 1,
             "y": 100,
-            "text": "Book Name"
+            "text": "test book 2"
         },
         {
             "visible": true,
             "w": 150,
-            "x": 800,
+            "x": 755,
             "h": 30,
             "index": 2,
             "y": 100,
@@ -543,19 +553,20 @@
         {
             "visible": true,
             "w": 150,
-            "x": 970,
+            "x": 925,
             "h": 30,
             "index": 3,
             "y": 100,
             "text": "Book Name"
         },
         {
-            "visible": false,
-            "w": 0,
-            "x": 0,
-            "h": 0,
+            "visible": true,
+            "w": 150,
+            "x": 1095,
+            "h": 30,
             "index": 4,
-            "y": 0,
+            "y": 100,
             "text": "Book Name"
         }
     ]
+}
