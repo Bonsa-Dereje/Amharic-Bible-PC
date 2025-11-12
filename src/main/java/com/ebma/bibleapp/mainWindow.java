@@ -436,9 +436,19 @@ public class mainWindow extends javax.swing.JFrame {
     private boolean isZooming = false;
     
     private boolean nodeItMode = false;
+    
+    private static final String PANEL_STATE_FILE = "src/main/userFiles/nodesPanelState.ser";
+    
+    
+    private static class NodeState implements Serializable {
+        String key; // book_X or book_X_child_Y or customField_i
+        Point position;
+        String text; // for JTextField
+        List<String> childKeys = new ArrayList<>(); // keys of children
+        List<String> tethers = new ArrayList<>();   // keys of JTextField it connects to
+        Color tetherColor; // optional
+    }
 
-    
-    
 
     
     public mainWindow() {
@@ -2467,8 +2477,48 @@ private void loadBookmarksNodes() {
     nodesPanel.removeAll();
     nodesPanel.setLayout(null);
 
+    // === LOAD SAVED JSON STATE IF PRESENT ===
+    JSONObject savedState = null;
+    File stateFile = new File("src/main/nodeStateSave/nodesState.json");
+    if (stateFile.exists()) {
+        try (FileInputStream fis = new FileInputStream(stateFile)) {
+            JSONTokener tok = new JSONTokener(fis);
+            savedState = new JSONObject(tok);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
     Map<String, Point> savedNodePositions = loadNodePositions();
     boolean hasSavedPositions = !savedNodePositions.isEmpty();
+
+    if (savedState != null) {
+        try {
+            if (savedState.has("nodes")) {
+                JSONArray nodesArr = savedState.getJSONArray("nodes");
+                for (int i = 0; i < nodesArr.length(); i++) {
+                    JSONObject n = nodesArr.getJSONObject(i);
+                    String key = n.getString("key");
+                    int x = n.getInt("x");
+                    int y = n.getInt("y");
+                    savedNodePositions.put(key, new Point(x, y));
+                }
+            }
+            if (savedState.has("children")) {
+                JSONArray chArr = savedState.getJSONArray("children");
+                for (int i = 0; i < chArr.length(); i++) {
+                    JSONObject c = chArr.getJSONObject(i);
+                    String key = c.getString("key");
+                    int x = c.getInt("x");
+                    int y = c.getInt("y");
+                    savedNodePositions.put(key, new Point(x, y));
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        hasSavedPositions = !savedNodePositions.isEmpty();
+    }
 
     Map<Integer, List<String>> bookmarkMap = new LinkedHashMap<>();
     try (Connection conn = DriverManager.getConnection("jdbc:sqlite:bookStack.db");
@@ -2500,6 +2550,9 @@ private void loadBookmarksNodes() {
 
     parentToChildren.clear();
 
+    Map<String, JLabel> childLabelById = new HashMap<>();
+    Map<Integer, JLabel> centerLabelByBookIndex = new HashMap<>();
+
     // ===== BUILD NODES =====
     for (Map.Entry<Integer, List<String>> entry : bookmarkMap.entrySet()) {
         int bookIndex = entry.getKey();
@@ -2524,9 +2577,11 @@ private void loadBookmarksNodes() {
                 : new Point(xOffset, yOffset);
 
         centerLabel.setBounds(savedPos.x, savedPos.y, nodeWidth, nodeHeight);
+        centerLabel.putClientProperty("bookIndex", bookIndex);
         makeDraggable(centerLabel, nodeKey);
         nodesPanel.add(centerLabel);
         allNodes.add(centerLabel);
+        centerLabelByBookIndex.put(bookIndex, centerLabel);
 
         centerLabel.addMouseListener(new MouseAdapter() {
             @Override
@@ -2615,12 +2670,17 @@ private void loadBookmarksNodes() {
                         : new Point(childX, childY);
 
                 childLabel.setBounds(savedChildPos.x, savedChildPos.y, childWidth, childHeight);
+                childLabel.putClientProperty("bookIndex", bookIndex);
+                childLabel.putClientProperty("childIndex", i);
+
                 makeDraggable(childLabel, childKey);
                 nodesPanel.add(childLabel);
                 allNodes.add(childLabel);
 
                 connectorLines.add(new Connector(centerLabel, childLabel));
                 childrenList.add(childLabel);
+
+                childLabelById.put(bookIndex + "_" + i, childLabel);
 
                 childLabel.addMouseListener(new MouseAdapter() {
                     @Override
@@ -2708,7 +2768,8 @@ private void loadBookmarksNodes() {
     // ====== WRITE YOUR OWN SECTION ======
     JButton writeOwnBtn = new JButton("Write your own");
     writeOwnBtn.setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 18));
-    writeOwnBtn.setBounds(panelWidth / 2 - 100, 20, 200, 35);
+    int writeOwnInitialY = 60;
+    writeOwnBtn.setBounds(panelWidth / 2 - 100, writeOwnInitialY, 200, 35);
     nodesPanel.add(writeOwnBtn);
 
     ImageIcon plusIcon = new ImageIcon("src/main/resources/icons/plus30.png");
@@ -2720,6 +2781,11 @@ private void loadBookmarksNodes() {
             writeOwnBtn.getY() + (writeOwnBtn.getHeight() - plusSize) / 2, plusSize, plusSize);
     plusLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     nodesPanel.add(plusLabel);
+
+    // Hide save button entirely, still keep state-saving logic
+    JButton saveStateBtn = new JButton("Save");
+    saveStateBtn.setVisible(false); // hidden
+    nodesPanel.add(saveStateBtn);
 
     final int SETS = 5;
     JTextField[] customBookFields = new JTextField[SETS];
@@ -2740,6 +2806,7 @@ private void loadBookmarksNodes() {
     JLabel[] deleteLabels = new JLabel[SETS];
     Set<JTextField> connectedFields = new HashSet<>();
 
+    // removed left/right dots arrays entirely
     for (int i = 0; i < SETS; i++) {
         JTextField f = new JTextField("Book Name");
         f.setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 16));
@@ -2789,7 +2856,6 @@ private void loadBookmarksNodes() {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     for (int j = 0; j < SETS; j++) deleteLabels[j].setVisible(false);
                     del.setVisible(true);
-                    // 🟢 CHANGE #1 — delete icon now at bottom-right corner
                     del.setLocation(f.getX() + f.getWidth() - del.getWidth(), f.getY() + f.getHeight());
                 }
             }
@@ -2845,8 +2911,8 @@ private void loadBookmarksNodes() {
             nb.setBounds(nbX, customBookFields[idx].getY() + customBookFields[idx].getHeight() + 5, nb.getWidth(), nb.getHeight());
 
             JLabel del = deleteLabels[idx];
-            // 🟢 Keep delete label position synced with bottom-right
             del.setLocation(fx + fieldWidth - del.getWidth(), customBookFields[idx].getY() + customBookFields[idx].getHeight());
+
             j++;
         }
 
@@ -2866,25 +2932,21 @@ private void loadBookmarksNodes() {
                     nodeItBtns[i].setVisible(true);
                     recomputeWriteOwnBounds.run();
                     nodesPanel.repaint();
-                    boolean allVisible = Arrays.stream(customBookFields).allMatch(tf -> tf.isVisible());
-                    plusLabel.setVisible(!allVisible);
                     return;
                 }
             }
         }
     });
 
-    // 🟢 CHANGE #2 — toggle visibility of all currently shown text fields and buttons
     writeOwnBtn.addActionListener(e -> {
         boolean noneConnected = connectedFields.isEmpty();
         if (noneConnected) {
             boolean anyVisible = Arrays.stream(customBookFields).anyMatch(tf -> tf.isVisible());
             for (int i = 0; i < SETS; i++) {
-                customBookFields[i].setVisible(!anyVisible && i == 0); // show only first if all hidden
-                if (anyVisible) customBookFields[i].setVisible(false);
+                customBookFields[i].setVisible(!anyVisible && i == 0);
                 nodeItBtns[i].setVisible(customBookFields[i].isVisible());
             }
-            if (!anyVisible) customBookFields[0].setVisible(true); // ensure first visible if all hidden
+            if (!anyVisible) customBookFields[0].setVisible(true);
             recomputeWriteOwnBounds.run();
             nodesPanel.repaint();
         }
@@ -2892,7 +2954,7 @@ private void loadBookmarksNodes() {
 
     makeGroupDraggable(writeOwnBtn, plusLabel, customBookFields, nodeItBtns, recomputeWriteOwnBounds);
 
-    // Tethering
+    // Tethering logic remains
     for (List<JLabel> children : parentToChildren.values()) {
         for (JLabel child : children) {
             child.addMouseListener(new MouseAdapter() {
@@ -2917,7 +2979,38 @@ private void loadBookmarksNodes() {
         }
     }
 
-    // Click outside hides all right-click delete icons & ends nodeItMode
+    // recreate connectors from savedState if any
+    if (savedState != null && savedState.has("connectors")) {
+        try {
+            JSONArray conns = savedState.getJSONArray("connectors");
+            for (int i = 0; i < conns.length(); i++) {
+                JSONObject cc = conns.getJSONObject(i);
+                int bIndex = cc.getInt("bookIndex");
+                int childIndex = cc.getInt("childIndex");
+                int fieldIdx = cc.getInt("fieldIndex");
+                JSONObject col = cc.getJSONObject("color");
+                Color cColor = new Color(col.getInt("r"), col.getInt("g"), col.getInt("b"));
+
+                String childId = bIndex + "_" + childIndex;
+                JLabel childLbl = childLabelById.get(childId);
+                if (childLbl == null) continue;
+                if (fieldIdx < 0 || fieldIdx >= SETS) continue;
+                JTextField targetField = customBookFields[fieldIdx];
+                if (!targetField.isVisible()) {
+                    customBookFields[fieldIdx].setVisible(true);
+                    nodeItBtns[fieldIdx].setVisible(true);
+                }
+                ConnectorToPoint cp = new ConnectorToPoint(childLbl, targetField);
+                connectorLines.add(cp);
+                tetherColors.put(cp, cColor);
+                connectedFields.add(targetField);
+            }
+            nodesPanel.repaint();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
     nodesPanel.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent e) {
@@ -2933,9 +3026,143 @@ private void loadBookmarksNodes() {
         }
     });
 
+    // Auto-save every second
+    Timer autoSaveTimer = new Timer(1000, e -> saveNodeState(centerLabelByBookIndex, parentToChildren, connectorLines, tetherColors, customBookFields, stateFile));
+    autoSaveTimer.start();
+
+    // ====== Apply saved fields visibility/content =====
+    if (savedState != null && savedState.has("fields")) {
+        try {
+            JSONArray farr = savedState.getJSONArray("fields");
+            for (int i = 0; i < farr.length(); i++) {
+                JSONObject fo = farr.getJSONObject(i);
+                int idx = fo.getInt("index");
+                if (idx < 0 || idx >= SETS) continue;
+                boolean vis = fo.optBoolean("visible", false);
+                customBookFields[idx].setVisible(vis);
+                nodeItBtns[idx].setVisible(vis);
+                if (fo.has("text")) customBookFields[idx].setText(fo.optString("text", customBookFields[idx].getText()));
+                if (fo.has("x") && fo.has("y")) {
+                    int fx = fo.optInt("x", customBookFields[idx].getX());
+                    int fy = fo.optInt("y", customBookFields[idx].getY());
+                    customBookFields[idx].setBounds(fx, fy, fo.optInt("w", fieldWidth), fo.optInt("h", fieldHeight));
+                }
+            }
+            recomputeWriteOwnBounds.run();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
     nodesPanel.repaint();
     System.out.println("---- End loadBookmarksNodes ----");
 }
+
+// Helper method for auto-save
+private void saveNodeState(Map<Integer, JLabel> centerLabelByBookIndex,
+                           Map<JLabel, List<JLabel>> parentToChildren,
+                           List<Connector> connectorLines,
+                           Map<Connector, Color> tetherColors,
+                           JTextField[] customBookFields,
+                           File stateFile) {
+    try {
+        JSONObject out = new JSONObject();
+
+        JSONArray nodesArr = new JSONArray();
+        for (Map.Entry<Integer, JLabel> cent : centerLabelByBookIndex.entrySet()) {
+            int bidx = cent.getKey();
+            JLabel lbl = cent.getValue();
+            JSONObject n = new JSONObject();
+            n.put("key", "book_" + bidx);
+            n.put("bookIndex", bidx);
+            n.put("x", lbl.getX());
+            n.put("y", lbl.getY());
+            n.put("w", lbl.getWidth());
+            n.put("h", lbl.getHeight());
+            nodesArr.put(n);
+        }
+        out.put("nodes", nodesArr);
+
+        JSONArray childrenArr = new JSONArray();
+        for (Map.Entry<JLabel, List<JLabel>> epp : parentToChildren.entrySet()) {
+            for (JLabel child : epp.getValue()) {
+                JSONObject c = new JSONObject();
+                Object bObj = child.getClientProperty("bookIndex");
+                Object chObj = child.getClientProperty("childIndex");
+                int bidx = bObj instanceof Integer ? (Integer) bObj : -1;
+                int chidx = chObj instanceof Integer ? (Integer) chObj : -1;
+                c.put("key", "book_" + bidx + "_child_" + chidx);
+                c.put("bookIndex", bidx);
+                c.put("childIndex", chidx);
+                c.put("x", child.getX());
+                c.put("y", child.getY());
+                c.put("w", child.getWidth());
+                c.put("h", child.getHeight());
+                childrenArr.put(c);
+            }
+        }
+        out.put("children", childrenArr);
+
+        JSONArray fieldsArr = new JSONArray();
+        for (int i = 0; i < customBookFields.length; i++) {
+            JSONObject f = new JSONObject();
+            f.put("index", i);
+            f.put("visible", customBookFields[i].isVisible());
+            f.put("x", customBookFields[i].getX());
+            f.put("y", customBookFields[i].getY());
+            f.put("w", customBookFields[i].getWidth());
+            f.put("h", customBookFields[i].getHeight());
+            f.put("text", customBookFields[i].getText());
+            fieldsArr.put(f);
+        }
+        out.put("fields", fieldsArr);
+
+        JSONArray connectorsArr = new JSONArray();
+        for (Connector cc : connectorLines) {
+            if (cc instanceof ConnectorToPoint cp) {
+                JSONObject con = new JSONObject();
+                JLabel child = cp.child;
+                Object bObj = child.getClientProperty("bookIndex");
+                Object chObj = child.getClientProperty("childIndex");
+                int bidx = bObj instanceof Integer ? (Integer) bObj : -1;
+                int chidx = chObj instanceof Integer ? (Integer) chObj : -1;
+                con.put("bookIndex", bidx);
+                con.put("childIndex", chidx);
+
+                int fIdx = -1;
+                for (int k = 0; k < customBookFields.length; k++) {
+                    if (customBookFields[k] == cp.textField) { fIdx = k; break; }
+                }
+                con.put("fieldIndex", fIdx);
+
+                Color col = tetherColors.getOrDefault(cp, Color.ORANGE);
+                JSONObject colObj = new JSONObject();
+                colObj.put("r", col.getRed());
+                colObj.put("g", col.getGreen());
+                colObj.put("b", col.getBlue());
+                con.put("color", colObj);
+
+                connectorsArr.put(con);
+            }
+        }
+        out.put("connectors", connectorsArr);
+
+        if (stateFile.getParentFile() != null && !stateFile.getParentFile().exists()) stateFile.getParentFile().mkdirs();
+
+        try (FileOutputStream fos = new FileOutputStream(stateFile)) {
+            fos.write(out.toString(4).getBytes(StandardCharsets.UTF_8));
+            fos.flush();
+        }
+    } catch (Exception ex) {
+        ex.printStackTrace();
+    }
+}
+
+
+
+
+
+
 
 
 
