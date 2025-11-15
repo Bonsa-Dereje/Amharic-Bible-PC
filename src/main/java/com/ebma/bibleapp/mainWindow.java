@@ -109,6 +109,11 @@ import java.awt.event.FocusEvent;
 import java.awt.event.HierarchyEvent;
 import javax.swing.border.TitledBorder;
 
+import javax.swing.border.LineBorder;
+
+
+
+
 public class mainWindow extends javax.swing.JFrame {
 
     private boolean isBoldActive = true;
@@ -3627,8 +3632,29 @@ private void showImageInSidePanel(String imagePath) {
         journalBtn.setIconTextGap(6);
         journalBtn.addActionListener(e -> {
             bookMarkJournalIMG = imagePath;
+
             tabs.setSelectedIndex(8);
+            journalTabDoClick.doClick();
+
+            // CLICK CENTER OF SCREEN WHEN JOURNAL TAB LOADS
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    Robot robot = new Robot();
+
+                    Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+                    int cx = screen.width / 2;
+                    int cy = screen.height / 2;
+
+                    robot.mouseMove(cx, cy);
+                    robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+                    robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            });
         });
+
         header.add(journalBtn, BorderLayout.CENTER);
 
         JButton closeBtn = new JButton("x");
@@ -3783,6 +3809,12 @@ private void showImageInSidePanel(String imagePath) {
         e.printStackTrace();
     }
 }
+
+
+
+
+
+
 
     
 //Journal tab methods
@@ -3974,6 +4006,84 @@ class ResizableImageLabel extends JLabel {
         }
     }
 }
+
+
+
+public void loadJournalsTab() {
+    // Assuming showJournalsPanel is already defined in your class
+    JPanel targetTab = showJournals;
+
+    targetTab.removeAll();
+    targetTab.setLayout(new BorderLayout());
+
+    // Panel to hold all journal boxes
+    JPanel container = new JPanel();
+    container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS)); // vertical stacking
+    container.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    container.setBackground(Color.WHITE);
+
+    // Scroll pane for vertical scrolling
+    JScrollPane scrollPane = new JScrollPane(container, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
+    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:notesNJournals.db")) {
+        String sql = "SELECT journalName, journalText FROM journals";
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(sql);
+
+        boolean hasRows = false;
+
+        while (rs.next()) {
+            hasRows = true;
+            String name = rs.getString("journalName");
+            String text = rs.getString("journalText");
+
+            // Single journal box
+            JPanel box = new JPanel();
+            box.setLayout(new BorderLayout());
+            box.setBorder(new LineBorder(Color.LIGHT_GRAY));
+            box.setBackground(Color.WHITE);
+            box.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60)); // small height, full width
+            box.setPreferredSize(new Dimension(0, 60));
+
+            // Journal name
+            JLabel nameLabel = new JLabel(name);
+            nameLabel.setFont(nameLabel.getFont().deriveFont(Font.BOLD, 14f));
+            nameLabel.setBorder(BorderFactory.createEmptyBorder(5,5,0,5));
+            box.add(nameLabel, BorderLayout.NORTH);
+
+            // Truncated text content
+            JTextArea textArea = new JTextArea();
+            textArea.setText(text.length() > 100 ? text.substring(0, 100) + "..." : text);
+            textArea.setWrapStyleWord(true);
+            textArea.setLineWrap(true);
+            textArea.setEditable(false);
+            textArea.setOpaque(false);
+            textArea.setFont(textArea.getFont().deriveFont(12f));
+            textArea.setBorder(BorderFactory.createEmptyBorder(0,5,5,5));
+            box.add(textArea, BorderLayout.CENTER);
+
+            container.add(Box.createVerticalStrut(5)); // small spacing
+            container.add(box);
+        }
+
+        if (!hasRows) {
+            container.add(new JLabel("No journals found in the database."));
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        container.add(new JLabel("Error loading journals."));
+    }
+
+    targetTab.add(scrollPane, BorderLayout.CENTER);
+    targetTab.revalidate();
+    targetTab.repaint();
+}
+
+
+
+
 
 
 
@@ -4610,6 +4720,10 @@ class ResizableImageLabel extends JLabel {
         journalEntryScrollPane = new javax.swing.JScrollPane();
         journalEntry = new javax.swing.JEditorPane();
         journalName = new javax.swing.JTextField();
+        referencesPanel = new javax.swing.JPanel();
+        referencesText = new javax.swing.JLabel();
+        journalsList = new javax.swing.JPanel();
+        showJournals = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -9890,13 +10004,30 @@ class ResizableImageLabel extends JLabel {
         journalName.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
         journalName.setText("untitled journal");
         journalName.setBorder(null);
-        journalName.setFocusCycleRoot(true);
-        journalName.setFocusTraversalPolicyProvider(true);
         journalName.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 journalNameActionPerformed(evt);
             }
         });
+
+        referencesText.setText("References");
+
+        javax.swing.GroupLayout referencesPanelLayout = new javax.swing.GroupLayout(referencesPanel);
+        referencesPanel.setLayout(referencesPanelLayout);
+        referencesPanelLayout.setHorizontalGroup(
+            referencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(referencesPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(referencesText, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        referencesPanelLayout.setVerticalGroup(
+            referencesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(referencesPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(referencesText)
+                .addContainerGap(146, Short.MAX_VALUE))
+        );
 
         javax.swing.GroupLayout journalingPanelLayout = new javax.swing.GroupLayout(journalingPanel);
         journalingPanel.setLayout(journalingPanelLayout);
@@ -9906,13 +10037,17 @@ class ResizableImageLabel extends JLabel {
             .addGroup(journalingPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(journalingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(journalEntryScrollPane)
-                    .addGroup(journalingPanelLayout.createSequentialGroup()
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, journalingPanelLayout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addGap(676, 676, 676)
                         .addComponent(journalName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(saveJournal, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(saveJournal, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, journalingPanelLayout.createSequentialGroup()
+                        .addGroup(journalingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(referencesPanel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(journalEntryScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 1531, Short.MAX_VALUE))
+                        .addGap(12, 12, 12)))
                 .addContainerGap())
         );
         journalingPanelLayout.setVerticalGroup(
@@ -9927,14 +10062,26 @@ class ResizableImageLabel extends JLabel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(journalEntryScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 834, Short.MAX_VALUE)
+                .addComponent(journalEntryScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 660, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(referencesPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
-        journalName.addMouseListener(new MouseAdapter() {
+        journalName.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
                 journalName.requestFocusInWindow();
+                // Optional: clear placeholder text on first click
+                if ("untitled journal".equals(journalName.getText())) {
+                    journalName.setText("");
+                }
+            }
+        });
+
+        journalName.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                journalNameActionPerformed(evt);
             }
         });
 
@@ -9956,6 +10103,36 @@ class ResizableImageLabel extends JLabel {
         );
 
         tabs.addTab("tab9", journal);
+
+        javax.swing.GroupLayout showJournalsLayout = new javax.swing.GroupLayout(showJournals);
+        showJournals.setLayout(showJournalsLayout);
+        showJournalsLayout.setHorizontalGroup(
+            showJournalsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 1568, Short.MAX_VALUE)
+        );
+        showJournalsLayout.setVerticalGroup(
+            showJournalsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 913, Short.MAX_VALUE)
+        );
+
+        javax.swing.GroupLayout journalsListLayout = new javax.swing.GroupLayout(journalsList);
+        journalsList.setLayout(journalsListLayout);
+        journalsListLayout.setHorizontalGroup(
+            journalsListLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(journalsListLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(showJournals, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        journalsListLayout.setVerticalGroup(
+            journalsListLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(journalsListLayout.createSequentialGroup()
+                .addGap(56, 56, 56)
+                .addComponent(showJournals, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        tabs.addTab("tab10", journalsList);
 
         mainPanel_layered.add(tabs, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, -50, 1580, 1010));
         tabs.addChangeListener(e -> {
@@ -10326,6 +10503,25 @@ class ResizableImageLabel extends JLabel {
             }
 
             lastTab[0] = selectedIndex;
+        });
+        tabs.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                // CTRL + S AND tab 8
+                if (tabs.getSelectedIndex() == 8 &&
+                    e.isControlDown() &&
+                    e.getKeyCode() == KeyEvent.VK_S) {
+
+                    saveJournal.doClick();
+                }
+            }
+        });
+        tabs.addChangeListener(e -> {
+            int selectedIndex = tabs.getSelectedIndex();
+            // Replace 9 with the index of your tab containing showJournalsPanel
+            if (selectedIndex == 9) {
+                loadJournalsTab();
+            }
         });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -12627,7 +12823,7 @@ class ResizableImageLabel extends JLabel {
     private void journalBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_journalBtnActionPerformed
 
     directOpen = true;
-    tabs.setSelectedIndex(8);
+    tabs.setSelectedIndex(9);
         
         homeDot.setVisible(false);
         libraryDot.setVisible(false);
@@ -12960,6 +13156,7 @@ class ResizableImageLabel extends JLabel {
     private javax.swing.JTextField journalName;
     private javax.swing.JButton journalTabDoClick;
     private javax.swing.JPanel journalingPanel;
+    private javax.swing.JPanel journalsList;
     private javax.swing.JLabel jul;
     private javax.swing.JLabel jun;
     private javax.swing.JComboBox<String> langChooser;
@@ -13037,6 +13234,8 @@ class ResizableImageLabel extends JLabel {
     private javax.swing.JLabel recentSearchResult4;
     private javax.swing.JLabel recentSearchResult5;
     private javax.swing.JLabel recentSearchResult6;
+    private javax.swing.JPanel referencesPanel;
+    private javax.swing.JLabel referencesText;
     private javax.swing.JButton restoreBtn;
     private javax.swing.JButton saveJournal;
     private javax.swing.JButton saveNote;
@@ -13110,6 +13309,7 @@ class ResizableImageLabel extends JLabel {
     private javax.swing.JButton settingsDoClick;
     private javax.swing.JLabel settingsDot;
     private javax.swing.JLabel settingsLabel;
+    private javax.swing.JPanel showJournals;
     private javax.swing.JButton showMore;
     private javax.swing.JButton spacer;
     private javax.swing.JLabel statusDay1;
