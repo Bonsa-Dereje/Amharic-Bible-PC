@@ -9888,10 +9888,15 @@ class ResizableImageLabel extends JLabel {
         journalEntryScrollPane.setViewportView(journalEntry);
 
         journalName.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
-        journalName.setText("your_journal_name");
+        journalName.setText("untitled journal");
         journalName.setBorder(null);
         journalName.setFocusCycleRoot(true);
         journalName.setFocusTraversalPolicyProvider(true);
+        journalName.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                journalNameActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout journalingPanelLayout = new javax.swing.GroupLayout(journalingPanel);
         journalingPanel.setLayout(journalingPanelLayout);
@@ -9904,7 +9909,7 @@ class ResizableImageLabel extends JLabel {
                     .addComponent(journalEntryScrollPane)
                     .addGroup(journalingPanelLayout.createSequentialGroup()
                         .addComponent(jLabel1)
-                        .addGap(662, 662, 662)
+                        .addGap(676, 676, 676)
                         .addComponent(journalName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(saveJournal, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -9925,6 +9930,13 @@ class ResizableImageLabel extends JLabel {
                 .addComponent(journalEntryScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 834, Short.MAX_VALUE)
                 .addContainerGap())
         );
+
+        journalName.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                journalName.requestFocusInWindow();
+            }
+        });
 
         javax.swing.GroupLayout journalLayout = new javax.swing.GroupLayout(journal);
         journal.setLayout(journalLayout);
@@ -12666,110 +12678,126 @@ class ResizableImageLabel extends JLabel {
     }//GEN-LAST:event_hostJoinBtnActionPerformed
 
     private void saveJournalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveJournalActionPerformed
-        String jName = journalName.getText().trim();
-        String jText = journalEntry.getText().trim();
-        String imagePath = bookMarkJournalIMG; // your existing path variable
+    String jName = journalName.getText().trim();
+    String jText = journalEntry.getText().trim();
+    String imagePath = bookMarkJournalIMG; // path to the image
 
-        if (jName.isEmpty()) {
-            return; // require name
-        }
-        if (jText.isEmpty()) {
-            return; // require text
-        }
+    if (jName.isEmpty() || jText.isEmpty()) {
+        return; // require name and text
+    }
 
-        // Extract only filename for DB
-        String imageName = (imagePath != null) ? Paths.get(imagePath).getFileName().toString() : null;
-        String dbPath = "notesNJournals.db";
-        boolean writeSuccess = false;
+    // Extract only filename for DB
+    String imageName = (imagePath != null) ? Paths.get(imagePath).getFileName().toString() : null;
+    String dbPath = "notesNJournals.db";
+    boolean writeSuccess = false;
 
-        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
+    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
 
-            // --- Ensure column exists (safe: ignore error if already added) ---
-            try (Statement alterStmt = conn.createStatement()) {
-                try {
-                    alterStmt.execute("ALTER TABLE journals ADD COLUMN imgPositionSize TEXT");
-                } catch (SQLException sqe) {
-                    // Column likely already exists — ignore
-                }
-            } catch (SQLException e) {
-                // ignore alteration failure/non-fatal
-            }
-
-            // Prepare image position & size string if we have the label
-            String imgPosSize = null;
+        // --- Ensure imgPositionSize column exists ---
+        try (Statement alterStmt = conn.createStatement()) {
             try {
-                if (bookMarkJournalIMGLabel != null) {
-                    int x = bookMarkJournalIMGLabel.getX();
-                    int y = bookMarkJournalIMGLabel.getY();
-                    int w = bookMarkJournalIMGLabel.getWidth();
-                    int h = bookMarkJournalIMGLabel.getHeight();
-                    imgPosSize = x + "," + y + "," + w + "," + h; // "x,y,w,h"
-                }
-            } catch (Exception ex) {
-                // If anything goes wrong getting bounds, leave imgPosSize null
-                ex.printStackTrace();
-            }
-
-            // --- CHECK IF JOURNAL NAME EXISTS ---
-            boolean nameExists = false;
-            String checkSQL = "SELECT COUNT(*) FROM journals WHERE journalName = ?";
-            try (PreparedStatement checkStmt = conn.prepareStatement(checkSQL)) {
-                checkStmt.setString(1, jName);
-                ResultSet rs = checkStmt.executeQuery();
-                if (rs.next()) {
-                    nameExists = rs.getInt(1) > 0;
-                }
-            }
-
-            if (nameExists) {
-                // --- UPDATE EXISTING (also update imgPositionSize) ---
-                String updateSQL = "UPDATE journals SET imageName = ?, journalText = ?, imgPositionSize = ? WHERE journalName = ?";
-                try (PreparedStatement updateStmt = conn.prepareStatement(updateSQL)) {
-                    updateStmt.setString(1, imageName);
-                    updateStmt.setString(2, jText);
-                    updateStmt.setString(3, imgPosSize);
-                    updateStmt.setString(4, jName);
-                    updateStmt.executeUpdate();
-                    writeSuccess = true;
-                }
-            } else {
-                // --- INSERT NEW (including imgPositionSize) ---
-                String insertSQL = "INSERT INTO journals(journalName, imageName, journalText, imgPositionSize) VALUES(?, ?, ?, ?)";
-                try (PreparedStatement insertStmt = conn.prepareStatement(insertSQL)) {
-                    insertStmt.setString(1, jName);
-                    insertStmt.setString(2, imageName);
-                    insertStmt.setString(3, jText);
-                    insertStmt.setString(4, imgPosSize);
-                    insertStmt.executeUpdate();
-                    writeSuccess = true;
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            writeSuccess = false;
-        }
-
-        // If write succeeded -> set tick icon and mark flag
-        if (writeSuccess && saveJournal != null) {
-            try {
-                saveJournal.setIcon(new ImageIcon(getClass().getResource("/icons/tick15.png")));
-                journalIsSavedTick = true;
-            } catch (Exception ex) {
-                ex.printStackTrace();
+                alterStmt.execute("ALTER TABLE journals ADD COLUMN imgPositionSize TEXT");
+            } catch (SQLException sqe) {
+                // Column already exists, ignore
             }
         }
 
-        // START AUTOSAVE TIMER (only once)
-        if (journalAutoSaveTimer == null) {
-            journalAutoSaveTimer = new Timer(30_000, e -> {
-                // call save without UI event
-                saveJournalActionPerformed(null);
-            });
-            journalAutoSaveTimer.setRepeats(true);
-            journalAutoSaveTimer.start();
+        // --- Compute image position & size relative to nodesPanel ---
+        String imgPosSize = null;
+        try {
+            if (bookMarkJournalIMGLabel != null && bookMarkJournalIMGLabel.getIcon() != null) {
+                // Convert position from JScrollPane viewport to nodesPanel coordinates
+                Point labelPos = SwingUtilities.convertPoint(
+                        bookMarkJournalIMGLabel.getParent(), // viewport
+                        bookMarkJournalIMGLabel.getLocation(),
+                        nodesPanel // target container
+                );
+
+                int x = labelPos.x;
+                int y = labelPos.y;
+                int w = bookMarkJournalIMGLabel.getIcon().getIconWidth();
+                int h = bookMarkJournalIMGLabel.getIcon().getIconHeight();
+
+                imgPosSize = x + "," + y + "," + w + "," + h; // "x,y,w,h"
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
+
+        // --- Check if journal name exists ---
+        boolean nameExists = false;
+        String checkSQL = "SELECT COUNT(*) FROM journals WHERE journalName = ?";
+        try (PreparedStatement checkStmt = conn.prepareStatement(checkSQL)) {
+            checkStmt.setString(1, jName);
+            ResultSet rs = checkStmt.executeQuery();
+            if (rs.next()) {
+                nameExists = rs.getInt(1) > 0;
+            }
+        }
+
+        if (nameExists) {
+            // --- Ask user if they want to overwrite ---
+            int choice = JOptionPane.showConfirmDialog(
+                    this,
+                    "A journal named \"" + jName + "\" already exists.\nDo you want to overwrite it?",
+                    "Confirm Overwrite",
+                    JOptionPane.YES_NO_CANCEL_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            if (choice == JOptionPane.NO_OPTION || choice == JOptionPane.CANCEL_OPTION) {
+                return; // do nothing
+            }
+
+            // --- Update existing journal ---
+            String updateSQL = "UPDATE journals SET imageName = ?, journalText = ?, imgPositionSize = ? WHERE journalName = ?";
+            try (PreparedStatement updateStmt = conn.prepareStatement(updateSQL)) {
+                updateStmt.setString(1, imageName);
+                updateStmt.setString(2, jText);
+                updateStmt.setString(3, imgPosSize);
+                updateStmt.setString(4, jName);
+                updateStmt.executeUpdate();
+                writeSuccess = true;
+            }
+        } else {
+            // --- Insert new journal ---
+            String insertSQL = "INSERT INTO journals(journalName, imageName, journalText, imgPositionSize) VALUES(?, ?, ?, ?)";
+            try (PreparedStatement insertStmt = conn.prepareStatement(insertSQL)) {
+                insertStmt.setString(1, jName);
+                insertStmt.setString(2, imageName);
+                insertStmt.setString(3, jText);
+                insertStmt.setString(4, imgPosSize);
+                insertStmt.executeUpdate();
+                writeSuccess = true;
+            }
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        writeSuccess = false;
+    }
+
+    // --- If write succeeded → set tick icon ---
+    if (writeSuccess && saveJournal != null) {
+        try {
+            saveJournal.setIcon(new ImageIcon(getClass().getResource("/icons/tick15.png")));
+            journalIsSavedTick = true;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    // --- Start autosave timer if not already started ---
+    if (journalAutoSaveTimer == null) {
+        journalAutoSaveTimer = new Timer(30_000, e -> saveJournalActionPerformed(null));
+        journalAutoSaveTimer.setRepeats(true);
+        journalAutoSaveTimer.start();
+    }
     }//GEN-LAST:event_saveJournalActionPerformed
+
+    private void journalNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_journalNameActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_journalNameActionPerformed
 
     
     
