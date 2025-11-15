@@ -450,6 +450,22 @@ public class mainWindow extends javax.swing.JFrame {
     }
 
 
+    private Timer journalAutoSaveTimer;
+    private String journalLastSavedText = "";
+    //private JLabel journalImageLabel;
+    //private JLabel saveJournalBtn;
+
+    
+    
+    private boolean journalIsSavedTick = false; // true when UI shows tick
+    private JLabel bookMarkJournalIMGLabel;  
+    
+    
+    
+    
+    
+    
+    
     
     public mainWindow() {
         setUndecorated(true);
@@ -536,7 +552,24 @@ public class mainWindow extends javax.swing.JFrame {
         hostJoinDot.setVisible(false);
         settingsDot.setVisible(false);   
         
-        
+        journalEntry.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            private void onTextChanged() {
+                // Only switch back if we previously showed the tick icon
+                if (journalIsSavedTick && saveJournal != null) {
+                    try {
+                        saveJournal.setIcon(new ImageIcon(getClass().getResource("/icons/save15.png")));
+                    } catch (Exception ex) {
+                        // resource not found or other; ignore to avoid breaking edits
+                        ex.printStackTrace();
+                    }
+                    journalIsSavedTick = false;
+                }
+            }
+            @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { onTextChanged(); }
+            @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { onTextChanged(); }
+            @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { onTextChanged(); }
+        });
+
 
     }
 
@@ -2472,14 +2505,22 @@ private void saveSearchResults(String searchTerm, List<String> rawResults) {
 // Paste into your class (keep other existing methods like makeDraggable, saveNodePositions, showImageInSidePanel, deleteBookScreenshots, Connector classes, etc.)
 
 private void loadBookmarksNodes() {
+    //if (tabs.getSelectedIndex() != 6) return;
     System.out.println("---- Start loadBookmarksNodes ----");
 
     nodesPanel.removeAll();
     nodesPanel.setLayout(null);
+    if (tabs.getSelectedIndex() != 7) {
+        
+        return;
+    }
 
     // === LOAD SAVED JSON STATE IF PRESENT ===
+    
     JSONObject savedState = null;
+    
     File stateFile = new File("src/main/nodeStateSave/nodesState.json");
+    
     if (stateFile.exists()) {
         try (FileInputStream fis = new FileInputStream(stateFile)) {
             JSONTokener tok = new JSONTokener(fis);
@@ -3284,211 +3325,6 @@ class ConnectorToPoint extends Connector {
      * Opens a right-side panel showing the clicked image.
      */
 
-private void showImageInSidePanel(String imagePath) {
-    try {
-        BufferedImage img = ImageIO.read(new File(imagePath));
-        if (img == null) return;
-
-        // Remove existing side panel
-        for (Component c : nodesPanel.getComponents()) {
-            if ("sidePanel".equals(c.getName())) {
-                nodesPanel.remove(c);
-            }
-        }
-
-        int panelWidth = 350;
-        int minWidth = 200;
-        int panelHeight = nodesPanel.getHeight();
-
-        JPanel sidePanel = new JPanel(new BorderLayout()) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                g.setColor(Color.GRAY);
-                g.fillRect(getWidth() - 20, 5, 15, 15); // resize handle
-            }
-        };
-        sidePanel.setName("sidePanel");
-        sidePanel.setBackground(new Color(40, 43, 45));
-        sidePanel.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, Color.GRAY));
-        sidePanel.setBounds(nodesPanel.getWidth() - panelWidth, 0, panelWidth, panelHeight);
-
-        // ===== Header =====
-        JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(new Color(50, 53, 55));
-
-        JPanel leftFiller = new JPanel();
-        leftFiller.setOpaque(false);
-        header.add(leftFiller, BorderLayout.WEST);
-
-        JButton journalBtn = new JButton("Go to Journal");
-        journalBtn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        journalBtn.setForeground(Color.WHITE);
-        journalBtn.setBackground(new Color(70, 73, 75));
-        journalBtn.setFocusPainted(false);
-        journalBtn.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        ImageIcon icon = new ImageIcon(getClass().getResource("/icons/icons8-arrow-right-15.png"));
-        journalBtn.setIcon(icon);
-        journalBtn.setHorizontalTextPosition(SwingConstants.RIGHT);
-        journalBtn.setIconTextGap(6);
-        journalBtn.addActionListener(e -> {
-            bookMarkJournalIMG = imagePath;
-            tabs.setSelectedIndex(8);
-        });
-        header.add(journalBtn, BorderLayout.CENTER);
-
-        JButton closeBtn = new JButton("x");
-        closeBtn.setFocusPainted(false);
-        closeBtn.setBorderPainted(false);
-        closeBtn.setContentAreaFilled(false);
-        closeBtn.setForeground(Color.WHITE);
-        closeBtn.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        closeBtn.addActionListener(e -> {
-            nodesPanel.remove(sidePanel);
-            nodesPanel.revalidate();
-            nodesPanel.repaint();
-        });
-        header.add(closeBtn, BorderLayout.EAST);
-        sidePanel.add(header, BorderLayout.NORTH);
-
-        // ===== Image =====
-        JLabel imgLabel = new JLabel();
-        imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        imgLabel.setOpaque(false);
-        JScrollPane scrollPane = new JScrollPane(imgLabel);
-        scrollPane.setBorder(null);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.getViewport().setBackground(new Color(40, 43, 45));
-        scrollPane.setBackground(new Color(40, 43, 45));
-        sidePanel.add(scrollPane, BorderLayout.CENTER);
-
-        Runnable scaleImage = () -> {
-            int maxW = sidePanel.getWidth() - 40;
-            int maxH = sidePanel.getHeight() - 180; // leave space for text area
-            double scale = Math.min((double) maxW / img.getWidth(), (double) maxH / img.getHeight());
-            Image scaled = img.getScaledInstance((int) (img.getWidth() * scale),
-                    (int) (img.getHeight() * scale), Image.SCALE_SMOOTH);
-            imgLabel.setIcon(new ImageIcon(scaled));
-        };
-        scaleImage.run();
-
-        // ===== Text area for Summary (outer box only) =====
-        JPanel textPanel = new JPanel(new BorderLayout());
-        textPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(Color.LIGHT_GRAY), "Summary (highlight)",
-                TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION,
-                new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 14), Color.LIGHT_GRAY
-        ));
-        textPanel.setBackground(new Color(40, 43, 45));
-
-        JTextArea summaryArea = new JTextArea();
-        summaryArea.setLineWrap(true);
-        summaryArea.setWrapStyleWord(true);
-        summaryArea.setBackground(new Color(40, 43, 45));
-        summaryArea.setForeground(Color.WHITE);
-        summaryArea.setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 14));
-        summaryArea.setCaretColor(Color.WHITE);
-
-        // ScrollPane without inner border
-        JScrollPane textScroll = new JScrollPane(summaryArea);
-        textScroll.setBorder(null); // REMOVE inner border
-        textScroll.getVerticalScrollBar().setUnitIncrement(16);
-        textScroll.setBackground(new Color(40, 43, 45));
-        textPanel.add(textScroll, BorderLayout.CENTER);
-        textPanel.setPreferredSize(new Dimension(panelWidth, 120));
-
-        sidePanel.add(textPanel, BorderLayout.SOUTH);
-
-        // ===== Load or initialize single JSON file =====
-        Path saveDir = Paths.get("src/main/userFiles");
-        if (!Files.exists(saveDir)) Files.createDirectories(saveDir);
-        Path summaryFile = saveDir.resolve("summaries.json");
-
-        JSONObject allSummaries;
-        if (Files.exists(summaryFile)) {
-            try (Reader reader = Files.newBufferedReader(summaryFile)) {
-                allSummaries = new JSONObject(new JSONTokener(reader));
-            }
-        } else {
-            allSummaries = new JSONObject();
-        }
-
-        // ===== Set summary for this image =====
-        summaryArea.setText(allSummaries.optString(Paths.get(imagePath).getFileName().toString(), ""));
-
-        // ===== Save summary every 1 second =====
-        Timer saveTimer = new Timer(1000, e -> {
-            try {
-                allSummaries.put(Paths.get(imagePath).getFileName().toString(), summaryArea.getText());
-                try (Writer writer = Files.newBufferedWriter(summaryFile)) {
-                    writer.write(allSummaries.toString(4));
-                }
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        });
-        saveTimer.start();
-
-        // Stop timer when sidebar is closed
-        sidePanel.addHierarchyListener(e -> {
-            if ((e.getChangeFlags() & HierarchyEvent.DISPLAYABILITY_CHANGED) != 0) {
-                if (!sidePanel.isDisplayable()) {
-                    saveTimer.stop();
-                }
-            }
-        });
-
-        // ===== Sidebar resizing =====
-        final Point[] dragStart = {null};
-        sidePanel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                if (e.getX() < 10) dragStart[0] = e.getPoint();
-            }
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                dragStart[0] = null;
-            }
-        });
-        sidePanel.addMouseMotionListener(new MouseMotionAdapter() {
-            @Override
-            public void mouseMoved(MouseEvent e) {
-                sidePanel.setCursor(e.getX() < 10 ? Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR) : Cursor.getDefaultCursor());
-            }
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                if (dragStart[0] != null) {
-                    int newWidth = sidePanel.getWidth() - (e.getX() - dragStart[0].x);
-                    newWidth = Math.max(newWidth, 200);
-                    sidePanel.setBounds(nodesPanel.getWidth() - newWidth, 0, newWidth, panelHeight);
-                    scaleImage.run();
-                    nodesPanel.revalidate();
-                    nodesPanel.repaint();
-                }
-            }
-        });
-
-        // Close sidebar when clicking outside
-        nodesPanel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                if (!SwingUtilities.isDescendingFrom(e.getComponent(), sidePanel)) {
-                    nodesPanel.remove(sidePanel);
-                    nodesPanel.revalidate();
-                    nodesPanel.repaint();
-                }
-            }
-        });
-
-        nodesPanel.add(sidePanel);
-        nodesPanel.setComponentZOrder(sidePanel, 0);
-        nodesPanel.revalidate();
-        nodesPanel.repaint();
-
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
-}
 
 
 
@@ -3742,6 +3578,211 @@ private void panner(JPanel nodesPanel, List<JLabel> allNodes, JComponent... extr
 }
 
 
+private void showImageInSidePanel(String imagePath) {
+    try {
+        BufferedImage img = ImageIO.read(new File(imagePath));
+        if (img == null) return;
+
+        // Remove existing side panel
+        for (Component c : nodesPanel.getComponents()) {
+            if ("sidePanel".equals(c.getName())) {
+                nodesPanel.remove(c);
+            }
+        }
+
+        int panelWidth = 350;
+        int minWidth = 200;
+        int panelHeight = nodesPanel.getHeight();
+
+        JPanel sidePanel = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.setColor(Color.GRAY);
+                g.fillRect(getWidth() - 20, 5, 15, 15); // resize handle
+            }
+        };
+        sidePanel.setName("sidePanel");
+        sidePanel.setBackground(new Color(40, 43, 45));
+        sidePanel.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, Color.GRAY));
+        sidePanel.setBounds(nodesPanel.getWidth() - panelWidth, 0, panelWidth, panelHeight);
+
+        // ===== Header =====
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(new Color(50, 53, 55));
+
+        JPanel leftFiller = new JPanel();
+        leftFiller.setOpaque(false);
+        header.add(leftFiller, BorderLayout.WEST);
+
+        JButton journalBtn = new JButton("Go to Journal");
+        journalBtn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        journalBtn.setForeground(Color.WHITE);
+        journalBtn.setBackground(new Color(70, 73, 75));
+        journalBtn.setFocusPainted(false);
+        journalBtn.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        ImageIcon icon = new ImageIcon(getClass().getResource("/icons/icons8-arrow-right-15.png"));
+        journalBtn.setIcon(icon);
+        journalBtn.setHorizontalTextPosition(SwingConstants.RIGHT);
+        journalBtn.setIconTextGap(6);
+        journalBtn.addActionListener(e -> {
+            bookMarkJournalIMG = imagePath;
+            tabs.setSelectedIndex(8);
+        });
+        header.add(journalBtn, BorderLayout.CENTER);
+
+        JButton closeBtn = new JButton("x");
+        closeBtn.setFocusPainted(false);
+        closeBtn.setBorderPainted(false);
+        closeBtn.setContentAreaFilled(false);
+        closeBtn.setForeground(Color.WHITE);
+        closeBtn.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        closeBtn.addActionListener(e -> {
+            nodesPanel.remove(sidePanel);
+            nodesPanel.revalidate();
+            nodesPanel.repaint();
+        });
+        header.add(closeBtn, BorderLayout.EAST);
+        sidePanel.add(header, BorderLayout.NORTH);
+
+        // ===== Image =====
+        JLabel imgLabel = new JLabel();
+        imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        imgLabel.setOpaque(false);
+        JScrollPane scrollPane = new JScrollPane(imgLabel);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getViewport().setBackground(new Color(40, 43, 45));
+        scrollPane.setBackground(new Color(40, 43, 45));
+        sidePanel.add(scrollPane, BorderLayout.CENTER);
+
+        Runnable scaleImage = () -> {
+            int maxW = sidePanel.getWidth() - 40;
+            int maxH = sidePanel.getHeight() - 180; // leave space for text area
+            double scale = Math.min((double) maxW / img.getWidth(), (double) maxH / img.getHeight());
+            Image scaled = img.getScaledInstance((int) (img.getWidth() * scale),
+                    (int) (img.getHeight() * scale), Image.SCALE_SMOOTH);
+            imgLabel.setIcon(new ImageIcon(scaled));
+        };
+        scaleImage.run();
+
+        // ===== Text area for Summary (outer box only) =====
+        JPanel textPanel = new JPanel(new BorderLayout());
+        textPanel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(Color.LIGHT_GRAY), "Summary (highlight)",
+                TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION,
+                new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 14), Color.LIGHT_GRAY
+        ));
+        textPanel.setBackground(new Color(40, 43, 45));
+
+        JTextArea summaryArea = new JTextArea();
+        summaryArea.setLineWrap(true);
+        summaryArea.setWrapStyleWord(true);
+        summaryArea.setBackground(new Color(40, 43, 45));
+        summaryArea.setForeground(Color.WHITE);
+        summaryArea.setFont(new Font("Nokia Pure Headline Ultra Light", Font.PLAIN, 14));
+        summaryArea.setCaretColor(Color.WHITE);
+
+        // ScrollPane without inner border
+        JScrollPane textScroll = new JScrollPane(summaryArea);
+        textScroll.setBorder(null); // REMOVE inner border
+        textScroll.getVerticalScrollBar().setUnitIncrement(16);
+        textScroll.setBackground(new Color(40, 43, 45));
+        textPanel.add(textScroll, BorderLayout.CENTER);
+        textPanel.setPreferredSize(new Dimension(panelWidth, 120));
+
+        sidePanel.add(textPanel, BorderLayout.SOUTH);
+
+        // ===== Load or initialize single JSON file =====
+        Path saveDir = Paths.get("src/main/userFiles");
+        if (!Files.exists(saveDir)) Files.createDirectories(saveDir);
+        Path summaryFile = saveDir.resolve("summaries.json");
+
+        JSONObject allSummaries;
+        if (Files.exists(summaryFile)) {
+            try (Reader reader = Files.newBufferedReader(summaryFile)) {
+                allSummaries = new JSONObject(new JSONTokener(reader));
+            }
+        } else {
+            allSummaries = new JSONObject();
+        }
+
+        // ===== Set summary for this image =====
+        summaryArea.setText(allSummaries.optString(Paths.get(imagePath).getFileName().toString(), ""));
+
+        // ===== Save summary every 1 second =====
+        Timer saveTimer = new Timer(1000, e -> {
+            try {
+                allSummaries.put(Paths.get(imagePath).getFileName().toString(), summaryArea.getText());
+                try (Writer writer = Files.newBufferedWriter(summaryFile)) {
+                    writer.write(allSummaries.toString(4));
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        });
+        saveTimer.start();
+
+        // Stop timer when sidebar is closed
+        sidePanel.addHierarchyListener(e -> {
+            if ((e.getChangeFlags() & HierarchyEvent.DISPLAYABILITY_CHANGED) != 0) {
+                if (!sidePanel.isDisplayable()) {
+                    saveTimer.stop();
+                }
+            }
+        });
+
+        // ===== Sidebar resizing =====
+        final Point[] dragStart = {null};
+        sidePanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (e.getX() < 10) dragStart[0] = e.getPoint();
+            }
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                dragStart[0] = null;
+            }
+        });
+        sidePanel.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                sidePanel.setCursor(e.getX() < 10 ? Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR) : Cursor.getDefaultCursor());
+            }
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (dragStart[0] != null) {
+                    int newWidth = sidePanel.getWidth() - (e.getX() - dragStart[0].x);
+                    newWidth = Math.max(newWidth, 200);
+                    sidePanel.setBounds(nodesPanel.getWidth() - newWidth, 0, newWidth, panelHeight);
+                    scaleImage.run();
+                    nodesPanel.revalidate();
+                    nodesPanel.repaint();
+                }
+            }
+        });
+
+        // Close sidebar when clicking outside
+        nodesPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (!SwingUtilities.isDescendingFrom(e.getComponent(), sidePanel)) {
+                    nodesPanel.remove(sidePanel);
+                    nodesPanel.revalidate();
+                    nodesPanel.repaint();
+                }
+            }
+        });
+
+        nodesPanel.add(sidePanel);
+        nodesPanel.setComponentZOrder(sidePanel, 0);
+        nodesPanel.revalidate();
+        nodesPanel.repaint();
+
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
 
     
 //Journal tab methods
@@ -3933,10 +3974,6 @@ class ResizableImageLabel extends JLabel {
         }
     }
 }
-
-
-
-
 
 
 
@@ -4572,6 +4609,7 @@ class ResizableImageLabel extends JLabel {
         saveJournal = new javax.swing.JButton();
         journalEntryScrollPane = new javax.swing.JScrollPane();
         journalEntry = new javax.swing.JEditorPane();
+        journalName = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -9849,17 +9887,25 @@ class ResizableImageLabel extends JLabel {
         journalEntry.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 18)); // NOI18N
         journalEntryScrollPane.setViewportView(journalEntry);
 
+        journalName.setFont(new java.awt.Font("Nokia Pure Headline Ultra Light", 0, 14)); // NOI18N
+        journalName.setText("your_journal_name");
+        journalName.setBorder(null);
+        journalName.setFocusCycleRoot(true);
+        journalName.setFocusTraversalPolicyProvider(true);
+
         javax.swing.GroupLayout journalingPanelLayout = new javax.swing.GroupLayout(journalingPanel);
         journalingPanel.setLayout(journalingPanelLayout);
         journalingPanelLayout.setHorizontalGroup(
             journalingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jProgressBar1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 1543, Short.MAX_VALUE)
+            .addComponent(jProgressBar1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 1555, Short.MAX_VALUE)
             .addGroup(journalingPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(journalingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(journalEntryScrollPane)
                     .addGroup(journalingPanelLayout.createSequentialGroup()
                         .addComponent(jLabel1)
+                        .addGap(662, 662, 662)
+                        .addComponent(journalName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(saveJournal, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
@@ -9870,7 +9916,9 @@ class ResizableImageLabel extends JLabel {
                 .addContainerGap()
                 .addGroup(journalingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(saveJournal, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
+                    .addGroup(journalingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel1)
+                        .addComponent(journalName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -9883,16 +9931,16 @@ class ResizableImageLabel extends JLabel {
         journalLayout.setHorizontalGroup(
             journalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, journalLayout.createSequentialGroup()
-                .addContainerGap(15, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(journalingPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(20, 20, 20))
         );
         journalLayout.setVerticalGroup(
             journalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(journalLayout.createSequentialGroup()
-                .addGap(70, 70, 70)
+                .addGap(74, 74, 74)
                 .addComponent(journalingPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(15, Short.MAX_VALUE))
+                .addContainerGap(11, Short.MAX_VALUE))
         );
 
         tabs.addTab("tab9", journal);
@@ -12618,13 +12666,108 @@ class ResizableImageLabel extends JLabel {
     }//GEN-LAST:event_hostJoinBtnActionPerformed
 
     private void saveJournalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveJournalActionPerformed
-        saveJournalEntry();
+        String jName = journalName.getText().trim();
+        String jText = journalEntry.getText().trim();
+        String imagePath = bookMarkJournalIMG; // your existing path variable
 
-        // Start or restart the autosave timer
-        if (autoSaveTimer == null) {
-            startAutoSave();
-        } else if (!autoSaveTimer.isRunning()) {
-            autoSaveTimer.start();
+        if (jName.isEmpty()) {
+            return; // require name
+        }
+        if (jText.isEmpty()) {
+            return; // require text
+        }
+
+        // Extract only filename for DB
+        String imageName = (imagePath != null) ? Paths.get(imagePath).getFileName().toString() : null;
+        String dbPath = "notesNJournals.db";
+        boolean writeSuccess = false;
+
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
+
+            // --- Ensure column exists (safe: ignore error if already added) ---
+            try (Statement alterStmt = conn.createStatement()) {
+                try {
+                    alterStmt.execute("ALTER TABLE journals ADD COLUMN imgPositionSize TEXT");
+                } catch (SQLException sqe) {
+                    // Column likely already exists — ignore
+                }
+            } catch (SQLException e) {
+                // ignore alteration failure/non-fatal
+            }
+
+            // Prepare image position & size string if we have the label
+            String imgPosSize = null;
+            try {
+                if (bookMarkJournalIMGLabel != null) {
+                    int x = bookMarkJournalIMGLabel.getX();
+                    int y = bookMarkJournalIMGLabel.getY();
+                    int w = bookMarkJournalIMGLabel.getWidth();
+                    int h = bookMarkJournalIMGLabel.getHeight();
+                    imgPosSize = x + "," + y + "," + w + "," + h; // "x,y,w,h"
+                }
+            } catch (Exception ex) {
+                // If anything goes wrong getting bounds, leave imgPosSize null
+                ex.printStackTrace();
+            }
+
+            // --- CHECK IF JOURNAL NAME EXISTS ---
+            boolean nameExists = false;
+            String checkSQL = "SELECT COUNT(*) FROM journals WHERE journalName = ?";
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkSQL)) {
+                checkStmt.setString(1, jName);
+                ResultSet rs = checkStmt.executeQuery();
+                if (rs.next()) {
+                    nameExists = rs.getInt(1) > 0;
+                }
+            }
+
+            if (nameExists) {
+                // --- UPDATE EXISTING (also update imgPositionSize) ---
+                String updateSQL = "UPDATE journals SET imageName = ?, journalText = ?, imgPositionSize = ? WHERE journalName = ?";
+                try (PreparedStatement updateStmt = conn.prepareStatement(updateSQL)) {
+                    updateStmt.setString(1, imageName);
+                    updateStmt.setString(2, jText);
+                    updateStmt.setString(3, imgPosSize);
+                    updateStmt.setString(4, jName);
+                    updateStmt.executeUpdate();
+                    writeSuccess = true;
+                }
+            } else {
+                // --- INSERT NEW (including imgPositionSize) ---
+                String insertSQL = "INSERT INTO journals(journalName, imageName, journalText, imgPositionSize) VALUES(?, ?, ?, ?)";
+                try (PreparedStatement insertStmt = conn.prepareStatement(insertSQL)) {
+                    insertStmt.setString(1, jName);
+                    insertStmt.setString(2, imageName);
+                    insertStmt.setString(3, jText);
+                    insertStmt.setString(4, imgPosSize);
+                    insertStmt.executeUpdate();
+                    writeSuccess = true;
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            writeSuccess = false;
+        }
+
+        // If write succeeded -> set tick icon and mark flag
+        if (writeSuccess && saveJournal != null) {
+            try {
+                saveJournal.setIcon(new ImageIcon(getClass().getResource("/icons/tick15.png")));
+                journalIsSavedTick = true;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        // START AUTOSAVE TIMER (only once)
+        if (journalAutoSaveTimer == null) {
+            journalAutoSaveTimer = new Timer(30_000, e -> {
+                // call save without UI event
+                saveJournalActionPerformed(null);
+            });
+            journalAutoSaveTimer.setRepeats(true);
+            journalAutoSaveTimer.start();
         }
     }//GEN-LAST:event_saveJournalActionPerformed
 
@@ -12786,6 +12929,7 @@ class ResizableImageLabel extends JLabel {
     private javax.swing.JLabel journalDot;
     private javax.swing.JEditorPane journalEntry;
     private javax.swing.JScrollPane journalEntryScrollPane;
+    private javax.swing.JTextField journalName;
     private javax.swing.JButton journalTabDoClick;
     private javax.swing.JPanel journalingPanel;
     private javax.swing.JLabel jul;
