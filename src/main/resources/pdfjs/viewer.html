@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<script src="pdf.js"></script>
+<style>
+  body { margin: 0; }
+  canvas { display: block; margin: 0 auto; }
+</style>
+</head>
+<body>
+
+<div id="container"></div>
+
+<script>
+let url = window.location.search.substring(1); // ?file=...
+url = decodeURIComponent(url);
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = "pdf.worker.js";
+
+pdfjsLib.getDocument(url).promise.then(function(pdf) {
+
+    let container = document.getElementById('container');
+
+    let pagesToShow = Math.min(5, pdf.numPages);
+
+    for (let i = 1; i <= pagesToShow; i++) {
+
+        pdf.getPage(i).then(function(page) {
+            let viewport = page.getViewport({scale: 1.3});
+            let canvas = document.createElement('canvas');
+            let ctx = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            container.appendChild(canvas);
+
+            page.render({
+                canvasContext: ctx,
+                viewport: viewport
+            });
+        });
+
+    }
+
+});
+</script>
+</body>
+</html>
